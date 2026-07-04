@@ -1,0 +1,23 @@
+<nav class="navbar">
+  <div class="navbar__brand">📚 Flashcards</div>
+
+  <div class="navbar__links">
+    <a routerLink="/dashboard" routerLinkActive="active">Dashboard</a>
+    <a routerLink="/study" routerLinkActive="active">Estudar</a>
+    <a routerLink="/add-card" routerLinkActive="active">Adicionar</a>
+    <a routerLink="/browse-cards" routerLinkActive="active">Gerenciar</a>
+    <a routerLink="/importar-cards" routerLinkActive="active">Importar</a>
+  </div>
+
+  <div class="navbar__settings">
+    <button type="button" class="navbar__settings-btn" (click)="toggleSettings()">⚙️ Configurações</button>
+
+    @if (showSettings) {
+      <div class="navbar__dropdown">
+        <button type="button" class="navbar__dropdown-item navbar__dropdown-item--danger" (click)="resetCards()">
+          🗑️ Resetar Cartões
+        </button>
+      </div>
+    }
+  </div>
+</nav>

@@ -1,0 +1,59 @@
+<app-navbar></app-navbar>
+
+<div class="add-card">
+  <h1>➕ Adicionar Cartão</h1>
+
+  <form (ngSubmit)="save()">
+    <label>
+      Título
+      <input type="text" name="title" [(ngModel)]="title" required />
+    </label>
+
+    <label>
+      Pergunta
+      <textarea name="question" rows="4" [(ngModel)]="question" required></textarea>
+    </label>
+
+    <label class="add-card__checkbox">
+      <input type="checkbox" name="isMultipleChoice" [(ngModel)]="isMultipleChoice" />
+      Múltipla escolha
+    </label>
+
+    @if (isMultipleChoice) {
+      <div class="add-card__options">
+        @for (row of optionRows; track row.letter) {
+          <div class="add-card__option-row">
+            <input
+              type="radio"
+              name="correctOption"
+              [value]="row.letter"
+              [(ngModel)]="correctOptionLetter"
+              [ngModelOptions]="{ standalone: true }"
+            />
+            <strong>{{ row.letter }}</strong>
+            <input
+              type="text"
+              [placeholder]="'Texto da alternativa ' + row.letter"
+              [(ngModel)]="row.text"
+              [ngModelOptions]="{ standalone: true }"
+            />
+          </div>
+        }
+      </div>
+    }
+
+    <label>
+      Resposta
+      <textarea name="answer" rows="4" [(ngModel)]="answer" required></textarea>
+    </label>
+
+    <label>
+      Tags (separadas por vírgula)
+      <input type="text" name="tags" [(ngModel)]="tags" />
+    </label>
+
+    <button type="submit" [disabled]="isSaving">
+      {{ isSaving ? 'Salvando...' : 'Salvar Cartão' }}
+    </button>
+  </form>
+</div>

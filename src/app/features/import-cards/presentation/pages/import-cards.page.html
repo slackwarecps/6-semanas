@@ -1,0 +1,29 @@
+<app-navbar></app-navbar>
+
+<div class="import-cards">
+  <h1>📥 Importar Cartões</h1>
+
+  <p>
+    Importa os arquivos Markdown da pasta <code>/flashcards</code> como novos cartões.
+    Cartões com título já existente são ignorados.
+  </p>
+
+  <button type="button" [disabled]="isImporting" (click)="importAll()">
+    {{ isImporting ? 'Importando...' : 'Importar Cartões' }}
+  </button>
+
+  @if (errorMessage) {
+    <div class="import-cards__erro">❌ {{ errorMessage }}</div>
+  }
+
+  @if (finished) {
+    <div class="import-cards__resultado">
+      <p>✅ Importação concluída.</p>
+      <ul>
+        <li>Arquivos encontrados: {{ totalFound }}</li>
+        <li>Cartões importados: {{ totalImported }}</li>
+        <li>Cartões ignorados (já existiam): {{ totalSkipped }}</li>
+      </ul>
+    </div>
+  }
+</div>

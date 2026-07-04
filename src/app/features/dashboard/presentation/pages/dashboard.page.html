@@ -1,0 +1,44 @@
+<app-navbar></app-navbar>
+
+<div class="dashboard">
+  <h1>📊 Dashboard</h1>
+
+  @if (isLoading) {
+    <p>Carregando estatísticas...</p>
+  } @else if (stats) {
+    <div class="dashboard__grid">
+      <div class="dashboard__card">
+        <span class="dashboard__value">{{ stats.totalCards }}</span>
+        <span class="dashboard__label">Total de Cartões</span>
+      </div>
+      <div class="dashboard__card dashboard__card--highlight">
+        <span class="dashboard__value">{{ stats.dueToday }}</span>
+        <span class="dashboard__label">Para Revisar Hoje</span>
+      </div>
+      <div class="dashboard__card">
+        <span class="dashboard__value">{{ stats.newCards }}</span>
+        <span class="dashboard__label">Novos</span>
+      </div>
+      <div class="dashboard__card">
+        <span class="dashboard__value">{{ stats.learningCards }}</span>
+        <span class="dashboard__label">Aprendendo</span>
+      </div>
+      <div class="dashboard__card">
+        <span class="dashboard__value">{{ stats.reviewCards }}</span>
+        <span class="dashboard__label">Em Revisão</span>
+      </div>
+      <div class="dashboard__card">
+        <span class="dashboard__value">{{ stats.relearningCards }}</span>
+        <span class="dashboard__label">Reaprendendo</span>
+      </div>
+      <div class="dashboard__card">
+        <span class="dashboard__value">{{ stats.averageEaseFactor }}</span>
+        <span class="dashboard__label">Fator de Facilidade Médio</span>
+      </div>
+    </div>
+
+    <button type="button" class="dashboard__study-btn" (click)="goToStudy()">
+      ▶️ Iniciar Sessão de Estudo
+    </button>
+  }
+</div>

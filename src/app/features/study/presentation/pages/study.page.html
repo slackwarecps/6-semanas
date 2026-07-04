@@ -1,0 +1,26 @@
+<app-navbar></app-navbar>
+
+<div class="study">
+  <h1>🧠 Sessão de Estudo</h1>
+
+  @if (isLoading) {
+    <p>Carregando...</p>
+  } @else if (sessionFinished) {
+    <div class="study__empty">
+      <p>🎉 Nenhum cartão pendente para revisão agora. Volte mais tarde!</p>
+    </div>
+  } @else if (currentCard) {
+    <app-card-display [card]="currentCard" [showAnswer]="showAnswer"></app-card-display>
+
+    @if (!showAnswer) {
+      <button type="button" class="study__reveal-btn" (click)="revealAnswer()">
+        Mostrar Resposta
+      </button>
+    } @else {
+      <div class="study__rate">
+        <p>Como foi sua resposta?</p>
+        <app-srs-buttons (qualitySelected)="rate($event)"></app-srs-buttons>
+      </div>
+    }
+  }
+</div>

@@ -1,0 +1,34 @@
+<app-navbar></app-navbar>
+
+<div class="testa-resposta">
+  <h1>🧪 Testar Resposta LLM</h1>
+
+  <textarea
+    class="testa-resposta__textarea"
+    rows="8"
+    placeholder="Digite a pergunta que deseja enviar ao backend..."
+    [(ngModel)]="pergunta"
+  ></textarea>
+
+  <button
+    type="button"
+    class="testa-resposta__btn"
+    [disabled]="isLoading || !pergunta.trim()"
+    (click)="onResponder()"
+  >
+    {{ isLoading ? 'Consultando...' : 'Responder' }}
+  </button>
+
+  @if (erro) {
+    <div class="testa-resposta__erro">
+      ❌ {{ erro }}
+    </div>
+  }
+
+  @if (resposta) {
+    <div class="testa-resposta__resultado">
+      <h2>Resposta</h2>
+      <pre>{{ resposta | json }}</pre>
+    </div>
+  }
+</div>

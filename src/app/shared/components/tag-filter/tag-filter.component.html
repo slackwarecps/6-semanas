@@ -1,0 +1,12 @@
+<div class="tag-filter">
+  @for (tag of availableTags; track tag) {
+    <button
+      type="button"
+      class="tag-filter__tag"
+      [class.tag-filter__tag--active]="isSelected(tag)"
+      (click)="toggleTag(tag)"
+    >
+      {{ tag }}
+    </button>
+  }
+</div>

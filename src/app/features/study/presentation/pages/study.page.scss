@@ -1,0 +1,37 @@
+.study {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+
+  &__empty {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: #64748b;
+  }
+
+  &__reveal-btn {
+    margin-top: 1.25rem;
+    width: 100%;
+    padding: 0.75rem;
+    border: none;
+    border-radius: 8px;
+    background-color: #1e293b;
+    color: #ffffff;
+    font-weight: 600;
+    cursor: pointer;
+
+    &:hover {
+      filter: brightness(1.1);
+    }
+  }
+
+  &__rate {
+    margin-top: 1.25rem;
+
+    p {
+      margin-bottom: 0.75rem;
+      text-align: center;
+      color: #475569;
+    }
+  }
+}

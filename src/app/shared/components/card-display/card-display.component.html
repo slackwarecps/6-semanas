@@ -1,0 +1,34 @@
+<div class="card-display">
+  <h2 class="card-display__title">{{ card.title }}</h2>
+
+  <div class="card-display__question" [innerHTML]="card.question | markdown"></div>
+
+  @if (card.isMultipleChoice) {
+    <ul class="card-display__options">
+      @for (option of card.options; track option.id) {
+        <li
+          class="card-display__option"
+          [class.card-display__option--selected]="isSelected(option.id)"
+          [class.card-display__option--correct]="showAnswer && option.isCorrect"
+        >
+          <strong>{{ option.id }}</strong> - {{ option.text }}
+        </li>
+      }
+    </ul>
+  }
+
+  @if (showAnswer) {
+    <div class="card-display__answer">
+      <h3>Resposta</h3>
+      <div [innerHTML]="card.answer | markdown"></div>
+    </div>
+  }
+
+  @if (card.tags.length) {
+    <div class="card-display__tags">
+      @for (tag of card.tags; track tag.name) {
+        <span class="card-display__tag">{{ tag.name }}</span>
+      }
+    </div>
+  }
+</div>

@@ -1,0 +1,35 @@
+.srs-buttons {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.75rem;
+
+  &__btn {
+    padding: 0.75rem;
+    border-radius: 8px;
+    border: none;
+    color: #ffffff;
+    font-weight: 600;
+    cursor: pointer;
+    transition: filter 0.15s ease;
+
+    &:hover {
+      filter: brightness(0.92);
+    }
+
+    &--again {
+      background-color: #dc2626;
+    }
+
+    &--hard {
+      background-color: #f59e0b;
+    }
+
+    &--good {
+      background-color: #22c55e;
+    }
+
+    &--easy {
+      background-color: #38bdf8;
+    }
+  }
+}
