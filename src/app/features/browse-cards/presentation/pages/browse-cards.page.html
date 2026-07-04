@@ -20,14 +20,22 @@
 
   <div *ngIf="!isLoading && cards.length > 0" class="cards-grid-container">
     <div class="cards-info">
-      <p>Total de cartões: <strong>{{ filteredCards.length }}</strong><span *ngIf="searchQuestionTerm" class="filter-count"> (filtrados de {{ cards.length }})</span></p>
-      <div class="search-box">
+      <p>Total de cartões: <strong>{{ filteredCards.length }}</strong><span *ngIf="searchQuestionTerm || searchTagTerm" class="filter-count"> (filtrados de {{ cards.length }})</span></p>
+      <div class="search-filters">
         <input 
           type="text" 
           [(ngModel)]="searchQuestionTerm" 
           name="searchQuestionTerm"
           (input)="onSearchInput()"
-          placeholder="🔍 Filtrar por texto na pergunta..."
+          placeholder="🔍 Buscar na pergunta..."
+          class="search-input"
+        />
+        <input 
+          type="text" 
+          [(ngModel)]="searchTagTerm" 
+          name="searchTagTerm"
+          (input)="onSearchInput()"
+          placeholder="🏷️ Buscar por tag..."
           class="search-input"
         />
       </div>
@@ -43,14 +51,13 @@
           <th class="col-actions">Ações</th>
         </tr>
       </thead>
-      <tbody>
+      <tbody *ngFor="let card of paginatedCards" class="card-item-body">
         <tr
-          *ngFor="let card of paginatedCards"
           class="card-row"
           (click)="openEditModal(card)"
         >
           <td class="col-id">
-            <span class="card-id">{{ card.id.value }}</span>
+            <span class="card-id">{{ card.seq ?? '—' }}</span>
           </td>
           <td class="col-title">
             <span class="card-title">{{ card.title }}</span>
@@ -76,6 +83,46 @@
             >
               🗑️ Deletar
             </button>
+          </td>
+        </tr>
+        <tr class="card-tags-row" (click)="openEditModal(card)">
+          <td></td>
+          <td colspan="4" class="col-tags-container">
+            <div class="card-tags-list">
+              <span *ngFor="let tag of card.tags" class="tag-badge-pill">{{ tag.name }}</span>
+              <span *ngIf="card.tags.length === 0" class="no-tags">Sem tags</span>
+            </div>
+          </td>
+        </tr>
+        <tr class="card-stats-row" (click)="openEditModal(card)">
+          <td></td>
+          <td colspan="4" class="col-stats-container">
+            <div class="card-stats-list">
+              <span class="stat-item">
+                <span class="stat-label">Estado:</span>
+                <span class="stat-val badge-state" [ngClass]="'badge-state--' + card.state.toLowerCase()">{{ card.state }}</span>
+              </span>
+              <span class="stat-item">
+                <span class="stat-label">Repetições:</span>
+                <span class="stat-val">{{ card.repetitions }}</span>
+              </span>
+              <span class="stat-item">
+                <span class="stat-label">Intervalo:</span>
+                <span class="stat-val">{{ card.interval.days }} dias</span>
+              </span>
+              <span class="stat-item">
+                <span class="stat-label">Fator Ease:</span>
+                <span class="stat-val">{{ card.easeFactor.value | number:'1.2-2' }}</span>
+              </span>
+              <span class="stat-item">
+                <span class="stat-label">Próxima Revisão:</span>
+                <span class="stat-val">{{ card.nextReviewDate | date:'dd/MM/yyyy HH:mm' }}</span>
+              </span>
+              <span class="stat-item">
+                <span class="stat-label">Tentativas:</span>
+                <span class="stat-val">{{ card.attempts.length }}</span>
+              </span>
+            </div>
           </td>
         </tr>
       </tbody>
@@ -175,6 +222,30 @@
             placeholder="Ex: arquitetura, design, backend"
             class="form-input"
           />
+        </div>
+
+        <div class="form-group">
+          <label for="explanation">Explicação Conceitual (Explanation)</label>
+          <textarea
+            id="explanation"
+            [(ngModel)]="editForm.explanation"
+            name="explanation"
+            placeholder="Detalhe o conceito técnico por trás da pergunta..."
+            class="form-textarea"
+            rows="4"
+          ></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="tenYearOld">Explicação Simplificada (10 Year Old)</label>
+          <textarea
+            id="tenYearOld"
+            [(ngModel)]="editForm.tenYearOld"
+            name="tenYearOld"
+            placeholder="Explique este conceito de forma tão simples quanto para uma criança de 10 anos..."
+            class="form-textarea"
+            rows="4"
+          ></textarea>
         </div>
 
         <div class="form-actions">

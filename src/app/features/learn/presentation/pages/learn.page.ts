@@ -27,6 +27,7 @@ export class LearnPage implements OnInit {
     { icon: '➕', label: 'Adicionar', path: '/add-card', color: '#f59e0b' },
     { icon: '📚', label: 'Gerenciar', path: '/browse-cards', color: '#a855f7' },
     { icon: '📥', label: 'Importar', path: '/importar-cards', color: '#ec4899' },
+    { icon: '🏷️', label: 'Nuvem de Tags', path: '/tag-cloud', color: '#eab308' },
     { icon: '🧪', label: 'Testar IA', path: '/testa-resposta', color: '#64748b' }
   ];
 

@@ -43,6 +43,8 @@ interface StoredCard {
   createdAt: number;
   updatedAt: number;
   nextReviewDate: number;
+  explanation?: string;
+  tenYearOld?: string;
 }
 
 @Injectable({
@@ -126,7 +128,9 @@ export class LocalStorageAdapter implements StorageInterface {
       })),
       createdAt: card.createdAt.getTime(),
       updatedAt: card.updatedAt.getTime(),
-      nextReviewDate: card.nextReviewDate.getTime()
+      nextReviewDate: card.nextReviewDate.getTime(),
+      explanation: card.explanation,
+      tenYearOld: card.tenYearOld
     };
   }
 
@@ -155,7 +159,9 @@ export class LocalStorageAdapter implements StorageInterface {
       })),
       createdAt: new Date(stored.createdAt),
       updatedAt: new Date(stored.updatedAt),
-      nextReviewDate: new Date(stored.nextReviewDate)
+      nextReviewDate: new Date(stored.nextReviewDate),
+      explanation: stored.explanation,
+      tenYearOld: stored.tenYearOld
     });
   }
 }

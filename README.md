@@ -107,7 +107,7 @@ A partir da versão 2.0, a aplicação usa **SQLite** com `sql.js` para persist�
 ### Dados Armazenados por Card
 
 Cada cartão armazena:
-- **Metadados:** ID, título, pergunta, resposta, tags, estado de aprendizagem
+- **Metadados:** ID, título, pergunta, resposta, tags, estado de aprendizagem, explicação técnica (`explanation`) e explicação simplificada (`10yearOld`).
 - **Algoritmo SRS:** Intervalo (dias), fator de facilidade, número de repetições, próxima data de revisão
 - **Histórico:** Todas as tentativas com timestamp, qualidade, tempo decorrido, e estado do SRS antes/depois
 
@@ -129,9 +129,20 @@ Isso remove:
 
 A rota `/browse-cards` atua como painel de gerenciamento, contando com as seguintes capacidades:
 
-- **Busca Rápida (LIKE %termo%):** Filtro de texto case-insensitive instantâneo aplicado sobre o campo Pergunta.
+- **Busca por Pergunta e Tag (cumulativa):** Filtro de texto case-insensitive instantâneo aplicado sobre o campo Pergunta e/ou sobre as Tags associadas ao card.
 - **Coluna de Identificador (ID):** Exibição explícita do ID exclusivo do banco de dados na extrema esquerda de cada card.
+- **Exibição de Tags e Estatísticas (SRS):** Cada card possui três linhas: a primeira exibe os dados textuais/ações, a segunda exibe as tags associadas e a terceira exibe estatísticas do algoritmo de repetição espaçada (estado de aprendizado, repetições, intervalo, fator de facilidade, próxima revisão e histórico de tentativas).
 - **Paginação Dinâmica:** Controle de quantidade de registros por página ajustável através de combobox (3, 10, 50 ou 100 itens).
+
+---
+
+## 🏷️ Nuvem de Tags
+
+A rota `/tag-cloud` oferece uma visualização analítica das palavras-chave mais utilizadas nos flashcards:
+
+- **Matriz de Frequência:** Analisa todas as tags cadastradas no banco de dados e calcula o peso proporcional de cada uma.
+- **Renderização Dinâmica:** Exibe as palavras com tamanho de fonte calculado dinamicamente de acordo com sua popularidade (entre 0.85rem e 2.5rem).
+- **Esquema de Cores Dinâmico:** Cada tag recebe uma cor HSL randômica harmoniosa com efeitos dinâmicos no hover.
 
 ---
 

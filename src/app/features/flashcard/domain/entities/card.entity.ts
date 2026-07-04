@@ -9,6 +9,7 @@ export type ReviewState = 'New' | 'Learning' | 'Review' | 'Relearning';
 
 export interface CardProps {
   id: CardId;
+  seq?: number;
   title: string;
   question: string;
   answer: string;
@@ -22,6 +23,8 @@ export interface CardProps {
   createdAt: Date;
   updatedAt: Date;
   nextReviewDate: Date;
+  explanation?: string;
+  tenYearOld?: string;
 }
 
 export interface NewCardProps {
@@ -30,10 +33,13 @@ export interface NewCardProps {
   answer: string;
   options?: MultipleChoiceOption[];
   tags?: Tag[];
+  explanation?: string;
+  tenYearOld?: string;
 }
 
 export class Card {
   readonly id: CardId;
+  readonly seq?: number;
   readonly title: string;
   readonly question: string;
   readonly answer: string;
@@ -47,9 +53,12 @@ export class Card {
   readonly createdAt: Date;
   readonly updatedAt: Date;
   readonly nextReviewDate: Date;
+  readonly explanation?: string;
+  readonly tenYearOld?: string;
 
   constructor(props: CardProps) {
     this.id = props.id;
+    this.seq = props.seq;
     this.title = props.title;
     this.question = props.question;
     this.answer = props.answer;
@@ -63,6 +72,8 @@ export class Card {
     this.createdAt = props.createdAt;
     this.updatedAt = props.updatedAt;
     this.nextReviewDate = props.nextReviewDate;
+    this.explanation = props.explanation;
+    this.tenYearOld = props.tenYearOld;
   }
 
   static create(props: NewCardProps): Card {
@@ -81,7 +92,9 @@ export class Card {
       attempts: [],
       createdAt: now,
       updatedAt: now,
-      nextReviewDate: now
+      nextReviewDate: now,
+      explanation: props.explanation,
+      tenYearOld: props.tenYearOld
     });
   }
 

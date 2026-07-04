@@ -31,6 +31,7 @@ interface StoredAttempt {
 
 interface StoredCard {
   id: string;
+  seq?: number;
   title: string;
   question: string;
   answer: string;
@@ -44,6 +45,8 @@ interface StoredCard {
   createdAt: number;
   updatedAt: number;
   nextReviewDate: number;
+  explanation?: string;
+  tenYearOld?: string;
 }
 
 @Injectable({
@@ -107,9 +110,43 @@ export class SqliteAdapter implements StorageInterface {
         repetitions INTEGER NOT NULL,
         createdAt INTEGER NOT NULL,
         updatedAt INTEGER NOT NULL,
-        nextReviewDate INTEGER NOT NULL
+        nextReviewDate INTEGER NOT NULL,
+        explanation TEXT,
+        tenYearOld TEXT,
+        seq INTEGER
       );
     `);
+
+    // Executa migrações dinâmicas das novas colunas para o banco existente
+    try {
+      this.db.run('ALTER TABLE cards ADD COLUMN explanation TEXT;');
+      console.info('[SQLite Migration] Coluna explanation adicionada à tabela cards.');
+    } catch (e) {
+      // Ignora se a coluna já existe
+    }
+
+    try {
+      this.db.run('ALTER TABLE cards ADD COLUMN tenYearOld TEXT;');
+      console.info('[SQLite Migration] Coluna tenYearOld adicionada à tabela cards.');
+    } catch (e) {
+      // Ignora se a coluna já existe
+    }
+
+    try {
+      this.db.run('ALTER TABLE cards ADD COLUMN seq INTEGER;');
+      console.info('[SQLite Migration] Coluna seq adicionada à tabela cards.');
+    } catch (e) {
+      // Ignora se a coluna já existe
+    }
+
+    this.db.run(`
+      CREATE TABLE IF NOT EXISTS card_seq_counter (
+        id INTEGER PRIMARY KEY CHECK (id = 1),
+        nextValue INTEGER NOT NULL DEFAULT 1
+      );
+    `);
+    this.db.run('INSERT OR IGNORE INTO card_seq_counter (id, nextValue) VALUES (1, 1);');
+    this.backfillCardSeq();
 
     this.db.run(`
       CREATE TABLE IF NOT EXISTS card_options (
@@ -188,6 +225,38 @@ export class SqliteAdapter implements StorageInterface {
     console.info('[SQLite] Tabelas criadas');
   }
 
+  // Atribui um seq numérico e estável para cards antigos que ainda não tenham um
+  // (migração de banco pré-existente), continuando a partir do contador global.
+  private backfillCardSeq(): void {
+    if (!this.db) return;
+
+    const pending = this.db.exec(
+      'SELECT id FROM cards WHERE seq IS NULL ORDER BY createdAt ASC, id ASC'
+    );
+    if (pending.length === 0 || pending[0].values.length === 0) return;
+
+    const counterResult = this.db.exec('SELECT nextValue FROM card_seq_counter WHERE id = 1');
+    let nextValue = counterResult.length > 0 ? (counterResult[0].values[0][0] as number) : 1;
+
+    for (const row of pending[0].values) {
+      const id = row[0] as string;
+      this.db.run('UPDATE cards SET seq = ? WHERE id = ?', [nextValue, id]);
+      nextValue++;
+    }
+
+    this.db.run('UPDATE card_seq_counter SET nextValue = ? WHERE id = 1', [nextValue]);
+    console.info(`[SQLite Migration] seq atribuído a ${pending[0].values.length} card(s) existente(s).`);
+  }
+
+  private nextCardSeq(): number {
+    if (!this.db) return 1;
+
+    const result = this.db.exec('SELECT nextValue FROM card_seq_counter WHERE id = 1');
+    const nextValue = result.length > 0 ? (result[0].values[0][0] as number) : 1;
+    this.db.run('UPDATE card_seq_counter SET nextValue = ? WHERE id = 1', [nextValue + 1]);
+    return nextValue;
+  }
+
   async saveCard(card: Card): Promise<void> {
     await this.ensureInitialized();
     if (!this.db) return;
@@ -206,7 +275,7 @@ export class SqliteAdapter implements StorageInterface {
         `UPDATE cards SET
           title = ?, question = ?, answer = ?, tags = ?,
           state = ?, interval = ?, easeFactor = ?, repetitions = ?,
-          updatedAt = ?, nextReviewDate = ?
+          updatedAt = ?, nextReviewDate = ?, explanation = ?, tenYearOld = ?
         WHERE id = ?`,
         [
           stored.title,
@@ -219,6 +288,8 @@ export class SqliteAdapter implements StorageInterface {
           stored.repetitions,
           stored.updatedAt,
           stored.nextReviewDate,
+          stored.explanation || null,
+          stored.tenYearOld || null,
           stored.id
         ]
       );
@@ -228,10 +299,11 @@ export class SqliteAdapter implements StorageInterface {
       this.db.run('DELETE FROM attempts WHERE id = ?', [stored.id]);
     } else {
       // Insert
+      const seq = this.nextCardSeq();
       this.db.run(
         `INSERT INTO cards
-          (id, title, question, answer, tags, state, interval, easeFactor, repetitions, createdAt, updatedAt, nextReviewDate)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          (id, title, question, answer, tags, state, interval, easeFactor, repetitions, createdAt, updatedAt, nextReviewDate, explanation, tenYearOld, seq)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           stored.id,
           stored.title,
@@ -244,7 +316,10 @@ export class SqliteAdapter implements StorageInterface {
           stored.repetitions,
           stored.createdAt,
           stored.updatedAt,
-          stored.nextReviewDate
+          stored.nextReviewDate,
+          stored.explanation || null,
+          stored.tenYearOld || null,
+          seq
         ]
       );
     }
@@ -309,7 +384,7 @@ export class SqliteAdapter implements StorageInterface {
     await this.ensureInitialized();
     if (!this.db) return [];
 
-    const result = this.db.exec('SELECT * FROM cards ORDER BY updatedAt DESC');
+    const result = this.db.exec('SELECT * FROM cards ORDER BY seq ASC');
     if (result.length === 0) return [];
 
     const cards: Card[] = [];
@@ -403,6 +478,7 @@ export class SqliteAdapter implements StorageInterface {
 
     return {
       id: obj.id,
+      seq: obj.seq ?? undefined,
       title: obj.title,
       question: obj.question,
       answer: obj.answer,
@@ -415,13 +491,16 @@ export class SqliteAdapter implements StorageInterface {
       attempts,
       createdAt: obj.createdAt,
       updatedAt: obj.updatedAt,
-      nextReviewDate: obj.nextReviewDate
+      nextReviewDate: obj.nextReviewDate,
+      explanation: obj.explanation || undefined,
+      tenYearOld: obj.tenYearOld || undefined
     };
   }
 
   private mapCardToStorage(card: Card): StoredCard {
     return {
       id: card.id.value,
+      seq: card.seq,
       title: card.title,
       question: card.question,
       answer: card.answer,
@@ -449,13 +528,16 @@ export class SqliteAdapter implements StorageInterface {
       })),
       createdAt: card.createdAt.getTime(),
       updatedAt: card.updatedAt.getTime(),
-      nextReviewDate: card.nextReviewDate.getTime()
+      nextReviewDate: card.nextReviewDate.getTime(),
+      explanation: card.explanation,
+      tenYearOld: card.tenYearOld
     };
   }
 
   private mapStorageToCard(stored: StoredCard): Card {
     return new Card({
       id: new CardId(stored.id),
+      seq: stored.seq,
       title: stored.title,
       question: stored.question,
       answer: stored.answer,
@@ -478,7 +560,9 @@ export class SqliteAdapter implements StorageInterface {
       })),
       createdAt: new Date(stored.createdAt),
       updatedAt: new Date(stored.updatedAt),
-      nextReviewDate: new Date(stored.nextReviewDate)
+      nextReviewDate: new Date(stored.nextReviewDate),
+      explanation: stored.explanation,
+      tenYearOld: stored.tenYearOld
     });
   }
 

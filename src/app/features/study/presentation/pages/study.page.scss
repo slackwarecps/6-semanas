@@ -3,6 +3,8 @@
 .study-layout {
   display: flex;
   align-items: flex-start;
+  justify-content: center;
+  gap: 1.5rem;
 }
 
 .study-sidebar {
@@ -34,6 +36,58 @@
     text-align: center;
   }
 
+  &__nav {
+    width: 100%;
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  &__nav-btn {
+    flex: 1;
+    background-color: #f8fafc;
+    border: 2px dashed #94a3b8;
+    border-radius: 4px;
+    padding: 0.5rem 0.4rem;
+    font-family: 'Kalam', cursive;
+    font-size: 0.82rem;
+    color: #1e293b;
+    cursor: pointer;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+    transition: background-color 0.15s ease, opacity 0.15s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.3rem;
+    white-space: nowrap;
+
+    &:hover:not(:disabled) {
+      background-color: #eef2f7;
+    }
+
+    &:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+  }
+
+  &__reset-btn {
+    width: 100%;
+    background-color: #fef2f2;
+    border: 2px dashed #fca5a5;
+    border-radius: 4px;
+    padding: 0.55rem 0.75rem;
+    font-family: 'Kalam', cursive;
+    font-size: 0.85rem;
+    color: #b91c1c;
+    cursor: pointer;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+    transition: background-color 0.15s ease;
+
+    &:hover {
+      background-color: #fee2e2;
+    }
+  }
+
   &__edit-btn {
     margin-top: auto;
     width: 100%;
@@ -57,9 +111,9 @@
 }
 
 .study {
-  flex: 1;
+  flex: 0 1 720px;
   max-width: 720px;
-  margin: 0 auto;
+  margin: 0;
   padding: 0.75rem 1.5rem 2rem;
   font-size: 0.86rem;
 
@@ -102,6 +156,95 @@
   }
 }
 
+.study-sidebar--right {
+  width: 440px;
+  gap: 1.25rem;
+  justify-content: flex-start;
+}
+
+.flip-card {
+  width: 100%;
+
+  &__toggle {
+    width: 100%;
+    background-color: #f8fafc;
+    border: 2px dashed #94a3b8;
+    border-radius: 4px;
+    padding: 0.85rem;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    text-align: left;
+    font-family: 'Kalam', cursive;
+    font-size: 1rem;
+    color: #1e293b;
+    cursor: pointer;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+    transition: background-color 0.15s ease;
+
+    &:hover {
+      background-color: #eef2f7;
+    }
+
+    &--empty span:first-child {
+      color: #dc2626;
+    }
+  }
+
+  &__chevron {
+    flex-shrink: 0;
+    font-size: 0.75rem;
+    color: #64748b;
+  }
+
+  &__panel {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.3s ease;
+  }
+
+  &--expanded &__panel {
+    grid-template-rows: 1fr;
+  }
+
+  &__panel-inner {
+    overflow: hidden;
+    min-height: 0;
+  }
+
+  &__content {
+    margin-top: 0.5rem;
+    background-color: #eef2ff;
+    border: 2px dashed #818cf8;
+    border-radius: 4px;
+    padding: 0.85rem;
+    box-sizing: border-box;
+    font-family: 'Kalam', cursive;
+    font-size: 0.85rem;
+    line-height: 1.5;
+    color: #1e293b;
+    text-align: left;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+
+    ::ng-deep p {
+      margin: 0 0 0.6rem;
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+    }
+
+    &--empty {
+      color: #94a3b8;
+      font-style: italic;
+      border-color: #cbd5e1;
+      background-color: #f8fafc;
+    }
+  }
+}
+
 @media (max-width: 768px) {
   .study-layout {
     flex-direction: column;
@@ -122,6 +265,10 @@
       margin-top: 0;
       transform: none;
     }
+  }
+
+  .study-sidebar--right {
+    flex-direction: column;
   }
 }
 
@@ -188,6 +335,47 @@
 
 .modal-body {
   padding: 24px 30px;
+
+  ul {
+    margin: 0 0 1rem 0;
+    padding-left: 1.5rem;
+
+    li {
+      margin-bottom: 0.5rem;
+    }
+  }
+
+  .warning-text {
+    margin: 0;
+    color: #b91c1c;
+    font-weight: 600;
+    background-color: #fef2f2;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    border-left: 4px solid #dc2626;
+  }
+}
+
+.reset-progress__label {
+  margin: 0 0 12px;
+  text-align: center;
+  color: #2d3748;
+  font-weight: 600;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 12px;
+  background-color: #e2e8f0;
+  border-radius: 999px;
+  overflow: hidden;
+
+  &__fill {
+    height: 100%;
+    background-color: #dc2626;
+    border-radius: 999px;
+    transition: width 0.15s ease;
+  }
 }
 
 .form-group {
@@ -260,6 +448,20 @@
 
     &:hover {
       background: #cbd5e0;
+    }
+  }
+
+  &.btn-danger {
+    background: #dc2626;
+    color: white;
+
+    &:hover:not(:disabled) {
+      background: #b91c1c;
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
     }
   }
 }

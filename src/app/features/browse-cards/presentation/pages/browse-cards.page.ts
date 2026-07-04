@@ -21,6 +21,7 @@ export class BrowseCardsPage implements OnInit {
   cards: Card[] = [];
   filteredCards: Card[] = [];
   searchQuestionTerm = '';
+  searchTagTerm = '';
   isLoading = true;
   selectedCard: Card | null = null;
   showEditModal = false;
@@ -42,7 +43,9 @@ export class BrowseCardsPage implements OnInit {
     title: '',
     question: '',
     answer: '',
-    tags: ''
+    tags: '',
+    explanation: '',
+    tenYearOld: ''
   };
 
   constructor(
@@ -93,14 +96,15 @@ export class BrowseCardsPage implements OnInit {
   }
 
   applyFilter(): void {
-    const term = this.searchQuestionTerm.trim().toLowerCase();
-    if (!term) {
-      this.filteredCards = [...this.cards];
-    } else {
-      this.filteredCards = this.cards.filter(card => 
-        card.question.toLowerCase().includes(term)
-      );
-    }
+    const questionTerm = this.searchQuestionTerm.trim().toLowerCase();
+    const tagTerm = this.searchTagTerm.trim().toLowerCase();
+
+    this.filteredCards = this.cards.filter(card => {
+      const matchesQuestion = !questionTerm || card.question.toLowerCase().includes(questionTerm);
+      const matchesTag = !tagTerm || card.tags.some(tag => tag.name.toLowerCase().includes(tagTerm));
+      return matchesQuestion && matchesTag;
+    });
+
     this.currentPage = 1;
     this.totalPages = Math.ceil(this.filteredCards.length / this.itemsPerPage);
   }
@@ -148,7 +152,9 @@ export class BrowseCardsPage implements OnInit {
       title: card.title,
       question: card.question,
       answer: card.answer,
-      tags: card.tags.map(t => t.name).join(', ')
+      tags: card.tags.map(t => t.name).join(', '),
+      explanation: card.explanation || '',
+      tenYearOld: card.tenYearOld || ''
     };
     this.showEditModal = true;
   }
@@ -174,6 +180,7 @@ export class BrowseCardsPage implements OnInit {
 
       const updatedCard = new Card({
         id: this.selectedCard.id,
+        seq: this.selectedCard.seq,
         title: this.editForm.title,
         question: this.editForm.question,
         answer: this.editForm.answer,
@@ -186,7 +193,9 @@ export class BrowseCardsPage implements OnInit {
         attempts: this.selectedCard.attempts,
         createdAt: this.selectedCard.createdAt,
         updatedAt: new Date(),
-        nextReviewDate: this.selectedCard.nextReviewDate
+        nextReviewDate: this.selectedCard.nextReviewDate,
+        explanation: this.editForm.explanation || undefined,
+        tenYearOld: this.editForm.tenYearOld || undefined
       });
 
       await this.cardRepository.save(updatedCard);
@@ -288,6 +297,7 @@ export class BrowseCardsPage implements OnInit {
     try {
       const updatedCard = new Card({
         id: this.bottomSheetCard.id,
+        seq: this.bottomSheetCard.seq,
         title: this.bottomSheetCard.title,
         question: this.bottomSheetCard.question,
         answer: this.bottomSheetAnswer,
@@ -300,7 +310,9 @@ export class BrowseCardsPage implements OnInit {
         attempts: this.bottomSheetCard.attempts,
         createdAt: this.bottomSheetCard.createdAt,
         updatedAt: new Date(),
-        nextReviewDate: this.bottomSheetCard.nextReviewDate
+        nextReviewDate: this.bottomSheetCard.nextReviewDate,
+        explanation: this.bottomSheetCard.explanation,
+        tenYearOld: this.bottomSheetCard.tenYearOld
       });
 
       await this.cardRepository.save(updatedCard);

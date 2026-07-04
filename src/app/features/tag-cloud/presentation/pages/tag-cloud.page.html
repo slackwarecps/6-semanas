@@ -1,0 +1,39 @@
+<app-navbar></app-navbar>
+
+<div class="tag-cloud-container">
+  <div class="header">
+    <button class="back-button" (click)="goBack()">
+      ← Voltar
+    </button>
+    <h1>🏷️ Nuvem de Tags</h1>
+    <div class="spacer"></div>
+  </div>
+
+  <div *ngIf="isLoading" class="loading">
+    <p>⏳ Carregando tags dos cartões...</p>
+  </div>
+
+  <div *ngIf="!isLoading && tags.length === 0" class="empty-state">
+    <p>📭 Nenhuma tag encontrada no banco de dados.</p>
+    <button class="btn btn-primary" (click)="goBack()">Ir para o Painel</button>
+  </div>
+
+  <div *ngIf="!isLoading && tags.length > 0" class="cloud-panel">
+    <div class="cloud-info">
+      <p>Total de tags exclusivas no banco: <strong>{{ tags.length }}</strong></p>
+    </div>
+
+    <div class="cloud-words">
+      <div 
+        *ngFor="let tag of tags" 
+        class="cloud-tag-item"
+        [style.font-size]="tag.fontSize"
+        [style.color]="tag.color"
+        [title]="tag.count + ' cartões associados'"
+      >
+        <span class="tag-name">{{ tag.name }}</span>
+        <span class="tag-count">{{ tag.count }}</span>
+      </div>
+    </div>
+  </div>
+</div>

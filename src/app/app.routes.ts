@@ -8,6 +8,7 @@ import { TestaRespostaPage } from './features/testa-resposta/presentation/pages/
 import { LearnPage } from './features/learn/presentation/pages/learn.page';
 import { AdminJornadaPage } from './features/admin-jornada/presentation/pages/admin-jornada.page';
 import { JornadaPhasePage } from './features/learn/presentation/pages/jornada-phase.page';
+import { TagCloudPage } from './features/tag-cloud/presentation/pages/tag-cloud.page';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
@@ -20,6 +21,7 @@ export const routes: Routes = [
   { path: 'learn', component: LearnPage },
   { path: 'admin/jornada', component: AdminJornadaPage },
   { path: 'learn/jornada/:id', component: JornadaPhasePage },
+  { path: 'tag-cloud', component: TagCloudPage },
   { path: '**', redirectTo: 'dashboard' }
 ];
 

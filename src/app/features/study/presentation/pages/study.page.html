@@ -4,10 +4,45 @@
   @if (currentCard) {
     <aside class="study-sidebar">
       <div class="study-sidebar__note">
-        <span class="study-sidebar__title">Pergunta número: {{ cardNumberLabel }}</span>
+        <span class="study-sidebar__title">Pergunta número: {{ cardNumberLabel }} de {{ totalCardsCount }}</span>
       </div>
 
-      <button type="button" class="study-sidebar__edit-btn" (click)="openEditModal()">
+      <div class="study-sidebar__nav">
+        <button
+          type="button"
+          class="study-sidebar__nav-btn"
+          title="Ver a pergunta anterior sem responder"
+          [disabled]="!canGoPrevious"
+          (click)="goToPrevious()"
+        >
+          <span aria-hidden="true">⬅️</span> Anterior
+        </button>
+        <button
+          type="button"
+          class="study-sidebar__nav-btn"
+          title="Ver a próxima pergunta sem responder"
+          [disabled]="!canGoNext"
+          (click)="goToNext()"
+        >
+          Próxima <span aria-hidden="true">➡️</span>
+        </button>
+      </div>
+
+      <button
+        type="button"
+        class="study-sidebar__reset-btn"
+        title="Reseta o progresso de SRS de todas as perguntas para o estado New"
+        (click)="openResetToNewDialog()"
+      >
+        🔄 Resetar todas para New
+      </button>
+
+      <button
+        type="button"
+        class="study-sidebar__edit-btn"
+        title="Editar título, pergunta, resposta e tags deste cartão"
+        (click)="openEditModal()"
+      >
         editar pergunta
       </button>
     </aside>
@@ -37,6 +72,52 @@
       }
     }
   </div>
+
+  @if (currentCard) {
+    <aside class="study-sidebar study-sidebar--right">
+      <div class="flip-card" [class.flip-card--expanded]="showExplanation">
+        <button
+          type="button"
+          class="flip-card__toggle"
+          [class.flip-card__toggle--empty]="!currentCard.explanation"
+          (click)="toggleExplanation()"
+        >
+          <span>Mostrar explicação</span>
+          <span class="flip-card__chevron" aria-hidden="true">{{ showExplanation ? '▲' : '▼' }}</span>
+        </button>
+        <div class="flip-card__panel">
+          <div class="flip-card__panel-inner">
+            @if (currentCard.explanation) {
+              <div class="flip-card__content" [innerHTML]="currentCard.explanation | markdown"></div>
+            } @else {
+              <div class="flip-card__content flip-card__content--empty">Sem info</div>
+            }
+          </div>
+        </div>
+      </div>
+
+      <div class="flip-card" [class.flip-card--expanded]="showTenYearOld">
+        <button
+          type="button"
+          class="flip-card__toggle"
+          [class.flip-card__toggle--empty]="!currentCard.tenYearOld"
+          (click)="toggleTenYearOld()"
+        >
+          <span>explique para uma criança</span>
+          <span class="flip-card__chevron" aria-hidden="true">{{ showTenYearOld ? '▲' : '▼' }}</span>
+        </button>
+        <div class="flip-card__panel">
+          <div class="flip-card__panel-inner">
+            @if (currentCard.tenYearOld) {
+              <div class="flip-card__content" [innerHTML]="currentCard.tenYearOld | markdown"></div>
+            } @else {
+              <div class="flip-card__content flip-card__content--empty">Sem info</div>
+            }
+          </div>
+        </div>
+      </div>
+    </aside>
+  }
 </div>
 
 @if (showEditModal) {
@@ -93,6 +174,30 @@
             />
           </div>
 
+          <div class="form-group">
+            <label for="edit-explanation">Explicação Conceitual (Explanation)</label>
+            <textarea
+              id="edit-explanation"
+              [(ngModel)]="editForm.explanation"
+              name="explanation"
+              placeholder="Detalhe o conceito técnico por trás da pergunta..."
+              class="form-textarea"
+              rows="4"
+            ></textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="edit-tenYearOld">Explicação Simplificada (10 Year Old)</label>
+            <textarea
+              id="edit-tenYearOld"
+              [(ngModel)]="editForm.tenYearOld"
+              name="tenYearOld"
+              placeholder="Explique este conceito de forma tão simples quanto para uma criança de 10 anos..."
+              class="form-textarea"
+              rows="4"
+            ></textarea>
+          </div>
+
           <div class="form-actions">
             <button type="button" class="btn btn-secondary" (click)="closeEditModal()">
               Cancelar
@@ -103,6 +208,47 @@
           </div>
         </form>
       </div>
+    </div>
+  </div>
+}
+
+@if (showResetToNewDialog) {
+  <div class="modal-overlay" (click)="!isResettingToNew && closeResetToNewDialog()">
+    <div class="modal-content reset-to-new-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>⚠️ Resetar todas as perguntas</h2>
+        <button class="close-button" [disabled]="isResettingToNew" (click)="closeResetToNewDialog()">✕</button>
+      </div>
+
+      @if (!isResettingToNew) {
+        <div class="modal-body">
+          <p>Você está prestes a resetar o progresso de <strong>todas as perguntas</strong> para o estado <strong>New</strong>. Ao confirmar:</p>
+          <ul>
+            <li>Intervalo, fator de facilidade e repetições de <strong>todos os cartões</strong> serão zerados.</li>
+            <li>Todos os cartões voltarão a ficar <strong>disponíveis para revisão imediata</strong>.</li>
+            <li>O <strong>histórico de tentativas</strong> não será apagado.</li>
+          </ul>
+          <p class="warning-text"><strong>Importante:</strong> esta ação não pode ser desfeita.</p>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary" (click)="closeResetToNewDialog()" autofocus>
+            Cancelar
+          </button>
+          <button type="button" class="btn btn-danger" (click)="confirmResetToNew()">
+            Confirmar Reset
+          </button>
+        </div>
+      } @else {
+        <div class="modal-body">
+          <p class="reset-progress__label">
+            Resetando {{ resetProgress.current }} de {{ resetProgress.total }} perguntas...
+          </p>
+          <div class="progress-bar">
+            <div class="progress-bar__fill" [style.width.%]="resetProgressPercent"></div>
+          </div>
+        </div>
+      }
     </div>
   </div>
 }

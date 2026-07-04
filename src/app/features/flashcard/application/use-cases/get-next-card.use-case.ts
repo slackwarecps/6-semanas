@@ -9,11 +9,14 @@ export class GetNextCardUseCase {
   constructor(private readonly cardRepository: CardRepository) {}
 
   async execute(): Promise<Card | null> {
-    const cards = await this.cardRepository.findAll();
-    const due = cards
-      .filter(card => card.isDue)
-      .sort((a, b) => a.nextReviewDate.getTime() - b.nextReviewDate.getTime());
-
+    const due = await this.executeAll();
     return due[0] ?? null;
+  }
+
+  async executeAll(): Promise<Card[]> {
+    const cards = await this.cardRepository.findAll();
+    return cards
+      .filter(card => card.isDue)
+      .sort((a, b) => (a.seq ?? 0) - (b.seq ?? 0));
   }
 }
