@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "playwright": {
+      "command": "node",
+      "args": ["/Users/fabioalvaropereira/.nvm/versions/node/v20.19.0/lib/node_modules/@playwright/mcp/build/index.js"]
+    }
+  }
+}

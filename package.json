@@ -1,0 +1,46 @@
+{
+  "name": "flashcards-app",
+  "version": "0.0.0",
+  "scripts": {
+    "ng": "ng",
+    "generate-index": "node generate-flashcards-index.js",
+    "postinstall": "cp node_modules/sql.js/dist/sql-wasm.wasm public/ 2>/dev/null || true",
+    "start": "npm run generate-index && ng serve",
+    "build": "npm run postinstall && npm run generate-index && ng build",
+    "watch": "npm run generate-index && ng build --watch --configuration development",
+    "test": "ng test",
+    "test:quiz-solver": "tsx scripts/test-quiz-solver.ts"
+  },
+  "private": true,
+  "packageManager": "npm@11.5.2",
+  "dependencies": {
+    "@angular/common": "^21.2.0",
+    "@angular/compiler": "^21.2.0",
+    "@angular/core": "^21.2.0",
+    "@angular/forms": "^21.2.0",
+    "@angular/platform-browser": "^21.2.0",
+    "@angular/router": "^21.2.0",
+    "@langchain/anthropic": "^1.5.1",
+    "@langchain/core": "^1.2.1",
+    "marked": "^18.0.5",
+    "rxjs": "~7.8.0",
+    "sql.js": "^1.14.1",
+    "tslib": "^2.3.0",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@angular/build": "^21.2.10",
+    "@angular/cli": "^21.2.10",
+    "@angular/compiler-cli": "^21.2.0",
+    "@types/marked": "^5.0.2",
+    "@types/node": "^20.19.0",
+    "@types/sql.js": "^1.4.11",
+    "dotenv": "^17.4.2",
+    "jsdom": "^28.0.0",
+    "playwright": "^1.61.1",
+    "prettier": "^3.8.1",
+    "tsx": "^4.23.0",
+    "typescript": "~5.9.2",
+    "vitest": "^4.0.8"
+  }
+}

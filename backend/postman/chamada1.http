@@ -1,0 +1,13 @@
+### Perguntar ao LLM (Claude) - flashcard 001, Otimizar custos CI-CD com Claude
+# Requer a extensao "REST Client" (humao.rest-client) no VS Code.
+# Suba o servidor antes: cd backend && uvicorn main:app --reload
+
+@baseUrl = http://127.0.0.1:8000
+
+POST {{baseUrl}}/perguntar
+Content-Type: application/json
+
+{
+  "pergunta": "Title: Otimizar custos CI/CD com Claude: sincronismo vs Message Batches API para PRs, auditorias e testes\n---\n\nYour CI/CD system performs three types of Claude-powered analysis: (1) quick style checks on each PR that block merging until complete, (2) comprehensive security audits of the entire codebase run weekly, and (3) test case generation triggered nightly for recently-modified modules. The Message Batches API offers 50% cost savings but can take up to 24 hours to process. You want to optimize API costs while maintaining acceptable developer experience. Which combination correctly matches each task to its API approach?\n\n---\n\n[ ] A - Use synchronous calls for all three tasks for consistent response times, and rely on prompt caching to reduce costs across all workloads.\n[ ] B - Use synchronous calls for PR style checks and nightly test generation; use Message Batches API only for weekly security audits.\n[ ] C - Use the Message Batches API for all three tasks to maximize the 50% cost savings, and configure the pipeline to poll for batch completion.\n[ ] D - Use synchronous calls for PR style checks; use the Message Batches API for weekly security audits and nightly test generation.\n\n---\nTags: Domain_1::Agentic_Architecture_Orchestration Domain_2::Tool_Design_MCP_Integration Domain_5::Context_Management_Reliability\n",
+  "provedor": "claude"
+}

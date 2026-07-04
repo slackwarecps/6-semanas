@@ -1,0 +1,62 @@
+{
+  "001": {
+    "correctOption": "D",
+    "explanation": "Verificações de estilo em PRs são bloqueantes e exigem feedback em tempo real para não travar o desenvolvedor. Auditorias semanais e geração de testes noturna são assíncronas e toleram atrasos, sendo ideais para a Message Batches API (economia de 50%)."
+  },
+  "002": {
+    "correctOption": "C",
+    "explanation": "O modelo assíncrono de lote (Batch API) não permite a execução interativa de ferramentas no meio de uma requisição. Como o Claude precisa chamar a ferramenta para obter arquivos relacionados antes de concluir a análise, o fluxo iterativo falha."
+  },
+  "003": {
+    "correctOption": "B",
+    "explanation": "Para automatizar o post de comentários na linha correta do GitHub, são necessários dados estruturados precisos. A forma mais robusta é usar as flags de saída JSON e esquema da CLI para garantir o formato correto na origem."
+  },
+  "004": {
+    "correctOption": "A",
+    "explanation": "Categorias com altíssima taxa de falsos positivos (como estilo e documentação) minam a confiança do desenvolvedor no sistema como um todo. Desativá-las temporariamente protege a reputação das categorias precisas (segurança e correção) enquanto os prompts são refinados."
+  },
+  "005": {
+    "correctOption": "D",
+    "explanation": "Exemplos poucas etapas (few-shot) no prompt são a técnica mais consistente e confiável para ensinar modelos de linguagem a seguir formatos estritos e níveis de detalhe específicos."
+  },
+  "006": {
+    "correctOption": "D",
+    "explanation": "LLMs sofrem de viés de confirmação em auto-revisão. Uma segunda instância independente, que não tenha acesso ao raciocínio de geração do primeiro agente, revisará as mudanças com maior imparcialidade e eficiência."
+  },
+  "007": {
+    "correctOption": "C",
+    "explanation": "Tentar analisar muitos arquivos de uma vez sobrecarrega o contexto e gera inconsistência. Dividir em passes focados por arquivo (análise local) e depois um passe de integração (análise global) melhora drasticamente a qualidade."
+  },
+  "008": {
+    "correctOption": "D",
+    "explanation": "Para evitar que o Claude sugira testes que já existem no projeto, a solução mais direta e eficaz é incluir os arquivos de testes existentes no contexto da chamada para que o modelo possa compará-los."
+  },
+  "009": {
+    "correctOption": "B",
+    "explanation": "O principal gargalo citado é o tempo de investigação dos desenvolvedores. Filtrar e exibir apenas findings que o modelo avalia com alta confiança reduz diretamente a quantidade de itens a serem investigados manualmente."
+  },
+  "010": {
+    "correctOption": "D",
+    "explanation": "Fornecer regras de rubrica explícitas e exemplos concretos de código para cada nível de severidade no prompt reduz a ambiguidade e garante consistência na classificação entre execuções."
+  },
+  "011": {
+    "correctOption": "C",
+    "explanation": "Para reduzir falsos positivos em documentação, o critério deve ser estrito: sinalizar apenas quando houver contradição direta entre o que o comentário afirma e o que o código de fato executa."
+  },
+  "012": {
+    "correctOption": "B",
+    "explanation": "O hook pré-merge é bloqueante e precisa de resposta síncrona/imediata. A análise profunda (deep analysis) roda durante a noite de forma assíncrona, sendo a única candidata viável para processamento em lote."
+  },
+  "013": {
+    "correctOption": "C",
+    "explanation": "Para evitar que o robô reclame de problemas que já foram abordados em commits anteriores, fornecer os findings anteriores como contexto diz ao Claude o que já foi analisado e o que deve ser ignorado."
+  },
+  "014": {
+    "correctOption": "A",
+    "explanation": "Em pipelines de CI, onde não há TTY interativa, redirecionar a entrada padrão a partir de /dev/null evita que ferramentas CLI fiquem presas aguardando interações do usuário."
+  },
+  "015": {
+    "correctOption": "D",
+    "explanation": "Fluxos de trabalho pré-merge são críticos e bloqueantes, exigindo chamadas em tempo real. Relatórios de débito técnico rodam em segundo plano de um dia para o outro e podem usar a Message Batches API sem problemas."
+  }
+}

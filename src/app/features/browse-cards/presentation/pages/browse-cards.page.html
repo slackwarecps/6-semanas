@@ -1,0 +1,236 @@
+<app-navbar></app-navbar>
+
+<div class="browse-container">
+  <div class="header">
+    <button class="back-button" (click)="goBack()">
+      ← Voltar
+    </button>
+    <h1>📚 Gerenciador de Cartões</h1>
+    <div class="spacer"></div>
+  </div>
+
+  <div *ngIf="isLoading" class="loading">
+    <p>⏳ Carregando cartões...</p>
+  </div>
+
+  <div *ngIf="!isLoading && cards.length === 0" class="empty-state">
+    <p>📭 Nenhum cartão encontrado</p>
+    <button class="btn btn-primary" (click)="goBack()">Voltar para Criar Cartão</button>
+  </div>
+
+  <div *ngIf="!isLoading && cards.length > 0" class="cards-grid-container">
+    <div class="cards-info">
+      <p>Total de cartões: <strong>{{ cards.length }}</strong></p>
+    </div>
+
+    <table class="cards-table">
+      <thead>
+        <tr>
+          <th class="col-title">Título</th>
+          <th class="col-question">Pergunta</th>
+          <th class="col-answer">Resposta</th>
+          <th class="col-actions">Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr
+          *ngFor="let card of paginatedCards"
+          class="card-row"
+          (click)="openEditModal(card)"
+        >
+          <td class="col-title">
+            <span class="card-title">{{ card.title }}</span>
+          </td>
+          <td class="col-question">
+            <div class="card-text-full">{{ card.question }}</div>
+          </td>
+          <td class="col-answer">
+            <span class="card-text">{{ getTruncatedText(card.answer, 80) }}</span>
+          </td>
+          <td class="col-actions">
+            <button
+              class="btn-ai"
+              (click)="responderComIA(card, $event)"
+              title="Responder com IA"
+            >
+              🤖 IA
+            </button>
+            <button
+              class="btn-delete"
+              (click)="deleteCard(card, $event)"
+              title="Deletar cartão"
+            >
+              🗑️ Deletar
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Paginador -->
+    <div class="paginator">
+      <button
+        class="btn-pagination"
+        [disabled]="!canGoPrevious"
+        (click)="previousPage()"
+      >
+        ← Anterior
+      </button>
+
+      <div class="pagination-info">
+        <span class="page-number">Página {{ currentPage }} de {{ totalPages }}</span>
+        <span class="page-details">({{ paginatedCards.length }} de {{ cards.length }} cartões)</span>
+      </div>
+
+      <button
+        class="btn-pagination"
+        [disabled]="!canGoNext"
+        (click)="nextPage()"
+      >
+        Próximo →
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de Edição -->
+<div *ngIf="showEditModal" class="modal-overlay" (click)="closeEditModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Editar Cartão</h2>
+      <button class="close-button" (click)="closeEditModal()">✕</button>
+    </div>
+
+    <div class="modal-body">
+      <form (ngSubmit)="saveCard()">
+        <div class="form-group">
+          <label for="title">Título *</label>
+          <input
+            type="text"
+            id="title"
+            [(ngModel)]="editForm.title"
+            name="title"
+            placeholder="Ex: Conceito de Clean Architecture"
+            class="form-input"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="question">Pergunta *</label>
+          <textarea
+            id="question"
+            [(ngModel)]="editForm.question"
+            name="question"
+            placeholder="Ex: O que é Clean Architecture?"
+            class="form-textarea"
+            rows="4"
+          ></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="answer">Resposta *</label>
+          <textarea
+            id="answer"
+            [(ngModel)]="editForm.answer"
+            name="answer"
+            placeholder="Ex: Clean Architecture é um padrão de design..."
+            class="form-textarea"
+            rows="4"
+          ></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="tags">Tags (separadas por vírgula)</label>
+          <input
+            type="text"
+            id="tags"
+            [(ngModel)]="editForm.tags"
+            name="tags"
+            placeholder="Ex: arquitetura, design, backend"
+            class="form-input"
+          />
+        </div>
+
+        <div class="form-actions">
+          <button
+            type="button"
+            class="btn btn-secondary"
+            (click)="closeEditModal()"
+          >
+            Cancelar
+          </button>
+          <button type="submit" class="btn btn-primary">
+            💾 Salvar Cartão
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Bottom Sheet IA -->
+<div class="bottom-sheet-overlay" *ngIf="showBottomSheet" (click)="cancelarBottomSheet()">
+  <div class="bottom-sheet-container" (click)="$event.stopPropagation()">
+    <div class="bottom-sheet-drag-handle"></div>
+
+    <div class="bottom-sheet-header">
+      <h2>🤖 Resposta com IA</h2>
+      <button class="close-button" (click)="cancelarBottomSheet()">✕</button>
+    </div>
+
+    <div class="bottom-sheet-body">
+      <!-- Carregando -->
+      <div *ngIf="isGeneratingAnswer" class="bottom-sheet-loader">
+        <div class="spinner-neon"></div>
+        <p>Consultando a inteligência artificial...</p>
+      </div>
+
+      <!-- Erro -->
+      <div *ngIf="!isGeneratingAnswer && bottomSheetError" class="bottom-sheet-error">
+        <div class="error-icon">⚠️</div>
+        <h3>Ocorreu um erro</h3>
+        <p class="error-msg">{{ bottomSheetError }}</p>
+      </div>
+
+      <!-- Sucesso (Resposta gerada) -->
+      <div *ngIf="!isGeneratingAnswer && !bottomSheetError && bottomSheetAnswer" class="bottom-sheet-success">
+        <div class="preview-group">
+          <span class="preview-label">Pergunta</span>
+          <div class="preview-box question-box">{{ bottomSheetCard?.question }}</div>
+        </div>
+        <div class="preview-group">
+          <span class="preview-label">Resposta da IA</span>
+          <div class="preview-box answer-box">{{ bottomSheetAnswer }}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="bottom-sheet-actions">
+      <!-- Se houver erro, apenas exibe o botão Fechar em largura total -->
+      <ng-container *ngIf="bottomSheetError; else normalActions">
+        <button class="btn btn-secondary btn-full" (click)="cancelarBottomSheet()">
+          ✕ Fechar
+        </button>
+      </ng-container>
+
+      <ng-template #normalActions>
+        <button
+          type="button"
+          class="btn btn-secondary"
+          (click)="cancelarBottomSheet()"
+          [disabled]="isGeneratingAnswer"
+        >
+          Cancelar
+        </button>
+        <button
+          type="button"
+          class="btn btn-ai-action"
+          (click)="confirmarAtualizacaoCard()"
+          [disabled]="isGeneratingAnswer || !bottomSheetAnswer"
+        >
+          💾 Atualizar Card
+        </button>
+      </ng-template>
+    </div>
+  </div>
+</div>
