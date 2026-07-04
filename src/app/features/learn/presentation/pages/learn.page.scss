@@ -1,0 +1,143 @@
+.learn {
+  display: flex;
+  align-items: stretch;
+  min-height: 100vh;
+
+  &__column {
+    padding: 1.5rem;
+    box-sizing: border-box;
+
+    h2 {
+      margin-top: 0;
+    }
+
+    p {
+      color: #94a3b8;
+    }
+  }
+
+  &__column--left {
+    width: 25%;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    background-color: #1e293b;
+    border-right: 1px solid #334155;
+  }
+
+  &__column--center {
+    width: 50%;
+  }
+
+  &__column--right {
+    width: 25%;
+    background-color: #1e293b;
+    border-left: 1px solid #334155;
+  }
+
+  &__logo {
+    font-weight: 700;
+    font-size: 1.25rem;
+    color: #38bdf8;
+  }
+
+  &__menu {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  &__menu-item {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    padding: 0.6rem 0.75rem;
+    border-radius: 12px;
+    border: 2px solid transparent;
+    text-decoration: none;
+    color: #cbd5e1;
+    transition: background-color 0.15s ease, border-color 0.15s ease;
+
+    &:hover {
+      background-color: #263449;
+    }
+
+    &--active {
+      background-color: #17222f;
+      border-color: #38bdf8;
+      color: #38bdf8;
+
+      .learn__menu-label {
+        color: #38bdf8;
+      }
+    }
+  }
+
+  &__menu-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+  }
+
+  &__menu-label {
+    font-weight: 700;
+    font-size: 0.8rem;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: #e2e8f0;
+  }
+
+  &__promo {
+    margin-top: auto;
+    border: 1px solid #334155;
+    border-radius: 12px;
+    padding: 1.25rem;
+    text-align: center;
+
+    h3 {
+      margin: 0.5rem 0 0.25rem;
+      font-size: 1rem;
+      color: #f8fafc;
+    }
+
+    p {
+      font-size: 0.85rem;
+      margin: 0 0 0.75rem;
+    }
+  }
+
+  &__promo-icon {
+    font-size: 1.5rem;
+  }
+
+  &__promo-cta {
+    display: inline-block;
+    font-weight: 700;
+    font-size: 0.8rem;
+    letter-spacing: 0.02em;
+    color: #38bdf8;
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .learn {
+    flex-direction: column;
+
+    &__column,
+    &__column--left,
+    &__column--center,
+    &__column--right {
+      width: 100%;
+    }
+  }
+}

@@ -1,0 +1,35 @@
+<div class="learn">
+  <aside class="learn__column learn__column--left">
+    <div class="learn__logo">📚 Flashcards</div>
+
+    <nav class="learn__menu">
+      @for (item of menuItems; track item.path) {
+        <a
+          class="learn__menu-item"
+          [routerLink]="item.path"
+          routerLinkActive="learn__menu-item--active"
+        >
+          <span class="learn__menu-icon" [style.background-color]="item.color">{{ item.icon }}</span>
+          <span class="learn__menu-label">{{ item.label }}</span>
+        </a>
+      }
+    </nav>
+
+    <div class="learn__promo">
+      <div class="learn__promo-icon">🧠</div>
+      <h3>Quer aprender mais rápido?</h3>
+      <p>Importe seus flashcards e comece a estudar agora.</p>
+      <a routerLink="/importar-cards" class="learn__promo-cta">IMPORTAR CARTÕES!</a>
+    </div>
+  </aside>
+
+  <main class="learn__column learn__column--center">
+    <h2>Centro</h2>
+    <p>Placeholder — 50%</p>
+  </main>
+
+  <aside class="learn__column learn__column--right">
+    <h2>Direita</h2>
+    <p>Placeholder — 25%</p>
+  </aside>
+</div>

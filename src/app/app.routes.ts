@@ -5,6 +5,7 @@ import { AddCardPage } from './features/add-card/presentation/pages/add-card.pag
 import { ImportCardsPage } from './features/import-cards/presentation/pages/import-cards.page';
 import { BrowseCardsPage } from './features/browse-cards/presentation/pages/browse-cards.page';
 import { TestaRespostaPage } from './features/testa-resposta/presentation/pages/testa-resposta.page';
+import { LearnPage } from './features/learn/presentation/pages/learn.page';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
@@ -14,6 +15,7 @@ export const routes: Routes = [
   { path: 'browse-cards', component: BrowseCardsPage },
   { path: 'importar-cards', component: ImportCardsPage },
   { path: 'testa-resposta', component: TestaRespostaPage },
+  { path: 'learn', component: LearnPage },
   { path: '**', redirectTo: 'dashboard' }
 ];
 
