@@ -14,7 +14,7 @@ export class MarkdownPipe implements PipeTransform {
     // marked.parse retorna uma Promise em versões assíncronas, mas marked.parseSync roda de forma síncrona
     // Na v18+ do marked, marked.parseSync é a melhor forma para Pipes síncronos
     try {
-      const html = marked.parse(value) as string;
+      const html = marked.parse(value, { breaks: true }) as string;
       return this.sanitizer.bypassSecurityTrustHtml(html);
     } catch (e) {
       console.error('Falha ao renderizar markdown:', e);

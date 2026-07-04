@@ -1,26 +1,108 @@
 <app-navbar></app-navbar>
 
-<div class="study">
-  <h1>🧠 Sessão de Estudo</h1>
-
-  @if (isLoading) {
-    <p>Carregando...</p>
-  } @else if (sessionFinished) {
-    <div class="study__empty">
-      <p>🎉 Nenhum cartão pendente para revisão agora. Volte mais tarde!</p>
-    </div>
-  } @else if (currentCard) {
-    <app-card-display [card]="currentCard" [showAnswer]="showAnswer"></app-card-display>
-
-    @if (!showAnswer) {
-      <button type="button" class="study__reveal-btn" (click)="revealAnswer()">
-        Mostrar Resposta
-      </button>
-    } @else {
-      <div class="study__rate">
-        <p>Como foi sua resposta?</p>
-        <app-srs-buttons (qualitySelected)="rate($event)"></app-srs-buttons>
+<div class="study-layout">
+  @if (currentCard) {
+    <aside class="study-sidebar">
+      <div class="study-sidebar__note">
+        <span class="study-sidebar__title">Pergunta número: {{ cardNumberLabel }}</span>
       </div>
-    }
+
+      <button type="button" class="study-sidebar__edit-btn" (click)="openEditModal()">
+        editar pergunta
+      </button>
+    </aside>
   }
+
+  <div class="study">
+    <h1>🧠 Sessão de Estudo</h1>
+
+    @if (isLoading) {
+      <p>Carregando...</p>
+    } @else if (sessionFinished) {
+      <div class="study__empty">
+        <p>🎉 Nenhum cartão pendente para revisão agora. Volte mais tarde!</p>
+      </div>
+    } @else if (currentCard) {
+      <app-card-display [card]="currentCard" [showAnswer]="showAnswer"></app-card-display>
+
+      @if (!showAnswer) {
+        <button type="button" class="study__reveal-btn" (click)="revealAnswer()">
+          Mostrar Resposta
+        </button>
+      } @else {
+        <div class="study__rate">
+          <p>Como foi sua resposta?</p>
+          <app-srs-buttons (qualitySelected)="rate($event)"></app-srs-buttons>
+        </div>
+      }
+    }
+  </div>
 </div>
+
+@if (showEditModal) {
+  <div class="modal-overlay" (click)="closeEditModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Editar Pergunta</h2>
+        <button class="close-button" (click)="closeEditModal()">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <form (ngSubmit)="saveCardEdit()">
+          <div class="form-group">
+            <label for="edit-title">Título *</label>
+            <input
+              type="text"
+              id="edit-title"
+              [(ngModel)]="editForm.title"
+              name="title"
+              class="form-input"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="edit-question">Pergunta *</label>
+            <textarea
+              id="edit-question"
+              [(ngModel)]="editForm.question"
+              name="question"
+              class="form-textarea"
+              rows="4"
+            ></textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="edit-answer">Resposta *</label>
+            <textarea
+              id="edit-answer"
+              [(ngModel)]="editForm.answer"
+              name="answer"
+              class="form-textarea"
+              rows="4"
+            ></textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="edit-tags">Tags (separadas por vírgula)</label>
+            <input
+              type="text"
+              id="edit-tags"
+              [(ngModel)]="editForm.tags"
+              name="tags"
+              class="form-input"
+            />
+          </div>
+
+          <div class="form-actions">
+            <button type="button" class="btn btn-secondary" (click)="closeEditModal()">
+              Cancelar
+            </button>
+            <button type="submit" class="btn btn-primary">
+              💾 Salvar
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+}
