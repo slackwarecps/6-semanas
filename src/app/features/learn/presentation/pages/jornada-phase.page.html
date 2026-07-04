@@ -1,0 +1,128 @@
+<app-navbar></app-navbar>
+
+<div class="phase-container">
+  <!-- Loading -->
+  <div *ngIf="isLoading" class="loading-state">
+    <p>⏳ Carregando desafio...</p>
+  </div>
+
+  <!-- Cenário Jogando -->
+  <div *ngIf="!isLoading && phaseState === 'playing'" class="game-area">
+    <!-- Header de Status -->
+    <div class="game-header">
+      <a routerLink="/learn" class="btn-close" title="Voltar ao mapa">✕</a>
+      
+      <!-- Barra de progresso da fase -->
+      <div class="game-progress-bar">
+        <div class="progress-fill" [style.width.%]="(currentIndex / questions.length) * 100"></div>
+      </div>
+
+      <!-- Vidas/Corações -->
+      <div class="game-lives">
+        <span *ngFor="let idx of heartArray; let i = index" class="heart">
+          {{ i < lives ? '❤️' : '🖤' }}
+        </span>
+      </div>
+    </div>
+
+    <!-- Conteúdo do Card -->
+    <div class="card-box" *ngIf="currentCard">
+      <span class="badge-fase">{{ jornadaNome }} — Card {{ currentIndex + 1 }}/{{ questions.length }}</span>
+      <h2 class="card-title">{{ currentCard.title }}</h2>
+      
+      <div class="card-question-text" [innerHTML]="currentCard.question | markdown"></div>
+
+      <!-- Alternativas de Múltipla Escolha -->
+      <ul class="options-list" *ngIf="currentCard.isMultipleChoice">
+        <li 
+          *ngFor="let option of currentCard.options"
+          class="option-item"
+          [class.is-selected]="selectedOptionId === option.id"
+          [class.is-correct]="showAnswer && option.isCorrect"
+          [class.is-incorrect]="showAnswer && selectedOptionId === option.id && !option.isCorrect"
+          (click)="selectOption(option.id)"
+        >
+          <span class="option-letter">{{ option.id }}</span>
+          <span class="option-text">{{ option.text }}</span>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Barra Inferior de Confirmação/Feedback -->
+    <div class="feedback-bar" [class.feedback-correct]="showFeedback && isCorrectAttempt" [class.feedback-incorrect]="showFeedback && !isCorrectAttempt">
+      <div class="feedback-content" *ngIf="showFeedback">
+        <div class="feedback-icon">{{ isCorrectAttempt ? '🎉' : '❌' }}</div>
+        <div class="feedback-text">
+          <h3>{{ isCorrectAttempt ? 'Muito bem!' : 'Resposta errada...' }}</h3>
+          <p *ngIf="!isCorrectAttempt">
+            Gabarito correto destacado em verde.
+          </p>
+        </div>
+      </div>
+
+      <div class="feedback-spacer" *ngIf="!showFeedback"></div>
+
+      <div class="feedback-action">
+        <button 
+          class="btn-confirm" 
+          [class.btn-success]="showFeedback"
+          [disabled]="!selectedOptionId" 
+          (click)="confirm()"
+        >
+          {{ showFeedback ? 'Continuar' : 'Verificar' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cenário Derrota (Falhou) -->
+  <div *ngIf="!isLoading && phaseState === 'failed'" class="result-area failed-box">
+    <div class="result-icon">💀</div>
+    <h2>Você perdeu todas as vidas!</h2>
+    <p>Mas não desista, cada erro é uma oportunidade de aprender.</p>
+    
+    <div class="result-stats">
+      <div class="stat-card">
+        <span class="stat-value">{{ sessionXp }}</span>
+        <span class="stat-label">XP Acumulado</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-value">3</span>
+        <span class="stat-label">Erros Cometidos</span>
+      </div>
+    </div>
+
+    <div class="result-actions">
+      <button class="btn btn-primary btn-retry" (click)="resetGame()">
+        🔄 Tentar Novamente
+      </button>
+      <a routerLink="/learn" class="btn btn-secondary btn-back">
+        🗺️ Voltar ao Mapa
+      </a>
+    </div>
+  </div>
+
+  <!-- Cenário Vitória (Completou) -->
+  <div *ngIf="!isLoading && phaseState === 'completed'" class="result-area success-box">
+    <div class="result-icon">🏆</div>
+    <h2>Fase Concluída com Sucesso!</h2>
+    <p>Parabéns por completar o desafio de <strong>{{ jornadaNome }}</strong>!</p>
+
+    <div class="result-stats">
+      <div class="stat-card">
+        <span class="stat-value">+{{ sessionXp + 50 }}</span>
+        <span class="stat-label">XP Total Ganho</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-value">{{ errors }}</span>
+        <span class="stat-label">{{ errors === 1 ? 'Erro' : 'Erros' }}</span>
+      </div>
+    </div>
+
+    <div class="result-actions">
+      <a routerLink="/learn" class="btn btn-primary btn-finish">
+        🗺️ Voltar ao Mapa
+      </a>
+    </div>
+  </div>
+</div>

@@ -80,3 +80,136 @@
     }
   }
 }
+
+// Reset Modal
+.reset-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(15, 23, 42, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+
+.reset-modal-content {
+  background-color: #1e293b;
+  border: 1px solid #dc2626;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 480px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+  color: #f8fafc;
+  display: flex;
+  flex-direction: column;
+}
+
+.reset-modal-header {
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid #334155;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  h2 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #f87171;
+  }
+
+  .btn-close {
+    background: transparent;
+    border: none;
+    color: #94a3b8;
+    font-size: 1.25rem;
+    cursor: pointer;
+    line-height: 1;
+
+    &:hover {
+      color: #f8fafc;
+    }
+  }
+}
+
+.reset-modal-body {
+  padding: 1.5rem;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: #cbd5e1;
+
+  p {
+    margin: 0 0 1rem 0;
+  }
+
+  ul {
+    margin: 0 0 1.25rem 0;
+    padding-left: 1.5rem;
+    
+    li {
+      margin-bottom: 0.5rem;
+      
+      strong {
+        color: #f8fafc;
+      }
+    }
+  }
+
+  .warning-text {
+    margin: 0;
+    color: #f87171;
+    font-weight: 600;
+    background-color: rgba(220, 38, 38, 0.1);
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    border-left: 4px solid #dc2626;
+  }
+}
+
+.reset-modal-footer {
+  padding: 1.25rem 1.5rem;
+  background-color: #0f172a;
+  border-top: 1px solid #334155;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+.btn-reset {
+  padding: 0.6rem 1.25rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &.btn-cancel {
+    background-color: #334155;
+    color: #cbd5e1;
+
+    &:hover {
+      background-color: #475569;
+      color: #f8fafc;
+    }
+
+    &:focus {
+      outline: 2px solid #38bdf8;
+      outline-offset: 2px;
+    }
+  }
+
+  &.btn-confirm-destructive {
+    background-color: #dc2626;
+    color: #ffffff;
+
+    &:hover {
+      background-color: #b91c1c;
+    }
+  }
+}

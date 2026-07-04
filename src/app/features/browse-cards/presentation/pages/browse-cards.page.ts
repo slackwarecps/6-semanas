@@ -19,6 +19,8 @@ import { PerguntaLlmService } from '../../../testa-resposta/data/services/pergun
 })
 export class BrowseCardsPage implements OnInit {
   cards: Card[] = [];
+  filteredCards: Card[] = [];
+  searchQuestionTerm = '';
   isLoading = true;
   selectedCard: Card | null = null;
   showEditModal = false;
@@ -31,7 +33,8 @@ export class BrowseCardsPage implements OnInit {
   bottomSheetError: string | null = null;
 
   // Paginação
-  readonly itemsPerPage = 3;
+  itemsPerPage = 3;
+  readonly itemsPerPageOptions = [3, 10, 50, 100];
   currentPage = 1;
   totalPages = 1;
 
@@ -76,8 +79,7 @@ export class BrowseCardsPage implements OnInit {
       const allCards = await this.cardRepository.findAll();
       this.ngZone.run(() => {
         this.cards = allCards;
-        this.currentPage = 1;
-        this.totalPages = Math.ceil(this.cards.length / this.itemsPerPage);
+        this.applyFilter();
         this.isLoading = false;
         this.cdr.markForCheck();
       });
@@ -90,10 +92,32 @@ export class BrowseCardsPage implements OnInit {
     }
   }
 
+  applyFilter(): void {
+    const term = this.searchQuestionTerm.trim().toLowerCase();
+    if (!term) {
+      this.filteredCards = [...this.cards];
+    } else {
+      this.filteredCards = this.cards.filter(card => 
+        card.question.toLowerCase().includes(term)
+      );
+    }
+    this.currentPage = 1;
+    this.totalPages = Math.ceil(this.filteredCards.length / this.itemsPerPage);
+  }
+
+  onSearchInput(): void {
+    this.applyFilter();
+  }
+
+  onItemsPerPageChange(value: any): void {
+    this.itemsPerPage = Number(value);
+    this.applyFilter();
+  }
+
   get paginatedCards(): Card[] {
     const start = (this.currentPage - 1) * this.itemsPerPage;
     const end = start + this.itemsPerPage;
-    return this.cards.slice(start, end);
+    return this.filteredCards.slice(start, end);
   }
 
   goToPage(page: number): void {

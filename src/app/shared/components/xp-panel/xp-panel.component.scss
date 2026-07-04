@@ -1,0 +1,83 @@
+.xp-panel-card {
+  background-color: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 16px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  color: #f8fafc;
+}
+
+.xp-total-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+
+  .xp-label {
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #94a3b8;
+  }
+
+  .xp-value {
+    font-size: 2.25rem;
+    font-weight: 800;
+    color: #eab308;
+    text-shadow: 0 0 10px rgba(234, 179, 8, 0.2);
+  }
+}
+
+.divider {
+  border: 0;
+  height: 1px;
+  background-color: #334155;
+  margin: 0;
+}
+
+.progress-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.progress-labels {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85rem;
+
+  .progress-title {
+    font-weight: 600;
+    color: #94a3b8;
+  }
+
+  .progress-fraction {
+    font-weight: 700;
+    color: #f8fafc;
+  }
+}
+
+.progress-bar-container {
+  height: 12px;
+  background-color: #334155;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #10b981 0%, #34d399 100%);
+  border-radius: 6px;
+  transition: width 0.4s ease-out;
+}
+
+.progress-percent-label {
+  font-size: 0.75rem;
+  color: #64748b;
+  font-weight: 500;
+  text-align: right;
+}

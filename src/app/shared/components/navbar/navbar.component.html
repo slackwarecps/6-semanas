@@ -21,3 +21,33 @@
     }
   </div>
 </nav>
+
+<!-- Modal de Confirmação de Reset -->
+<div *ngIf="showResetDialog" class="reset-modal-overlay" (click)="closeResetDialog()">
+  <div class="reset-modal-content" (click)="$event.stopPropagation()">
+    <div class="reset-modal-header">
+      <h2>⚠️ Atenção: Resetar Dados</h2>
+      <button class="btn-close" (click)="closeResetDialog()">✕</button>
+    </div>
+    
+    <div class="reset-modal-body">
+      <p>Você está prestes a realizar uma ação destrutiva irreversível. Ao confirmar:</p>
+      <ul>
+        <li>Todos os <strong>flashcards</strong> serão apagados do seu banco de dados local.</li>
+        <li>Todo o seu <strong>histórico de revisões e tentativas</strong> será removido.</li>
+        <li>Seu <strong>XP total</strong> e o progresso das <strong>jornadas</strong> serão zerados.</li>
+      </ul>
+      <p class="warning-text"><strong>Importante:</strong> Esta ação NÃO poderá ser desfeita!</p>
+    </div>
+    
+    <div class="reset-modal-footer">
+      <!-- O botão Cancelar é o principal e com foco padrão para segurança -->
+      <button class="btn-reset btn-cancel" (click)="closeResetDialog()" autofocus>
+        Cancelar
+      </button>
+      <button class="btn-reset btn-confirm-destructive" (click)="confirmReset()">
+        Confirmar Reset
+      </button>
+    </div>
+  </div>
+</div>

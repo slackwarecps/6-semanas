@@ -12,6 +12,7 @@ import { SqliteAdapter } from '../../../infrastructure/storage/sqlite.adapter';
 })
 export class NavbarComponent {
   showSettings = false;
+  showResetDialog = false;
 
   constructor(private readonly sqliteAdapter: SqliteAdapter) {}
 
@@ -20,16 +21,20 @@ export class NavbarComponent {
   }
 
   resetCards(): void {
-    const confirmed = confirm(
-      '⚠️  Isso vai apagar todos os cartões salvos.\n\nEsta ação não pode ser desfeita. Deseja continuar?'
-    );
-    if (!confirmed) return;
+    this.showResetDialog = true;
+    this.showSettings = false;
+  }
 
+  closeResetDialog(): void {
+    this.showResetDialog = false;
+  }
+
+  confirmReset(): void {
     localStorage.removeItem('flashcards:sqlite:db');
     localStorage.removeItem('flashcards:cards:v1');
     localStorage.removeItem('flashcards:migration:completed');
     this.sqliteAdapter.reset();
-    this.showSettings = false;
+    this.showResetDialog = false;
     window.location.reload();
   }
 }

@@ -52,4 +52,8 @@ export class DashboardPage implements OnInit {
   goToStudy(): void {
     this.router.navigate(['/study']);
   }
+
+  goToLearn(): void {
+    this.router.navigate(['/learn']);
+  }
 }

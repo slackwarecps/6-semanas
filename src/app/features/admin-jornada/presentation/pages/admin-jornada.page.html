@@ -1,0 +1,164 @@
+<app-navbar></app-navbar>
+
+<div class="admin-container">
+  <div class="header">
+    <button class="back-button" (click)="goBack()">
+      ← Voltar para Aprender
+    </button>
+    <h1>🛠️ Administrador de Jornadas</h1>
+    <div class="spacer"></div>
+    <button class="btn btn-primary" (click)="openCreateForm()">
+      ✨ Nova Jornada
+    </button>
+  </div>
+
+  <!-- Listagem Master -->
+  <div *ngIf="isLoading" class="loading">
+    <p>⏳ Carregando jornadas...</p>
+  </div>
+
+  <div *ngIf="!isLoading && jornadas.length === 0" class="empty-state">
+    <p>📭 Nenhuma jornada criada ainda.</p>
+    <button class="btn btn-primary" (click)="openCreateForm()">Criar Primeira Jornada</button>
+  </div>
+
+  <div *ngIf="!isLoading && jornadas.length > 0" class="master-panel">
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th class="col-ordem">Ordem</th>
+          <th class="col-nome">Nome</th>
+          <th class="col-cards">Qtd. Cards</th>
+          <th class="col-status">Status</th>
+          <th class="col-actions">Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let j of jornadas" class="jornada-row" (click)="openEditForm(j)">
+          <td class="col-ordem">{{ j.ordem }}</td>
+          <td class="col-nome"><strong>{{ j.nome }}</strong></td>
+          <td class="col-cards">{{ j.questionCardIds.length }} cards</td>
+          <td class="col-status">
+            <span class="badge" [class.badge-active]="j.ativa" [class.badge-inactive]="!j.ativa" (click)="toggleAtiva(j, $event)">
+              {{ j.ativa ? 'Ativa' : 'Inativa' }}
+            </span>
+          </td>
+          <td class="col-actions">
+            <button class="btn-edit" (click)="openEditForm(j)">
+              ✏️ Editar
+            </button>
+            <button class="btn-delete" (click)="deleteJornada(j, $event)">
+              🗑️ Deletar
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Formulário Detail -->
+  <div *ngIf="showDetail" class="detail-panel">
+    <div class="panel-header">
+      <h2>{{ editingId ? '📝 Editar Jornada' : '✨ Nova Jornada' }}</h2>
+    </div>
+
+    <form (ngSubmit)="save()" class="detail-form">
+      <div class="form-row-group">
+        <div class="form-group flex-2">
+          <label for="nome">Nome da Jornada *</label>
+          <input
+            type="text"
+            id="nome"
+            [(ngModel)]="detailForm.nome"
+            name="nome"
+            placeholder="Ex: Introdução ao Clean Architecture"
+            class="form-input"
+          />
+        </div>
+
+        <div class="form-group flex-1">
+          <label for="ordem">Ordem de Exibição</label>
+          <input
+            type="number"
+            id="ordem"
+            [(ngModel)]="detailForm.ordem"
+            name="ordem"
+            class="form-input"
+          />
+        </div>
+
+        <div class="form-group flex-checkbox">
+          <label class="checkbox-label">
+            <input
+              type="checkbox"
+              [(ngModel)]="detailForm.ativa"
+              name="ativa"
+            />
+            Ativa
+          </label>
+        </div>
+      </div>
+
+      <!-- Seletor de Perguntas (Detail List) -->
+      <div class="card-selector-container">
+        <div class="selector-header">
+          <h3>Selecione os Cards da Jornada ({{ selectedCardIds.size }} selecionados)</h3>
+          <div class="search-box">
+            <input
+              type="text"
+              [(ngModel)]="searchTerm"
+              name="searchTerm"
+              placeholder="🔍 Filtrar cards por título ou tag..."
+              (input)="filterCards()"
+              class="form-input search-input"
+            />
+          </div>
+        </div>
+
+        <div class="selector-scroll-area">
+          <table class="selector-table">
+            <thead>
+              <tr>
+                <th class="col-select"></th>
+                <th class="col-card-title">Card</th>
+                <th class="col-card-tags">Tags</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr 
+                *ngFor="let card of filteredCards" 
+                [class.row-selected]="isCardSelected(card.id.value)"
+                (click)="toggleCardSelection(card.id.value)"
+                class="selector-row"
+              >
+                <td class="col-select">
+                  <input
+                    type="checkbox"
+                    [checked]="isCardSelected(card.id.value)"
+                    (click)="$event.stopPropagation(); toggleCardSelection(card.id.value)"
+                  />
+                </td>
+                <td class="col-card-title">
+                  <strong>{{ card.title }}</strong>
+                  <div class="question-preview">{{ card.question }}</div>
+                </td>
+                <td class="col-card-tags">
+                  <span *ngFor="let tag of card.tags" class="tag-badge">{{ tag.name }}</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="btn btn-secondary" (click)="cancel()">
+          Cancelar
+        </button>
+        <button type="submit" class="btn btn-primary">
+          💾 Salvar Jornada
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

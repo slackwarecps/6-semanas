@@ -1,0 +1,48 @@
+<div class="journey-map">
+  <div *ngIf="jornadas.length === 0" class="no-jornadas">
+    <p>🍃 Nenhuma jornada ativa disponível no momento.</p>
+  </div>
+
+  <div class="journey-path" *ngIf="jornadas.length > 0">
+    <div class="path-line"></div>
+
+    <div *ngFor="let item of jornadas; let i = index; let last = last" 
+         class="journey-node-container" 
+         [class.node-completed]="item.status === 'completed'"
+         [class.node-unlocked]="item.status === 'unlocked'"
+         [class.node-locked]="item.status === 'locked'"
+    >
+      <ng-container *ngIf="item.status !== 'locked'; else lockedNode">
+        <a [routerLink]="['/learn/jornada', item.jornada.id]" class="journey-node">
+          <div class="node-circle">
+            <span class="icon" *ngIf="item.status === 'completed'">⭐️</span>
+            <span class="icon" *ngIf="item.status === 'unlocked'">🧠</span>
+          </div>
+          <div class="node-info">
+            <span class="node-number">Fase {{ i + 1 }}</span>
+            <h3 class="node-title">{{ item.jornada.nome }}</h3>
+            <span class="node-meta" *ngIf="item.status === 'completed'">
+              Melhor resultado: {{ item.bestErrors }} {{ item.bestErrors === 1 ? 'erro' : 'erros' }}
+            </span>
+            <span class="node-meta text-primary" *ngIf="item.status === 'unlocked'">
+              Iniciar Desafio ({{ item.jornada.questionCardIds.length }} cards)
+            </span>
+          </div>
+        </a>
+      </ng-container>
+
+      <ng-template #lockedNode>
+        <div class="journey-node is-locked">
+          <div class="node-circle">
+            <span class="icon">🔒</span>
+          </div>
+          <div class="node-info">
+            <span class="node-number">Fase {{ i + 1 }}</span>
+            <h3 class="node-title">{{ item.jornada.nome }}</h3>
+            <span class="node-meta text-muted">Bloqueado — Conclua a fase anterior</span>
+          </div>
+        </div>
+      </ng-template>
+    </div>
+  </div>
+</div>

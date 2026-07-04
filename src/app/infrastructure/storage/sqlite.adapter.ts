@@ -76,6 +76,7 @@ export class SqliteAdapter implements StorageInterface {
           bytes[i] = binaryString.charCodeAt(i);
         }
         this.db = new SQL.Database(bytes);
+        this.createTables();
         console.info('[SQLite] Banco carregado do localStorage');
       } else {
         this.db = new SQL.Database();
@@ -138,6 +139,49 @@ export class SqliteAdapter implements StorageInterface {
         PRIMARY KEY (id, attemptId),
         FOREIGN KEY (id) REFERENCES cards(id)
       );
+    `);
+
+    this.db.run(`
+      CREATE TABLE IF NOT EXISTS jornadas (
+        id TEXT PRIMARY KEY,
+        nome TEXT NOT NULL,
+        ativa INTEGER NOT NULL DEFAULT 0,
+        ordem INTEGER NOT NULL,
+        createdAt INTEGER NOT NULL,
+        updatedAt INTEGER NOT NULL
+      );
+    `);
+
+    this.db.run(`
+      CREATE TABLE IF NOT EXISTS jornada_perguntas (
+        jornadaId TEXT NOT NULL,
+        cardId TEXT NOT NULL,
+        ordem INTEGER NOT NULL,
+        PRIMARY KEY (jornadaId, cardId),
+        FOREIGN KEY (jornadaId) REFERENCES jornadas(id),
+        FOREIGN KEY (cardId) REFERENCES cards(id)
+      );
+    `);
+
+    this.db.run(`
+      CREATE TABLE IF NOT EXISTS jornada_progresso (
+        jornadaId TEXT PRIMARY KEY,
+        status TEXT NOT NULL,
+        bestErrors INTEGER,
+        completedAt INTEGER,
+        FOREIGN KEY (jornadaId) REFERENCES jornadas(id)
+      );
+    `);
+
+    this.db.run(`
+      CREATE TABLE IF NOT EXISTS learn_stats (
+        id INTEGER PRIMARY KEY CHECK (id = 1),
+        totalXp INTEGER NOT NULL DEFAULT 0
+      );
+    `);
+
+    this.db.run(`
+      INSERT OR IGNORE INTO learn_stats (id, totalXp) VALUES (1, 0);
     `);
 
     this.persist();
@@ -436,5 +480,177 @@ export class SqliteAdapter implements StorageInterface {
       updatedAt: new Date(stored.updatedAt),
       nextReviewDate: new Date(stored.nextReviewDate)
     });
+  }
+
+  async saveJornada(jornada: { id: string; nome: string; ativa: boolean; ordem: number; createdAt: Date; updatedAt: Date }, cardIds: string[]): Promise<void> {
+    await this.ensureInitialized();
+    if (!this.db) return;
+
+    const existing = this.db.exec(
+      'SELECT id FROM jornadas WHERE id = ?',
+      [jornada.id]
+    );
+
+    const ativaVal = jornada.ativa ? 1 : 0;
+    const createdVal = jornada.createdAt.getTime();
+    const updatedVal = jornada.updatedAt.getTime();
+
+    if (existing.length > 0 && existing[0].values.length > 0) {
+      this.db.run(
+        `UPDATE jornadas SET nome = ?, ativa = ?, ordem = ?, updatedAt = ? WHERE id = ?`,
+        [jornada.nome, ativaVal, jornada.ordem, updatedVal, jornada.id]
+      );
+    } else {
+      this.db.run(
+        `INSERT INTO jornadas (id, nome, ativa, ordem, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?)`,
+        [jornada.id, jornada.nome, ativaVal, jornada.ordem, createdVal, updatedVal]
+      );
+    }
+
+    this.db.run('DELETE FROM jornada_perguntas WHERE jornadaId = ?', [jornada.id]);
+    for (let i = 0; i < cardIds.length; i++) {
+      this.db.run(
+        `INSERT INTO jornada_perguntas (jornadaId, cardId, ordem) VALUES (?, ?, ?)`,
+        [jornada.id, cardIds[i], i]
+      );
+    }
+
+    this.persist();
+    console.info(`[SQLite] Jornada ${jornada.id} salva com ${cardIds.length} cards`);
+  }
+
+  async loadAllJornadas(): Promise<any[]> {
+    await this.ensureInitialized();
+    if (!this.db) return [];
+
+    const result = this.db.exec('SELECT * FROM jornadas ORDER BY ordem ASC');
+    if (result.length === 0) return [];
+
+    return result[0].values.map(row => {
+      const obj: any = {};
+      result[0].columns.forEach((col, idx) => {
+        obj[col.toLowerCase()] = row[idx];
+      });
+      return {
+        id: obj.id,
+        nome: obj.nome,
+        ativa: obj.ativa === 1,
+        ordem: Number(obj.ordem),
+        createdAt: new Date(obj.createdat || obj.createdAt),
+        updatedAt: new Date(obj.updatedat || obj.updatedAt)
+      };
+    });
+  }
+
+  async loadJornadaById(id: string): Promise<any | null> {
+    await this.ensureInitialized();
+    if (!this.db) return null;
+
+    const result = this.db.exec('SELECT * FROM jornadas WHERE id = ?', [id]);
+    if (result.length === 0 || result[0].values.length === 0) return null;
+
+    const row = result[0].values[0];
+    const obj: any = {};
+    result[0].columns.forEach((col, idx) => {
+      obj[col.toLowerCase()] = row[idx];
+    });
+
+    return {
+      id: obj.id,
+      nome: obj.nome,
+      ativa: obj.ativa === 1,
+      ordem: Number(obj.ordem),
+      createdAt: new Date(obj.createdat || obj.createdAt),
+      updatedAt: new Date(obj.updatedat || obj.updatedAt)
+    };
+  }
+
+  async loadJornadaCardIds(id: string): Promise<string[]> {
+    await this.ensureInitialized();
+    if (!this.db) return [];
+
+    const result = this.db.exec('SELECT cardId FROM jornada_perguntas WHERE jornadaId = ? ORDER BY ordem ASC', [id]);
+    if (result.length === 0) return [];
+
+    return result[0].values.map(row => row[0] as string);
+  }
+
+  async deleteJornada(id: string): Promise<void> {
+    await this.ensureInitialized();
+    if (!this.db) return;
+
+    this.db.run('DELETE FROM jornada_perguntas WHERE jornadaId = ?', [id]);
+    this.db.run('DELETE FROM jornada_progresso WHERE jornadaId = ?', [id]);
+    this.db.run('DELETE FROM jornadas WHERE id = ?', [id]);
+
+    this.persist();
+    console.info(`[SQLite] Jornada ${id} deletada`);
+  }
+
+  async getJornadaProgress(id: string): Promise<any | null> {
+    await this.ensureInitialized();
+    if (!this.db) return null;
+
+    const result = this.db.exec('SELECT * FROM jornada_progresso WHERE jornadaId = ?', [id]);
+    if (result.length === 0 || result[0].values.length === 0) return null;
+
+    const row = result[0].values[0];
+    const obj: any = {};
+    result[0].columns.forEach((col, idx) => {
+      obj[col] = row[idx];
+    });
+
+    return {
+      jornadaId: obj.jornadaId,
+      status: obj.status,
+      bestErrors: obj.bestErrors !== null ? obj.bestErrors : null,
+      completedAt: obj.completedAt !== null ? new Date(obj.completedAt) : null
+    };
+  }
+
+  async upsertJornadaProgress(row: { jornadaId: string; status: string; bestErrors: number | null; completedAt: Date | null }): Promise<void> {
+    await this.ensureInitialized();
+    if (!this.db) return;
+
+    const existing = this.db.exec('SELECT jornadaId FROM jornada_progresso WHERE jornadaId = ?', [row.jornadaId]);
+    const bestErrorsVal = row.bestErrors !== null ? row.bestErrors : null;
+    const completedAtVal = row.completedAt !== null ? row.completedAt.getTime() : null;
+
+    if (existing.length > 0 && existing[0].values.length > 0) {
+      this.db.run(
+        `UPDATE jornada_progresso SET status = ?, bestErrors = ?, completedAt = ? WHERE jornadaId = ?`,
+        [row.status, bestErrorsVal, completedAtVal, row.jornadaId]
+      );
+    } else {
+      this.db.run(
+        `INSERT INTO jornada_progresso (jornadaId, status, bestErrors, completedAt) VALUES (?, ?, ?, ?)`,
+        [row.jornadaId, row.status, bestErrorsVal, completedAtVal]
+      );
+    }
+
+    this.persist();
+    console.info(`[SQLite] Progresso da Jornada ${row.jornadaId} atualizado para ${row.status}`);
+  }
+
+  async getTotalXp(): Promise<number> {
+    await this.ensureInitialized();
+    if (!this.db) return 0;
+
+    const result = this.db.exec('SELECT totalXp FROM learn_stats WHERE id = 1');
+    if (result.length === 0 || result[0].values.length === 0) return 0;
+
+    return result[0].values[0][0] as number;
+  }
+
+  async addXp(amount: number): Promise<void> {
+    await this.ensureInitialized();
+    if (!this.db) return;
+
+    const currentXp = await this.getTotalXp();
+    const newXp = currentXp + amount;
+
+    this.db.run('UPDATE learn_stats SET totalXp = ? WHERE id = 1', [newXp]);
+    this.persist();
+    console.info(`[SQLite] Adicionado ${amount} XP. Novo total: ${newXp}`);
   }
 }

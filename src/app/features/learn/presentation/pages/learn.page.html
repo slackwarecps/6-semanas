@@ -24,12 +24,34 @@
   </aside>
 
   <main class="learn__column learn__column--center">
-    <h2>Centro</h2>
-    <p>Placeholder — 50%</p>
+    <div class="learn__center-header">
+      <h2>🎮 Jornadas de Aprendizado</h2>
+      <p>Percorra a trilha curada, ganhe XP e suba de nível!</p>
+    </div>
+
+    <div *ngIf="isLoading" class="learn__loading">
+      <p>⏳ Carregando trilha de jornadas...</p>
+    </div>
+
+    <app-journey-map 
+      *ngIf="!isLoading" 
+      [jornadas]="journeyMapItems"
+    ></app-journey-map>
   </main>
 
   <aside class="learn__column learn__column--right">
-    <h2>Direita</h2>
-    <p>Placeholder — 25%</p>
+    <h2>Seu Progresso</h2>
+    
+    <app-xp-panel 
+      *ngIf="stats" 
+      [stats]="stats"
+    ></app-xp-panel>
+
+    <div class="learn__admin-box">
+      <div class="learn__admin-icon">🛠️</div>
+      <h3>Gerenciar Fases</h3>
+      <p>Monte novas jornadas, ordene fases e adicione perguntas.</p>
+      <a routerLink="/admin/jornada" class="learn__admin-cta">CONFIGURAR JORNADAS</a>
+    </div>
   </aside>
 </div>

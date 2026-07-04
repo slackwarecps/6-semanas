@@ -20,12 +20,23 @@
 
   <div *ngIf="!isLoading && cards.length > 0" class="cards-grid-container">
     <div class="cards-info">
-      <p>Total de cartões: <strong>{{ cards.length }}</strong></p>
+      <p>Total de cartões: <strong>{{ filteredCards.length }}</strong><span *ngIf="searchQuestionTerm" class="filter-count"> (filtrados de {{ cards.length }})</span></p>
+      <div class="search-box">
+        <input 
+          type="text" 
+          [(ngModel)]="searchQuestionTerm" 
+          name="searchQuestionTerm"
+          (input)="onSearchInput()"
+          placeholder="🔍 Filtrar por texto na pergunta..."
+          class="search-input"
+        />
+      </div>
     </div>
 
     <table class="cards-table">
       <thead>
         <tr>
+          <th class="col-id">ID</th>
           <th class="col-title">Título</th>
           <th class="col-question">Pergunta</th>
           <th class="col-answer">Resposta</th>
@@ -38,6 +49,9 @@
           class="card-row"
           (click)="openEditModal(card)"
         >
+          <td class="col-id">
+            <span class="card-id">{{ card.id.value }}</span>
+          </td>
           <td class="col-title">
             <span class="card-title">{{ card.title }}</span>
           </td>
@@ -79,7 +93,7 @@
 
       <div class="pagination-info">
         <span class="page-number">Página {{ currentPage }} de {{ totalPages }}</span>
-        <span class="page-details">({{ paginatedCards.length }} de {{ cards.length }} cartões)</span>
+        <span class="page-details">({{ paginatedCards.length }} de {{ filteredCards.length }} cartões)</span>
       </div>
 
       <button
@@ -89,6 +103,18 @@
       >
         Próximo →
       </button>
+
+      <div class="page-size-selector">
+        <label for="pageSize">Itens por página:</label>
+        <select 
+          id="pageSize" 
+          [ngModel]="itemsPerPage" 
+          (ngModelChange)="onItemsPerPageChange($event)"
+          class="page-size-select"
+        >
+          <option *ngFor="let opt of itemsPerPageOptions" [value]="opt">{{ opt }}</option>
+        </select>
+      </div>
     </div>
   </div>
 </div>

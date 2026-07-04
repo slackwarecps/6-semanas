@@ -1,0 +1,21 @@
+<div class="xp-panel-card" *ngIf="stats">
+  <div class="xp-total-section">
+    <span class="xp-label">XP Total</span>
+    <div class="xp-value">⚡️ {{ stats.totalXp }}</div>
+  </div>
+
+  <hr class="divider" />
+
+  <div class="progress-section">
+    <div class="progress-labels">
+      <span class="progress-title">Jornadas Concluídas</span>
+      <span class="progress-fraction">{{ stats.jornadasCompletadas }}/{{ stats.totalJornadasAtivas }}</span>
+    </div>
+    
+    <div class="progress-bar-container">
+      <div class="progress-bar-fill" [style.width.%]="progressPercentage"></div>
+    </div>
+    
+    <span class="progress-percent-label">{{ progressPercentage }}% Concluído</span>
+  </div>
+</div>

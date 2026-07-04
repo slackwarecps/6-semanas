@@ -1,0 +1,446 @@
+.phase-container {
+  min-height: 100vh;
+  background-color: #0f172a;
+  color: #f8fafc;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 24px;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.loading-state {
+  margin-top: 100px;
+  text-align: center;
+  font-size: 18px;
+  color: #94a3b8;
+}
+
+.game-area {
+  width: 100%;
+  max-width: 680px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  margin-top: 20px;
+  padding-bottom: 120px; /* Espaço para a barra de feedback */
+}
+
+/* Header */
+.game-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+
+  .btn-close {
+    font-size: 24px;
+    color: #64748b;
+    text-decoration: none;
+    cursor: pointer;
+    transition: color 0.15s;
+
+    &:hover {
+      color: #cbd5e1;
+    }
+  }
+}
+
+.game-progress-bar {
+  flex: 1;
+  height: 14px;
+  background-color: #334155;
+  border-radius: 8px;
+  overflow: hidden;
+
+  .progress-fill {
+    height: 100%;
+    background-color: #22c55e;
+    border-radius: 8px;
+    transition: width 0.3s ease-out;
+  }
+}
+
+.game-lives {
+  display: flex;
+  gap: 4px;
+  font-size: 20px;
+  user-select: none;
+}
+
+/* Card Box */
+.card-box {
+  background-color: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 20px;
+  padding: 30px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+
+  .badge-fase {
+    display: inline-block;
+    padding: 4px 10px;
+    background-color: #334155;
+    color: #94a3b8;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 16px;
+  }
+
+  .card-title {
+    margin: 0 0 12px 0;
+    font-size: 22px;
+    font-weight: 800;
+    color: #f8fafc;
+  }
+
+  .card-question-text {
+    color: #cbd5e1;
+    font-size: 16px;
+    line-height: 1.6;
+    margin-bottom: 24px;
+
+    code {
+      background-color: #0f172a;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: monospace;
+      color: #38bdf8;
+    }
+
+    pre {
+      background-color: #0f172a;
+      padding: 16px;
+      border-radius: 8px;
+      overflow-x: auto;
+      margin: 12px 0;
+
+      code {
+        background-color: transparent;
+        padding: 0;
+        color: inherit;
+      }
+    }
+  }
+}
+
+/* Alternativas */
+.options-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.option-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 20px;
+  background-color: #0f172a;
+  border: 2px solid #334155;
+  border-radius: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    background-color: #172554;
+    border-color: #1e40af;
+  }
+
+  &.is-selected {
+    border-color: #3b82f6;
+    background-color: #172554;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+  }
+
+  &.is-correct {
+    border-color: #22c55e !important;
+    background-color: #064e3b !important;
+  }
+
+  &.is-incorrect {
+    border-color: #ef4444 !important;
+    background-color: #7f1d1d !important;
+  }
+
+  .option-letter {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background-color: #334155;
+    color: #cbd5e1;
+    font-weight: 700;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+
+  &.is-selected .option-letter {
+    background-color: #3b82f6;
+    color: white;
+  }
+
+  &.is-correct .option-letter {
+    background-color: #22c55e;
+    color: white;
+  }
+
+  &.is-incorrect .option-letter {
+    background-color: #ef4444;
+    color: white;
+  }
+
+  .option-text {
+    color: #e2e8f0;
+    font-size: 15px;
+    font-weight: 500;
+    line-height: 1.4;
+  }
+}
+
+/* Barra de Feedback Inferior */
+.feedback-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: #1e293b;
+  border-top: 2px solid #334155;
+  padding: 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 100;
+  box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.3);
+  transition: background-color 0.2s;
+
+  &.feedback-correct {
+    background-color: #064e3b;
+    border-top-color: #059669;
+  }
+
+  &.feedback-incorrect {
+    background-color: #7f1d1d;
+    border-top-color: #dc2626;
+  }
+}
+
+.feedback-content {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  color: white;
+  max-width: 70%;
+
+  .feedback-icon {
+    font-size: 32px;
+  }
+
+  .feedback-text {
+    h3 {
+      margin: 0 0 4px 0;
+      font-size: 18px;
+      font-weight: 800;
+    }
+    p {
+      margin: 0;
+      font-size: 14px;
+      color: rgba(255, 255, 255, 0.85);
+    }
+  }
+}
+
+.feedback-spacer {
+  flex: 1;
+}
+
+.feedback-action {
+  .btn-confirm {
+    padding: 14px 32px;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    background-color: #3b82f6;
+    color: white;
+    transition: all 0.2s;
+    min-width: 140px;
+
+    &:hover:not(:disabled) {
+      background-color: #2563eb;
+      transform: translateY(-1px);
+    }
+
+    &:disabled {
+      background-color: #475569;
+      color: #94a3b8;
+      cursor: not-allowed;
+    }
+
+    &.btn-success {
+      background-color: #22c55e;
+      
+      &:hover {
+        background-color: #16a34a;
+      }
+    }
+  }
+}
+
+/* Áreas de Resultados (Telas Finais) */
+.result-area {
+  width: 100%;
+  max-width: 480px;
+  margin-top: 60px;
+  background-color: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 24px;
+  padding: 40px;
+  text-align: center;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+
+  .result-icon {
+    font-size: 64px;
+    margin-bottom: 8px;
+    animation: bounce 2s infinite;
+  }
+
+  h2 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 800;
+  }
+
+  p {
+    margin: 0;
+    color: #94a3b8;
+    font-size: 15px;
+    line-height: 1.5;
+  }
+}
+
+.result-stats {
+  display: flex;
+  gap: 16px;
+  width: 100%;
+  margin: 12px 0;
+}
+
+.stat-card {
+  flex: 1;
+  background-color: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 16px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  .stat-value {
+    font-size: 24px;
+    font-weight: 800;
+    color: #eab308;
+  }
+
+  .stat-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+}
+
+.result-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  margin-top: 12px;
+
+  .btn {
+    padding: 14px;
+    border: none;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    transition: all 0.2s;
+  }
+
+  .btn-primary {
+    background-color: #3b82f6;
+    color: white;
+    
+    &:hover {
+      background-color: #2563eb;
+      transform: translateY(-1px);
+    }
+  }
+
+  .btn-secondary {
+    background-color: #334155;
+    color: #cbd5e1;
+
+    &:hover {
+      background-color: #475569;
+    }
+  }
+}
+
+.success-box {
+  border-color: #059669;
+  
+  .result-icon {
+    text-shadow: 0 0 20px rgba(234, 179, 8, 0.4);
+  }
+  h2 {
+    color: #34d399;
+  }
+  .btn-finish {
+    background-color: #10b981;
+    width: 100%;
+    box-sizing: border-box;
+    text-align: center;
+    padding: 14px;
+    border-radius: 12px;
+    text-decoration: none;
+    font-weight: 700;
+    color: white;
+
+    &:hover {
+      background-color: #059669;
+      transform: translateY(-1px);
+    }
+  }
+}
+
+.failed-box {
+  border-color: #dc2626;
+  h2 {
+    color: #f87171;
+  }
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
