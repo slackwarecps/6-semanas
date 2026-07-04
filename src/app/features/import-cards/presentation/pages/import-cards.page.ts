@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectorRef, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
@@ -32,16 +32,21 @@ export class ImportCardsPage {
   constructor(
     private readonly http: HttpClient,
     private readonly cardRepository: CardRepository,
-    private readonly markdownParser: MarkdownParser
+    private readonly markdownParser: MarkdownParser,
+    private readonly cdr: ChangeDetectorRef,
+    private readonly ngZone: NgZone
   ) {}
 
   async importAll(): Promise<void> {
-    this.isImporting = true;
-    this.finished = false;
-    this.errorMessage = null;
-    this.totalFound = 0;
-    this.totalImported = 0;
-    this.totalSkipped = 0;
+    this.ngZone.run(() => {
+      this.isImporting = true;
+      this.finished = false;
+      this.errorMessage = null;
+      this.totalFound = 0;
+      this.totalImported = 0;
+      this.totalSkipped = 0;
+      this.cdr.markForCheck();
+    });
 
     try {
       const index = await firstValueFrom(
@@ -53,12 +58,15 @@ export class ImportCardsPage {
         )
       );
 
-      this.totalFound = index.files.length;
+      this.ngZone.run(() => {
+        this.totalFound = index.files.length;
+        this.cdr.markForCheck();
+      });
 
       const contents = new Map<string, string>();
       for (const fileName of index.files) {
         const content = await firstValueFrom(
-          this.http.get(`/flashcards/${fileName}`, { responseType: 'text' })
+          this.http.get(`/flashcards/${encodeURIComponent(fileName)}`, { responseType: 'text' })
         );
         contents.set(fileName, content);
       }
@@ -78,12 +86,21 @@ export class ImportCardsPage {
         this.totalImported++;
       }
 
-      this.finished = true;
+      this.ngZone.run(() => {
+        this.finished = true;
+        this.cdr.markForCheck();
+      });
     } catch (err) {
       console.error('[ImportCards] Erro ao importar cartões:', err);
-      this.errorMessage = 'Não foi possível importar os cartões. Verifique o console para detalhes.';
+      this.ngZone.run(() => {
+        this.errorMessage = 'Não foi possível importar os cartões. Verifique o console para detalhes.';
+        this.cdr.markForCheck();
+      });
     } finally {
-      this.isImporting = false;
+      this.ngZone.run(() => {
+        this.isImporting = false;
+        this.cdr.markForCheck();
+      });
     }
   }
 

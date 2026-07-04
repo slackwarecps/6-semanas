@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectorRef, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -37,7 +37,9 @@ export class AddCardPage {
 
   constructor(
     private readonly cardRepository: CardRepository,
-    private readonly router: Router
+    private readonly router: Router,
+    private readonly cdr: ChangeDetectorRef,
+    private readonly ngZone: NgZone
   ) {}
 
   async save(): Promise<void> {
@@ -46,7 +48,10 @@ export class AddCardPage {
       return;
     }
 
-    this.isSaving = true;
+    this.ngZone.run(() => {
+      this.isSaving = true;
+      this.cdr.markForCheck();
+    });
 
     try {
       const tagNames = this.tags
@@ -77,13 +82,19 @@ export class AddCardPage {
       });
 
       await this.cardRepository.save(card);
-      this.resetForm();
+      this.ngZone.run(() => {
+        this.resetForm();
+        this.cdr.markForCheck();
+      });
       this.router.navigate(['/browse-cards']);
     } catch (err) {
       console.error('[AddCard] Erro ao salvar cartão:', err);
       alert('❌ Erro ao salvar cartão');
     } finally {
-      this.isSaving = false;
+      this.ngZone.run(() => {
+        this.isSaving = false;
+        this.cdr.markForCheck();
+      });
     }
   }
 

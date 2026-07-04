@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { NavbarComponent } from '../../../../shared/components/navbar/navbar.component';
@@ -18,7 +18,9 @@ export class DashboardPage implements OnInit {
 
   constructor(
     private readonly getDashboardStatsUseCase: GetDashboardStatsUseCase,
-    private readonly router: Router
+    private readonly router: Router,
+    private readonly cdr: ChangeDetectorRef,
+    private readonly ngZone: NgZone
   ) {}
 
   async ngOnInit(): Promise<void> {
@@ -26,13 +28,24 @@ export class DashboardPage implements OnInit {
   }
 
   async loadStats(): Promise<void> {
-    this.isLoading = true;
+    this.ngZone.run(() => {
+      this.isLoading = true;
+      this.cdr.markForCheck();
+    });
+
     try {
-      this.stats = await this.getDashboardStatsUseCase.execute();
+      const stats = await this.getDashboardStatsUseCase.execute();
+      this.ngZone.run(() => {
+        this.stats = stats;
+        this.cdr.markForCheck();
+      });
     } catch (err) {
       console.error('[Dashboard] Erro ao carregar estatísticas:', err);
     } finally {
-      this.isLoading = false;
+      this.ngZone.run(() => {
+        this.isLoading = false;
+        this.cdr.markForCheck();
+      });
     }
   }
 

@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectorRef, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -22,21 +22,39 @@ export class TestaRespostaPage {
   resposta: PerguntaResponse | null = null;
   erro: string | null = null;
 
-  constructor(private readonly perguntaLlmService: PerguntaLlmService) {}
+  constructor(
+    private readonly perguntaLlmService: PerguntaLlmService,
+    private readonly cdr: ChangeDetectorRef,
+    private readonly ngZone: NgZone
+  ) {}
 
   async onResponder(): Promise<void> {
     if (!this.pergunta.trim()) return;
 
-    this.isLoading = true;
-    this.erro = null;
-    this.resposta = null;
+    this.ngZone.run(() => {
+      this.isLoading = true;
+      this.erro = null;
+      this.resposta = null;
+      this.cdr.markForCheck();
+    });
 
     try {
-      this.resposta = await this.perguntaLlmService.perguntar({ pergunta: this.pergunta });
+      const resposta = await this.perguntaLlmService.perguntar({ pergunta: this.pergunta });
+      this.ngZone.run(() => {
+        this.resposta = resposta;
+        this.cdr.markForCheck();
+      });
     } catch (err) {
-      this.erro = this.tratarErro(err);
+      const erro = this.tratarErro(err);
+      this.ngZone.run(() => {
+        this.erro = erro;
+        this.cdr.markForCheck();
+      });
     } finally {
-      this.isLoading = false;
+      this.ngZone.run(() => {
+        this.isLoading = false;
+        this.cdr.markForCheck();
+      });
     }
   }
 

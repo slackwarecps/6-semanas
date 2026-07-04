@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { NavbarComponent } from '../../../../shared/components/navbar/navbar.component';
 import { CardDisplayComponent } from '../../../../shared/components/card-display/card-display.component';
@@ -24,7 +24,9 @@ export class StudyPage implements OnInit {
 
   constructor(
     private readonly getNextCardUseCase: GetNextCardUseCase,
-    private readonly recordCardAttemptUseCase: RecordCardAttemptUseCase
+    private readonly recordCardAttemptUseCase: RecordCardAttemptUseCase,
+    private readonly cdr: ChangeDetectorRef,
+    private readonly ngZone: NgZone
   ) {}
 
   async ngOnInit(): Promise<void> {
@@ -32,17 +34,27 @@ export class StudyPage implements OnInit {
   }
 
   async loadNextCard(): Promise<void> {
-    this.isLoading = true;
-    this.showAnswer = false;
+    this.ngZone.run(() => {
+      this.isLoading = true;
+      this.showAnswer = false;
+      this.cdr.markForCheck();
+    });
 
     try {
-      this.currentCard = await this.getNextCardUseCase.execute();
-      this.sessionFinished = !this.currentCard;
-      this.cardShownAt = Date.now();
+      const nextCard = await this.getNextCardUseCase.execute();
+      this.ngZone.run(() => {
+        this.currentCard = nextCard;
+        this.sessionFinished = !nextCard;
+        this.cardShownAt = Date.now();
+        this.cdr.markForCheck();
+      });
     } catch (err) {
       console.error('[Study] Erro ao carregar próximo cartão:', err);
     } finally {
-      this.isLoading = false;
+      this.ngZone.run(() => {
+        this.isLoading = false;
+        this.cdr.markForCheck();
+      });
     }
   }
 
