@@ -1,4 +1,4 @@
-import { Component, ChangeDetectorRef, NgZone } from '@angular/core';
+import { Component, ChangeDetectorRef, NgZone, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -8,6 +8,7 @@ import {
   PerguntaResponse
 } from '../../../testa-resposta/data/services/pergunta-llm.service';
 import { environment } from '../../../../../environments/environment';
+import { SqliteAdapter } from '../../../../infrastructure/storage/sqlite.adapter';
 
 @Component({
   selector: 'app-testa-resposta-page',
@@ -16,17 +17,33 @@ import { environment } from '../../../../../environments/environment';
   templateUrl: './testa-resposta.page.html',
   styleUrls: ['./testa-resposta.page.scss']
 })
-export class TestaRespostaPage {
+export class TestaRespostaPage implements OnInit {
   pergunta = '';
   isLoading = false;
   resposta: PerguntaResponse | null = null;
   erro: string | null = null;
+  defaultModel = 'Carregando...';
+  selectedModel = 'deepseek';
 
   constructor(
     private readonly perguntaLlmService: PerguntaLlmService,
+    private readonly sqliteAdapter: SqliteAdapter,
     private readonly cdr: ChangeDetectorRef,
     private readonly ngZone: NgZone
   ) {}
+
+  async ngOnInit(): Promise<void> {
+    const model = await this.sqliteAdapter.getConfig('LLM_QUERY_DEFAULT');
+    this.defaultModel = model || 'Não configurado';
+    this.selectedModel = model || 'deepseek';
+    this.cdr.markForCheck();
+  }
+
+  async onModelChange(newModel: string): Promise<void> {
+    await this.sqliteAdapter.setConfig('LLM_QUERY_DEFAULT', newModel);
+    this.defaultModel = newModel;
+    this.cdr.markForCheck();
+  }
 
   async onResponder(): Promise<void> {
     if (!this.pergunta.trim()) return;

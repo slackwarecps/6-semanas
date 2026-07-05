@@ -16,6 +16,7 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from langchain_anthropic import ChatAnthropic
@@ -110,6 +111,16 @@ async def log_requests(request: Request, call_next):
     )
 
     return response
+
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    """Intercepta exceções globais, logando erro e traceback no logs/server.log"""
+    logger.error("Exceção não tratada na rota %s: %s", request.url.path, str(exc), exc_info=exc)
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "Erro interno do servidor. Verifique os logs."},
+    )
 
 
 # ── Evento de startup ──────────────────────────────────────────────────────

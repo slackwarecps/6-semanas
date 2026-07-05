@@ -252,6 +252,22 @@ export class SqliteAdapter implements StorageInterface {
       INSERT OR IGNORE INTO learn_stats (id, totalXp) VALUES (1, 0);
     `);
 
+    this.db.run(`
+      CREATE TABLE IF NOT EXISTS app_config (
+        chave TEXT PRIMARY KEY,
+        valor TEXT NOT NULL
+      );
+    `);
+
+    this.db.run(`
+      INSERT OR IGNORE INTO app_config (chave, valor) VALUES ('LLM_QUERY_DEFAULT', 'deepseek');
+    `);
+
+    // Atualiza retroativamente caso o banco local já contenha a string antiga
+    this.db.run(`
+      UPDATE app_config SET valor = 'deepseek' WHERE chave = 'LLM_QUERY_DEFAULT' AND valor = 'deepseek-chat';
+    `);
+
     this.persist();
     console.info('[SQLite] Tabelas criadas');
   }
@@ -814,5 +830,24 @@ export class SqliteAdapter implements StorageInterface {
     this.db.run('UPDATE learn_stats SET totalXp = 0 WHERE id = 1');
     this.persist();
     console.info('[SQLite] Histórico de jornadas e XP resetados com sucesso.');
+  }
+
+  async getConfig(chave: string): Promise<string | null> {
+    await this.ensureInitialized();
+    if (!this.db) return null;
+    const result = this.db.exec('SELECT valor FROM app_config WHERE chave = ?', [chave]);
+    if (result.length === 0 || result[0].values.length === 0) return null;
+    return result[0].values[0][0] as string;
+  }
+
+  async setConfig(chave: string, valor: string): Promise<void> {
+    await this.ensureInitialized();
+    if (!this.db) return;
+    this.db.run(
+      'INSERT INTO app_config (chave, valor) VALUES (?, ?) ON CONFLICT(chave) DO UPDATE SET valor = ?',
+      [chave, valor, valor]
+    );
+    this.persist();
+    console.info(`[SQLite] Configuração ${chave} atualizada para: ${valor}`);
   }
 }

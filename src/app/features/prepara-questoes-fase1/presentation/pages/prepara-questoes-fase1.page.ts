@@ -5,6 +5,7 @@ import { CardRepository } from '../../../flashcard/data/repositories/card.reposi
 import { Card } from '../../../flashcard/domain/entities/card.entity';
 import { NavbarComponent } from '../../../../shared/components/navbar/navbar.component';
 import { BatchCardPreparationService } from '../../application/services/batch-card-preparation.service';
+import { SqliteAdapter } from '../../../../infrastructure/storage/sqlite.adapter';
 
 @Component({
   selector: 'app-prepara-questoes-fase1-page',
@@ -30,18 +31,22 @@ export class PreparaQuestoesFase1Page implements OnInit {
   onlyMissingAnswers = true;
   processingLogs = '';
   lastError: string | null = null;
-  readonly chartMaxHeight = 150;
+  readonly chartMaxHeight = 110;
   showConfirmSheet = false;
   isCancelRequested = false;
+  defaultModel = 'Carregando...';
 
   constructor(
     private readonly cardRepository: CardRepository,
     private readonly batchCardPreparationService: BatchCardPreparationService,
+    private readonly sqliteAdapter: SqliteAdapter,
     private readonly cdr: ChangeDetectorRef,
     private readonly ngZone: NgZone
   ) {}
 
   async ngOnInit(): Promise<void> {
+    const model = await this.sqliteAdapter.getConfig('LLM_QUERY_DEFAULT');
+    this.defaultModel = model || 'Não configurado';
     await this.loadStats();
   }
 

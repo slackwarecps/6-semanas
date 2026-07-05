@@ -2,6 +2,22 @@
 
 <div class="testa-resposta">
   <h1>🧪 Testar Resposta LLM</h1>
+  <div class="testa-resposta__model-info">
+    Modelo ativo por padrão: <strong>{{ defaultModel }}</strong>
+  </div>
+
+  <div class="testa-resposta__selector-container">
+    <label for="modelSelect">Altere o modelo globalmente: </label>
+    <select
+      id="modelSelect"
+      class="testa-resposta__select"
+      [(ngModel)]="selectedModel"
+      (ngModelChange)="onModelChange($event)"
+    >
+      <option value="claude">claude</option>
+      <option value="deepseek">deepseek</option>
+    </select>
+  </div>
 
   <textarea
     class="testa-resposta__textarea"
