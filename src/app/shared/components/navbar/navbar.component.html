@@ -17,6 +17,9 @@
         <a *ngIf="router.url === '/admin/jornada'" routerLink="/dev/control-panel" class="navbar__dropdown-item" (click)="showSettings = false" style="text-decoration: none; color: inherit; display: block;">
           🛠️ Dev Control Panel
         </a>
+        <a routerLink="/backup-restore" class="navbar__dropdown-item" (click)="showSettings = false" style="text-decoration: none; color: inherit; display: block;">
+          💾 Backup / Restore
+        </a>
         <button type="button" class="navbar__dropdown-item navbar__dropdown-item--danger" (click)="resetCards()">
           🗑️ Resetar Cartões
         </button>

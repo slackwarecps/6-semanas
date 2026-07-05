@@ -157,6 +157,7 @@ class RespostaEstruturada(BaseModel):
         "copiada exatamente como aparece na pergunta."
     )
     explicacao: str = Field(
+        default="",
         description="Conteúdo combinado no formato:\n"
         "{traducao}\n---\n{explicacao}\n\n"
         "A primeira parte deve ser a tradução fiel para pt-BR da pergunta e alternativas. "
@@ -164,6 +165,7 @@ class RespostaEstruturada(BaseModel):
         "a resposta correta e detalhando as alternativas incorretas."
     )
     explicacaoCrianca: str = Field(
+        default="",
         description="A mesma explicação, reescrita de forma simples, como se "
         "estivesse explicando para uma criança de 10 anos."
     )

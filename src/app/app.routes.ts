@@ -11,6 +11,7 @@ import { StudyPage } from './features/study/presentation/pages/study.page';
 import { TagCloudPage } from './features/tag-cloud/presentation/pages/tag-cloud.page';
 import { TestaRespostaPage } from './features/testa-resposta/presentation/pages/testa-resposta.page';
 import { DevControlPanelPage } from './features/dev-control-panel/presentation/pages/dev-control-panel.page';
+import { BackupRestorePage } from './features/backup-restore/presentation/pages/backup-restore.page';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
@@ -26,5 +27,6 @@ export const routes: Routes = [
   { path: 'learn/jornada/:id', component: JornadaPhasePage },
   { path: 'tag-cloud', component: TagCloudPage },
   { path: 'dev/control-panel', component: DevControlPanelPage },
+  { path: 'backup-restore', component: BackupRestorePage },
   { path: '**', redirectTo: 'dashboard' }
 ];

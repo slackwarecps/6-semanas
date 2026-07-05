@@ -123,6 +123,12 @@ Isso remove:
 - Backup antigo em localStorage (`flashcards:cards:v1`)
 - Flag de migração (`flashcards:migration:completed`)
 
+### Backup e Exportação
+Para realizar o backup manual do banco de dados local do navegador:
+1. Clique em "Configurações" (engrenagem) na Navbar.
+2. Clique em "Backup / Restore".
+3. Pressione o botão para baixar o arquivo físico do banco de dados SQLite (`.sqlite`) com o seu progresso e explicações salvas.
+
 ---
 
 ## 📚 Gerenciamento Avançado de Cartões
