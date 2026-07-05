@@ -120,6 +120,7 @@
             <thead>
               <tr>
                 <th class="col-select">#</th>
+                <th class="col-card-seq">ID Sequencial</th>
                 <th class="col-card-id">ID</th>
                 <th class="col-card-title">Card</th>
                 <th class="col-card-tags">Tags</th>
@@ -139,9 +140,12 @@
                     (click)="$event.stopPropagation(); toggleCardSelection(card.id.value)"
                   />
                 </td>
-                <td class="col-card-id">
-                  {{ card.id.value }}
+              <td class="col-card-seq">
+                {{ card.seq ?? '—' }}
                 </td>
+              <td class="col-card-id">
+                {{ card.id.value }}
+              </td>
                 <td class="col-card-title">
                   <strong>{{ card.title }}</strong>
                   <div class="question-preview">{{ card.question }}</div>

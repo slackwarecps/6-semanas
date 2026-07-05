@@ -1,0 +1,132 @@
+<app-navbar></app-navbar>
+
+<div class="prepare-page">
+  <div class="prepare-page__header">
+    <div>
+      <h1>🤖 Preparar Questões Fase 1</h1>
+      <p>Análise e preparação em lote dos cards com IA.</p>
+    </div>
+
+  </div>
+
+  @if (isLoading) {
+    <div class="prepare-page__panel">Carregando cards...</div>
+  } @else {
+    <div class="prepare-page__chart">
+      <div class="prepare-page__chart-card">
+        <div class="chart-bar">
+          <div class="chart-bar__fill chart-bar__fill--total" [style.height.px]="getChartHeight(totalCards)"></div>
+          <span>Total</span>
+        </div>
+        <div class="chart-bar">
+          <div class="chart-bar__fill chart-bar__fill--translation" [style.height.px]="getChartHeight(withoutTranslation)"></div>
+          <span>Sem tradução</span>
+        </div>
+        <div class="chart-bar">
+          <div class="chart-bar__fill chart-bar__fill--answer" [style.height.px]="getChartHeight(withoutAnswer)"></div>
+          <span>Sem resposta</span>
+        </div>
+        <div class="chart-bar">
+          <div class="chart-bar__fill chart-bar__fill--explanation" [style.height.px]="getChartHeight(withoutExplanation)"></div>
+          <span>Sem explicação</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="prepare-page__stats">
+      <div class="stat-card">
+        <span class="stat-card__value">{{ totalCards }}</span>
+        <span class="stat-card__label">Quantidade de cards</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-card__value">{{ withoutTranslation }}</span>
+        <span class="stat-card__label">Sem tradução</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-card__value">{{ withoutAnswer }}</span>
+        <span class="stat-card__label">Sem resposta</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-card__value">{{ withoutExplanation }}</span>
+        <span class="stat-card__label">Sem explicação</span>
+      </div>
+    </div>
+
+    <div class="prepare-page__range">
+      <div class="prepare-page__range-row">
+        <label>
+          Card inicial
+          <input type="number" [(ngModel)]="rangeStart" />
+        </label>
+        <label>
+          Card final
+          <input type="number" [(ngModel)]="rangeEnd" />
+        </label>
+        <label>
+          Intervalo entre chamadas (ms)
+          <input type="number" min="0" step="100" [(ngModel)]="callIntervalMs" />
+        </label>
+        <label class="prepare-page__checkbox">
+          <input type="checkbox" [(ngModel)]="onlyMissingAnswers" />
+          <span>Processar apenas as Sem respostas</span>
+        </label>
+      </div>
+
+      <div class="prepare-page__range-row prepare-page__range-row--actions">
+        <button type="button" class="prepare-page__range-action" [disabled]="isLoading || isProcessing" (click)="prepareInBatch()">
+          <span class="prepare-page__action-icon">⚙️</span>
+          <span>Preparar em lote com IA</span>
+        </button>
+
+        @if (isProcessing) {
+          <div class="prepare-page__processing-actions">
+            <button type="button" class="prepare-page__processing-button" disabled>
+              <span class="spinner" aria-hidden="true"></span>
+              <span>Processando...</span>
+            </button>
+            <button type="button" class="prepare-page__cancel-button" (click)="cancelProcessing()">
+              Cancelar processamento
+            </button>
+          </div>
+        }
+      </div>
+    </div>
+
+    <div class="prepare-page__panel">
+      <p>Processando {{ progressCurrent }} de {{ progressTotal }} cards...</p>
+      <div class="progress-bar">
+        <div class="progress-bar__fill" [style.width.%]="progressTotal ? (progressCurrent / progressTotal) * 100 : 0"></div>
+      </div>
+    </div>
+
+    <div class="prepare-page__logs">
+      <label for="batch-logs">Logs do processamento</label>
+      <textarea id="batch-logs" readonly [value]="processingLogs"></textarea>
+    </div>
+
+    @if (lastError) {
+      <div class="prepare-page__error">{{ lastError }}</div>
+    }
+  }
+</div>
+
+@if (showConfirmSheet) {
+  <div class="confirm-sheet__overlay" (click)="cancelBatchProcessing()"></div>
+  <div class="confirm-sheet" role="dialog" aria-modal="true" aria-labelledby="confirm-batch-title">
+    <div class="confirm-sheet__header">
+      <div>
+        <h3 id="confirm-batch-title">Confirmar processamento em lote</h3>
+        <p>Deseja processar os registros selecionados (de {{ rangeStart }} até {{ rangeEnd }}) agora?</p>
+      </div>
+    </div>
+
+    <div class="confirm-sheet__actions">
+      <button type="button" class="confirm-sheet__button confirm-sheet__button--secondary" autofocus (click)="cancelBatchProcessing()">
+        Cancelar
+      </button>
+      <button type="button" class="confirm-sheet__button confirm-sheet__button--primary" (click)="confirmBatchProcessing()">
+        Confirmar
+      </button>
+    </div>
+  </div>
+}

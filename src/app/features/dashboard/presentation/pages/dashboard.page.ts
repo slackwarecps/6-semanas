@@ -1,9 +1,9 @@
-import { Component, OnInit, ChangeDetectorRef, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ChangeDetectorRef, Component, NgZone, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { NavbarComponent } from '../../../../shared/components/navbar/navbar.component';
-import { GetDashboardStatsUseCase } from '../../application/use-cases/get-dashboard-stats.use-case';
 import { DashboardStatsDto } from '../../application/dto/dashboard-stats.dto';
+import { GetDashboardStatsUseCase } from '../../application/use-cases/get-dashboard-stats.use-case';
 
 @Component({
   selector: 'app-dashboard-page',
@@ -55,5 +55,9 @@ export class DashboardPage implements OnInit {
 
   goToLearn(): void {
     this.router.navigate(['/learn']);
+  }
+
+  goToPreparaQuestoesFase1(): void {
+    this.router.navigate(['/prepara-questoes-fase1']);
   }
 }

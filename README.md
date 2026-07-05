@@ -211,6 +211,8 @@ A partir da versão 2.2, o aplicativo inclui uma trilha de aprendizagem gamifica
   - `+50 XP` de bônus na primeira conclusão bem-sucedida.
   - O XP só é computado de forma definitiva ao vencer a fase (tentativas que falham não geram XP).
 - **Independência do SRS:** O progresso do modo jornadas é independente do modo de repetição espaçada (SM-2) do modo Estudar.
+- **Cópia de Perguntas:** Permite copiar o texto da pergunta em andamento diretamente para a área de transferência, exibindo um toast temporário de confirmação.
+- **Navegação entre Perguntas:** Adiciona botões de controle integrados à barra inferior (primeira, anterior, próxima e última pergunta) para navegar de forma direta pelas questões da jornada.
 
 ---
 

@@ -44,16 +44,17 @@ logger = logging.getLogger("api")
 # ── Carrega as variáveis do arquivo .env ────────────────────────────────────
 load_dotenv()
 
-# Instrui o modelo a identificar a alternativa correta e devolver, junto com ela,
-# uma explicação técnica e uma versão simplificada dessa explicação.
 SYSTEM_PROMPT = (
-    "A pergunta a seguir é de múltipla escolha, com alternativas no formato "
-    "'[ ] LETRA - texto'. Identifique a alternativa correta e devolva três coisas: "
-    "(1) a linha completa da alternativa correta, exatamente como aparece na pergunta "
-    "— incluindo o marcador '[ ]', a letra e o hífen; "
-    "(2) uma explicação técnica de por que essa alternativa está correta e as demais erradas; "
-    "(3) a mesma explicação, reescrita de forma simples, como se estivesse explicando "
-    "para uma criança de 10 anos."
+    "Você receberá uma pergunta de múltipla escolha com alternativas no formato "
+    "'[ ] LETRA - texto'. Sua tarefa é:\n"
+    "1) analisar a pergunta e todas as alternativas;\n"
+    "2) traduzir fielmente a pergunta e as alternativas para português do Brasil;\n"
+    "3) explicar de forma didática para um adulto tech lead, deixando claro por que "
+    "a resposta correta é a melhor escolha e por que as demais estão erradas;\n"
+    "4) explicar de forma didática para uma criança de 10 anos;\n"
+    "5) indicar claramente qual é a alternativa correta.\n\n"
+    "O conteúdo da tradução deve preservar o sentido original, sem inventar informação. "
+    "A explicação deve ser objetiva, técnica e pedagógica."
 )
 
 app = FastAPI(
@@ -141,12 +142,15 @@ class RespostaResponse(BaseModel):
 # Schema usado apenas para a saída estruturada do LLM (with_structured_output).
 class RespostaEstruturada(BaseModel):
     resposta: str = Field(
-        description="A linha completa da alternativa correta, copiada exatamente "
-        "como aparece na pergunta, incluindo '[ ]', a letra e o hífen."
+        description="A alternativa correta, identificada de forma clara, preferencialmente "
+        "copiada exatamente como aparece na pergunta."
     )
     explicacao: str = Field(
-        description="Explicação técnica/conceitual de por que essa é a alternativa "
-        "correta e por que as outras estão erradas."
+        description="Conteúdo combinado no formato:\n"
+        "{traducao}\n---\n{explicacao}\n\n"
+        "A primeira parte deve ser a tradução fiel para pt-BR da pergunta e alternativas. "
+        "A segunda parte deve ser a explicação didática para um adulto tech lead, analisando "
+        "a resposta correta e detalhando as alternativas incorretas."
     )
     explicacaoCrianca: str = Field(
         description="A mesma explicação, reescrita de forma simples, como se "

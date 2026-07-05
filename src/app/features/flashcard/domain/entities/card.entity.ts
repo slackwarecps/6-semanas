@@ -1,8 +1,8 @@
 import { CardId } from '../value-objects/card-id.value-object';
-import { Tag } from '../value-objects/tag.value-object';
-import { Interval } from '../value-objects/interval.value-object';
 import { EaseFactor } from '../value-objects/ease-factor.value-object';
+import { Interval } from '../value-objects/interval.value-object';
 import { MultipleChoiceOption } from '../value-objects/multiple-choice-option.value-object';
+import { Tag } from '../value-objects/tag.value-object';
 import { Attempt } from './attempt.entity';
 
 export type ReviewState = 'New' | 'Learning' | 'Review' | 'Relearning';
@@ -23,6 +23,7 @@ export interface CardProps {
   createdAt: Date;
   updatedAt: Date;
   nextReviewDate: Date;
+  traducao?: string;
   explanation?: string;
   tenYearOld?: string;
 }
@@ -33,6 +34,7 @@ export interface NewCardProps {
   answer: string;
   options?: MultipleChoiceOption[];
   tags?: Tag[];
+  traducao?: string;
   explanation?: string;
   tenYearOld?: string;
 }
@@ -53,6 +55,7 @@ export class Card {
   readonly createdAt: Date;
   readonly updatedAt: Date;
   readonly nextReviewDate: Date;
+  readonly traducao?: string;
   readonly explanation?: string;
   readonly tenYearOld?: string;
 
@@ -72,6 +75,7 @@ export class Card {
     this.createdAt = props.createdAt;
     this.updatedAt = props.updatedAt;
     this.nextReviewDate = props.nextReviewDate;
+    this.traducao = props.traducao;
     this.explanation = props.explanation;
     this.tenYearOld = props.tenYearOld;
   }
@@ -93,6 +97,7 @@ export class Card {
       createdAt: now,
       updatedAt: now,
       nextReviewDate: now,
+      traducao: props.traducao,
       explanation: props.explanation,
       tenYearOld: props.tenYearOld
     });

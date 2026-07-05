@@ -1,13 +1,12 @@
-import { Component, OnInit, ChangeDetectorRef, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
+import { ChangeDetectorRef, Component, NgZone, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { NavbarComponent } from '../../../../shared/components/navbar/navbar.component';
 import { CardRepository } from '../../../flashcard/data/repositories/card.repository';
 import { Card } from '../../../flashcard/domain/entities/card.entity';
-import { CardId } from '../../../flashcard/domain/value-objects/card-id.value-object';
 import { Tag } from '../../../flashcard/domain/value-objects/tag.value-object';
-import { HttpErrorResponse } from '@angular/common/http';
 import { PerguntaLlmService } from '../../../testa-resposta/data/services/pergunta-llm.service';
 
 @Component({
@@ -29,6 +28,7 @@ export class BrowseCardsPage implements OnInit {
   // Bottom Sheet IA
   showBottomSheet = false;
   bottomSheetCard: Card | null = null;
+  bottomSheetTranslation = '';
   bottomSheetAnswer = '';
   bottomSheetExplicacao = '';
   bottomSheetExplicacaoCrianca = '';
@@ -46,6 +46,7 @@ export class BrowseCardsPage implements OnInit {
     question: '',
     answer: '',
     tags: '',
+    traducao: '',
     explanation: '',
     tenYearOld: ''
   };
@@ -155,6 +156,7 @@ export class BrowseCardsPage implements OnInit {
       question: card.question,
       answer: card.answer,
       tags: card.tags.map(t => t.name).join(', '),
+      traducao: card.traducao || '',
       explanation: card.explanation || '',
       tenYearOld: card.tenYearOld || ''
     };
@@ -196,6 +198,7 @@ export class BrowseCardsPage implements OnInit {
         createdAt: this.selectedCard.createdAt,
         updatedAt: new Date(),
         nextReviewDate: this.selectedCard.nextReviewDate,
+        traducao: this.editForm.traducao || undefined,
         explanation: this.editForm.explanation || undefined,
         tenYearOld: this.editForm.tenYearOld || undefined
       });
@@ -264,8 +267,10 @@ export class BrowseCardsPage implements OnInit {
 
       this.ngZone.run(() => {
         this.bottomSheetAnswer = result.resposta;
-        this.bottomSheetExplicacao = result.explicacao;
+        const [translation, explanation] = this.splitCombinedExplanation(result.explicacao);
+        this.bottomSheetExplicacao = explanation;
         this.bottomSheetExplicacaoCrianca = result.explicacaoCrianca;
+        this.bottomSheetTranslation = translation;
         this.isGeneratingAnswer = false;
         this.cdr.markForCheck();
       });
@@ -290,6 +295,20 @@ export class BrowseCardsPage implements OnInit {
       .join('\n');
 
     return `${card.question}\n\n${optionLines}`;
+  }
+
+  private splitCombinedExplanation(text: string): [string, string] {
+    const separator = '\n---\n';
+    const index = text.indexOf(separator);
+
+    if (index === -1) {
+      return [text.trim(), ''];
+    }
+
+    return [
+      text.slice(0, index).trim(),
+      text.slice(index + separator.length).trim(),
+    ];
   }
 
   private tratarErro(err: unknown): string {
@@ -330,6 +349,7 @@ export class BrowseCardsPage implements OnInit {
         createdAt: this.bottomSheetCard.createdAt,
         updatedAt: new Date(),
         nextReviewDate: this.bottomSheetCard.nextReviewDate,
+        traducao: this.bottomSheetTranslation || undefined,
         explanation: this.bottomSheetExplicacao || undefined,
         tenYearOld: this.bottomSheetExplicacaoCrianca || undefined
       });

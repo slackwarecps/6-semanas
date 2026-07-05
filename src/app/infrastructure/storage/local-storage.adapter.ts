@@ -1,13 +1,13 @@
 import { Injectable } from '@angular/core';
-import { StorageInterface } from './storage.interface';
+import { Attempt } from '../../features/flashcard/domain/entities/attempt.entity';
 import { Card } from '../../features/flashcard/domain/entities/card.entity';
 import { CardId } from '../../features/flashcard/domain/value-objects/card-id.value-object';
-import { MultipleChoiceOption } from '../../features/flashcard/domain/value-objects/multiple-choice-option.value-object';
-import { Tag } from '../../features/flashcard/domain/value-objects/tag.value-object';
-import { Interval } from '../../features/flashcard/domain/value-objects/interval.value-object';
 import { EaseFactor } from '../../features/flashcard/domain/value-objects/ease-factor.value-object';
-import { Attempt } from '../../features/flashcard/domain/entities/attempt.entity';
+import { Interval } from '../../features/flashcard/domain/value-objects/interval.value-object';
+import { MultipleChoiceOption } from '../../features/flashcard/domain/value-objects/multiple-choice-option.value-object';
 import { Quality, QualityValue } from '../../features/flashcard/domain/value-objects/quality.value-object';
+import { Tag } from '../../features/flashcard/domain/value-objects/tag.value-object';
+import { StorageInterface } from './storage.interface';
 
 interface StoredOption {
   id: string;
@@ -43,6 +43,7 @@ interface StoredCard {
   createdAt: number;
   updatedAt: number;
   nextReviewDate: number;
+  traducao?: string;
   explanation?: string;
   tenYearOld?: string;
 }
@@ -129,6 +130,7 @@ export class LocalStorageAdapter implements StorageInterface {
       createdAt: card.createdAt.getTime(),
       updatedAt: card.updatedAt.getTime(),
       nextReviewDate: card.nextReviewDate.getTime(),
+      traducao: card.traducao,
       explanation: card.explanation,
       tenYearOld: card.tenYearOld
     };
@@ -160,6 +162,7 @@ export class LocalStorageAdapter implements StorageInterface {
       createdAt: new Date(stored.createdAt),
       updatedAt: new Date(stored.updatedAt),
       nextReviewDate: new Date(stored.nextReviewDate),
+      traducao: stored.traducao,
       explanation: stored.explanation,
       tenYearOld: stored.tenYearOld
     });

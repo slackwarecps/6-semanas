@@ -1,8 +1,8 @@
-import { Component, OnInit, ChangeDetectorRef, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ChangeDetectorRef, Component, NgZone, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { NavbarComponent } from '../../../../shared/components/navbar/navbar.component';
 import { CardDisplayComponent } from '../../../../shared/components/card-display/card-display.component';
+import { NavbarComponent } from '../../../../shared/components/navbar/navbar.component';
 import { SrsButtonsComponent } from '../../../../shared/components/srs-buttons/srs-buttons.component';
 import { MarkdownPipe } from '../../../../shared/pipes/markdown.pipe';
 import { GetNextCardUseCase } from '../../../flashcard/application/use-cases/get-next-card.use-case';
@@ -10,8 +10,8 @@ import { RecordCardAttemptUseCase } from '../../../flashcard/application/use-cas
 import { ResetAllCardsToNewUseCase } from '../../../flashcard/application/use-cases/reset-all-cards-to-new.use-case';
 import { CardRepository } from '../../../flashcard/data/repositories/card.repository';
 import { Card } from '../../../flashcard/domain/entities/card.entity';
-import { Tag } from '../../../flashcard/domain/value-objects/tag.value-object';
 import { QualityValue } from '../../../flashcard/domain/value-objects/quality.value-object';
+import { Tag } from '../../../flashcard/domain/value-objects/tag.value-object';
 
 interface EditForm {
   title: string;
@@ -36,6 +36,7 @@ export class StudyPage implements OnInit {
   showAnswer = false;
   isLoading = true;
   sessionFinished = false;
+  showTranslation = false;
   showExplanation = false;
   showTenYearOld = false;
   showEditModal = false;
@@ -104,6 +105,7 @@ export class StudyPage implements OnInit {
     this.currentCard = this.queue[index] ?? null;
     this.sessionFinished = !this.currentCard;
     this.showAnswer = false;
+    this.showTranslation = false;
     this.showExplanation = false;
     this.showTenYearOld = false;
     this.cardShownAt = Date.now();
@@ -129,6 +131,18 @@ export class StudyPage implements OnInit {
 
   toggleTenYearOld(): void {
     this.showTenYearOld = !this.showTenYearOld;
+  }
+
+  toggleTranslation(): void {
+    this.showTranslation = !this.showTranslation;
+  }
+
+  get currentCardTranslation(): string {
+    return this.currentCard?.traducao ?? this.parseCombinedExplanation(this.currentCard?.explanation ?? '')[0];
+  }
+
+  get currentCardExplanation(): string {
+    return this.parseCombinedExplanation(this.currentCard?.explanation ?? '')[1];
   }
 
   async rate(quality: QualityValue): Promise<void> {
@@ -203,6 +217,7 @@ export class StudyPage implements OnInit {
         createdAt: this.currentCard.createdAt,
         updatedAt: new Date(),
         nextReviewDate: this.currentCard.nextReviewDate,
+        traducao: this.currentCard.traducao,
         explanation: this.editForm.explanation || undefined,
         tenYearOld: this.editForm.tenYearOld || undefined
       });
@@ -259,5 +274,19 @@ export class StudyPage implements OnInit {
   get resetProgressPercent(): number {
     if (!this.resetProgress.total) return 0;
     return Math.round((this.resetProgress.current / this.resetProgress.total) * 100);
+  }
+
+  private parseCombinedExplanation(text: string): [string, string] {
+    const separator = '\n---\n';
+    const index = text.indexOf(separator);
+
+    if (index === -1) {
+      return ['', text.trim()];
+    }
+
+    return [
+      text.slice(0, index).trim(),
+      text.slice(index + separator.length).trim(),
+    ];
   }
 }

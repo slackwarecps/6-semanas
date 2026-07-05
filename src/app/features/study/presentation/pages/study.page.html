@@ -75,6 +75,27 @@
 
   @if (currentCard) {
     <aside class="study-sidebar study-sidebar--right">
+      <div class="flip-card" [class.flip-card--expanded]="showTranslation">
+        <button
+          type="button"
+          class="flip-card__toggle"
+          [class.flip-card__toggle--empty]="!currentCard.explanation"
+          (click)="toggleTranslation()"
+        >
+          <span>Mostrar Tradução</span>
+          <span class="flip-card__chevron" aria-hidden="true">{{ showTranslation ? '▲' : '▼' }}</span>
+        </button>
+        <div class="flip-card__panel">
+          <div class="flip-card__panel-inner">
+            @if (currentCard.explanation && currentCardTranslation) {
+              <div class="flip-card__content" [innerHTML]="currentCardTranslation | markdown"></div>
+            } @else {
+              <div class="flip-card__content flip-card__content--empty">Sem info</div>
+            }
+          </div>
+        </div>
+      </div>
+
       <div class="flip-card" [class.flip-card--expanded]="showExplanation">
         <button
           type="button"
@@ -87,8 +108,8 @@
         </button>
         <div class="flip-card__panel">
           <div class="flip-card__panel-inner">
-            @if (currentCard.explanation) {
-              <div class="flip-card__content" [innerHTML]="currentCard.explanation | markdown"></div>
+            @if (currentCard.explanation && currentCardExplanation) {
+              <div class="flip-card__content" [innerHTML]="currentCardExplanation | markdown"></div>
             } @else {
               <div class="flip-card__content flip-card__content--empty">Sem info</div>
             }

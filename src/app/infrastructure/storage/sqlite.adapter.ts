@@ -1,14 +1,14 @@
 import { Injectable } from '@angular/core';
 import initSqlJs, { Database } from 'sql.js';
-import { StorageInterface } from './storage.interface';
+import { Attempt } from '../../features/flashcard/domain/entities/attempt.entity';
 import { Card } from '../../features/flashcard/domain/entities/card.entity';
 import { CardId } from '../../features/flashcard/domain/value-objects/card-id.value-object';
-import { MultipleChoiceOption } from '../../features/flashcard/domain/value-objects/multiple-choice-option.value-object';
-import { Tag } from '../../features/flashcard/domain/value-objects/tag.value-object';
-import { Interval } from '../../features/flashcard/domain/value-objects/interval.value-object';
 import { EaseFactor } from '../../features/flashcard/domain/value-objects/ease-factor.value-object';
-import { Attempt } from '../../features/flashcard/domain/entities/attempt.entity';
+import { Interval } from '../../features/flashcard/domain/value-objects/interval.value-object';
+import { MultipleChoiceOption } from '../../features/flashcard/domain/value-objects/multiple-choice-option.value-object';
 import { Quality, QualityValue } from '../../features/flashcard/domain/value-objects/quality.value-object';
+import { Tag } from '../../features/flashcard/domain/value-objects/tag.value-object';
+import { StorageInterface } from './storage.interface';
 
 interface StoredOption {
   id: string;
@@ -45,6 +45,7 @@ interface StoredCard {
   createdAt: number;
   updatedAt: number;
   nextReviewDate: number;
+  traducao?: string;
   explanation?: string;
   tenYearOld?: string;
 }
@@ -111,6 +112,7 @@ export class SqliteAdapter implements StorageInterface {
         createdAt INTEGER NOT NULL,
         updatedAt INTEGER NOT NULL,
         nextReviewDate INTEGER NOT NULL,
+        traducao TEXT,
         explanation TEXT,
         tenYearOld TEXT,
         seq INTEGER
@@ -118,6 +120,13 @@ export class SqliteAdapter implements StorageInterface {
     `);
 
     // Executa migrações dinâmicas das novas colunas para o banco existente
+    try {
+      this.db.run('ALTER TABLE cards ADD COLUMN traducao TEXT;');
+      console.info('[SQLite Migration] Coluna traducao adicionada à tabela cards.');
+    } catch (e) {
+      // Ignora se a coluna já existe
+    }
+
     try {
       this.db.run('ALTER TABLE cards ADD COLUMN explanation TEXT;');
       console.info('[SQLite Migration] Coluna explanation adicionada à tabela cards.');
@@ -275,7 +284,7 @@ export class SqliteAdapter implements StorageInterface {
         `UPDATE cards SET
           title = ?, question = ?, answer = ?, tags = ?,
           state = ?, interval = ?, easeFactor = ?, repetitions = ?,
-          updatedAt = ?, nextReviewDate = ?, explanation = ?, tenYearOld = ?
+        updatedAt = ?, nextReviewDate = ?, traducao = ?, explanation = ?, tenYearOld = ?
         WHERE id = ?`,
         [
           stored.title,
@@ -288,6 +297,7 @@ export class SqliteAdapter implements StorageInterface {
           stored.repetitions,
           stored.updatedAt,
           stored.nextReviewDate,
+          stored.traducao || null,
           stored.explanation || null,
           stored.tenYearOld || null,
           stored.id
@@ -302,8 +312,8 @@ export class SqliteAdapter implements StorageInterface {
       const seq = this.nextCardSeq();
       this.db.run(
         `INSERT INTO cards
-          (id, title, question, answer, tags, state, interval, easeFactor, repetitions, createdAt, updatedAt, nextReviewDate, explanation, tenYearOld, seq)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          (id, title, question, answer, tags, state, interval, easeFactor, repetitions, createdAt, updatedAt, nextReviewDate, traducao, explanation, tenYearOld, seq)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           stored.id,
           stored.title,
@@ -317,6 +327,7 @@ export class SqliteAdapter implements StorageInterface {
           stored.createdAt,
           stored.updatedAt,
           stored.nextReviewDate,
+          stored.traducao || null,
           stored.explanation || null,
           stored.tenYearOld || null,
           seq
@@ -492,6 +503,7 @@ export class SqliteAdapter implements StorageInterface {
       createdAt: obj.createdAt,
       updatedAt: obj.updatedAt,
       nextReviewDate: obj.nextReviewDate,
+      traducao: obj.traducao || undefined,
       explanation: obj.explanation || undefined,
       tenYearOld: obj.tenYearOld || undefined
     };
@@ -529,6 +541,7 @@ export class SqliteAdapter implements StorageInterface {
       createdAt: card.createdAt.getTime(),
       updatedAt: card.updatedAt.getTime(),
       nextReviewDate: card.nextReviewDate.getTime(),
+      traducao: card.traducao,
       explanation: card.explanation,
       tenYearOld: card.tenYearOld
     };
@@ -561,6 +574,7 @@ export class SqliteAdapter implements StorageInterface {
       createdAt: new Date(stored.createdAt),
       updatedAt: new Date(stored.updatedAt),
       nextReviewDate: new Date(stored.nextReviewDate),
+      traducao: stored.traducao,
       explanation: stored.explanation,
       tenYearOld: stored.tenYearOld
     });

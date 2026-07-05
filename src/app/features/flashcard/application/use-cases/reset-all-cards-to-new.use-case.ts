@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 import { CardRepository } from '../../data/repositories/card.repository';
 import { Card } from '../../domain/entities/card.entity';
-import { Interval } from '../../domain/value-objects/interval.value-object';
 import { EaseFactor } from '../../domain/value-objects/ease-factor.value-object';
+import { Interval } from '../../domain/value-objects/interval.value-object';
 
 @Injectable({
   providedIn: 'root'
@@ -35,6 +35,7 @@ export class ResetAllCardsToNewUseCase {
         createdAt: card.createdAt,
         updatedAt: now,
         nextReviewDate: now,
+        traducao: card.traducao,
         explanation: card.explanation,
         tenYearOld: card.tenYearOld
       });

@@ -225,6 +225,18 @@
         </div>
 
         <div class="form-group">
+          <label for="traducao">Tradução</label>
+          <textarea
+            id="traducao"
+            [(ngModel)]="editForm.traducao"
+            name="traducao"
+            placeholder="Conteúdo traduzido para português do Brasil..."
+            class="form-textarea"
+            rows="4"
+          ></textarea>
+        </div>
+
+        <div class="form-group">
           <label for="explanation">Explicação Conceitual (Explanation)</label>
           <textarea
             id="explanation"
@@ -294,6 +306,10 @@
         <div class="preview-group">
           <span class="preview-label">Pergunta</span>
           <div class="preview-box question-box">{{ bottomSheetCard?.question }}</div>
+        </div>
+        <div class="preview-group">
+          <span class="preview-label">Tradução para pt-BR</span>
+          <div class="preview-box explanation-box">{{ bottomSheetTranslation }}</div>
         </div>
         <div class="preview-group">
           <span class="preview-label">Resposta da IA</span>
