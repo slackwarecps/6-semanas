@@ -119,7 +119,8 @@
           <table class="selector-table">
             <thead>
               <tr>
-                <th class="col-select"></th>
+                <th class="col-select">#</th>
+                <th class="col-card-id">ID</th>
                 <th class="col-card-title">Card</th>
                 <th class="col-card-tags">Tags</th>
               </tr>
@@ -137,6 +138,9 @@
                     [checked]="isCardSelected(card.id.value)"
                     (click)="$event.stopPropagation(); toggleCardSelection(card.id.value)"
                   />
+                </td>
+                <td class="col-card-id">
+                  {{ card.id.value }}
                 </td>
                 <td class="col-card-title">
                   <strong>{{ card.title }}</strong>

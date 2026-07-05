@@ -25,27 +25,44 @@
       </div>
     </div>
 
-    <!-- Conteúdo do Card -->
-    <div class="card-box" *ngIf="currentCard">
-      <span class="badge-fase">{{ jornadaNome }} — Card {{ currentIndex + 1 }}/{{ questions.length }}</span>
-      <h2 class="card-title">{{ currentCard.title }}</h2>
-      
-      <div class="card-question-text" [innerHTML]="currentCard.question | markdown"></div>
+    <div class="content-layout" *ngIf="currentCard">
+      <!-- Conteúdo do Card -->
+      <div class="card-box content-column">
+        <span class="badge-fase">{{ jornadaNome }} — Card {{ currentIndex + 1 }}/{{ questions.length }}</span>
+        <h2 class="card-title">{{ currentCard.title }}</h2>
+        
+        <div class="card-question-text" [innerHTML]="currentCard.question | markdown"></div>
 
-      <!-- Alternativas de Múltipla Escolha -->
-      <ul class="options-list" *ngIf="currentCard.isMultipleChoice">
-        <li 
-          *ngFor="let option of currentCard.options"
-          class="option-item"
-          [class.is-selected]="selectedOptionId === option.id"
-          [class.is-correct]="showAnswer && option.isCorrect"
-          [class.is-incorrect]="showAnswer && selectedOptionId === option.id && !option.isCorrect"
-          (click)="selectOption(option.id)"
-        >
-          <span class="option-letter">{{ option.id }}</span>
-          <span class="option-text">{{ option.text }}</span>
-        </li>
-      </ul>
+        <!-- Alternativas de Múltipla Escolha -->
+        <ul class="options-list" *ngIf="currentCard.isMultipleChoice">
+          <li 
+            *ngFor="let option of currentCard.options"
+            class="option-item"
+            [class.is-selected]="selectedOptionId === option.id"
+            [class.is-correct]="showAnswer && option.isCorrect"
+            [class.is-incorrect]="showAnswer && selectedOptionId === option.id && !option.isCorrect"
+            (click)="selectOption(option.id)"
+          >
+            <span class="option-letter">{{ option.id }}</span>
+            <span class="option-text">{{ option.text }}</span>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Coluna de Ações -->
+      <aside class="actions-column" aria-label="Ações da jornada">
+        <button type="button" class="action-card action-card-top">Ver explicacao</button>
+        <button type="button" class="action-card">Explicacao infantil</button>
+        <button type="button" class="action-card">Copiar pergunta</button>
+        <button type="button" class="action-card action-card-bottom">Ver resposta</button>
+      </aside>
+    </div>
+
+    <div class="question-navigator" aria-label="Navegador de perguntas">
+      <button type="button" class="nav-button">⏮</button>
+      <button type="button" class="nav-button">◀</button>
+      <button type="button" class="nav-button">▶</button>
+      <button type="button" class="nav-button">⏭</button>
     </div>
 
     <!-- Barra Inferior de Confirmação/Feedback -->
