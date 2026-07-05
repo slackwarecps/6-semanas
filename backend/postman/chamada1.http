@@ -1,6 +1,15 @@
 ### Perguntar ao LLM (Claude) - flashcard 001, Otimizar custos CI-CD com Claude
 # Requer a extensao "REST Client" (humao.rest-client) no VS Code.
 # Suba o servidor antes: cd backend && uvicorn main:app --reload
+#
+# Response esperado (200), agora com explicacao + explicacaoCrianca:
+# {
+#   "resposta": "[ ] D - Use synchronous calls for PR style checks; use the Message Batches API for weekly security audits and nightly test generation.",
+#   "explicacao": "...explicação técnica de por que D está correta e as demais erradas...",
+#   "explicacaoCrianca": "...a mesma explicação, simplificada para uma criança de 10 anos...",
+#   "provedor": "claude",
+#   "modelo": "claude-opus-4-8"
+# }
 
 @baseUrl = http://127.0.0.1:8000
 

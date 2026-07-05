@@ -17,7 +17,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from langchain_anthropic import ChatAnthropic
 from langchain_deepseek import ChatDeepSeek
 
@@ -44,13 +44,16 @@ logger = logging.getLogger("api")
 # ── Carrega as variáveis do arquivo .env ────────────────────────────────────
 load_dotenv()
 
-# Instrui o modelo a responder só com o texto da alternativa correta,
-# sem explicação, justificativa ou qualquer texto adicional.
+# Instrui o modelo a identificar a alternativa correta e devolver, junto com ela,
+# uma explicação técnica e uma versão simplificada dessa explicação.
 SYSTEM_PROMPT = (
     "A pergunta a seguir é de múltipla escolha, com alternativas no formato "
-    "'[ ] LETRA - texto'. Responda copiando a linha INTEIRA da alternativa correta, "
-    "exatamente como aparece na pergunta — incluindo o marcador '[ ]', a letra e o hífen. "
-    "Não inclua explicação, justificativa, markdown ou qualquer texto adicional além dessa linha."
+    "'[ ] LETRA - texto'. Identifique a alternativa correta e devolva três coisas: "
+    "(1) a linha completa da alternativa correta, exatamente como aparece na pergunta "
+    "— incluindo o marcador '[ ]', a letra e o hífen; "
+    "(2) uma explicação técnica de por que essa alternativa está correta e as demais erradas; "
+    "(3) a mesma explicação, reescrita de forma simples, como se estivesse explicando "
+    "para uma criança de 10 anos."
 )
 
 app = FastAPI(
@@ -129,8 +132,26 @@ class PerguntaRequest(BaseModel):
 
 class RespostaResponse(BaseModel):
     resposta: str
+    explicacao: str
+    explicacaoCrianca: str
     provedor: str
     modelo: str
+
+
+# Schema usado apenas para a saída estruturada do LLM (with_structured_output).
+class RespostaEstruturada(BaseModel):
+    resposta: str = Field(
+        description="A linha completa da alternativa correta, copiada exatamente "
+        "como aparece na pergunta, incluindo '[ ]', a letra e o hífen."
+    )
+    explicacao: str = Field(
+        description="Explicação técnica/conceitual de por que essa é a alternativa "
+        "correta e por que as outras estão erradas."
+    )
+    explicacaoCrianca: str = Field(
+        description="A mesma explicação, reescrita de forma simples, como se "
+        "estivesse explicando para uma criança de 10 anos."
+    )
 
 
 # --- Escolha do LLM ---
@@ -175,23 +196,34 @@ async def perguntar(request: PerguntaRequest) -> RespostaResponse:
         len(request.pergunta),
     )
 
-    resposta = await llm.ainvoke(
+    structured_llm = llm.with_structured_output(RespostaEstruturada)
+    resultado: RespostaEstruturada = await structured_llm.ainvoke(
         [
             ("system", SYSTEM_PROMPT),
             ("human", request.pergunta),
         ]
     )
 
+    def _truncar(texto: str, tamanho: int = 200) -> str:
+        return texto[:tamanho] + ("..." if len(texto) > tamanho else "")
+
     logger.info(
-        "LLM RESPONSE | provedor=%s | modelo=%s | resposta_len=%d | resposta=%s",
+        "LLM RESPONSE | provedor=%s | modelo=%s | resposta_len=%d | resposta=%s | "
+        "explicacao_len=%d | explicacao=%s | explicacaoCrianca_len=%d | explicacaoCrianca=%s",
         request.provedor,
         modelo,
-        len(resposta.content),
-        resposta.content[:200] + ("..." if len(resposta.content) > 200 else ""),
+        len(resultado.resposta),
+        _truncar(resultado.resposta),
+        len(resultado.explicacao),
+        _truncar(resultado.explicacao),
+        len(resultado.explicacaoCrianca),
+        _truncar(resultado.explicacaoCrianca),
     )
 
     return RespostaResponse(
-        resposta=resposta.content,
+        resposta=resultado.resposta,
+        explicacao=resultado.explicacao,
+        explicacaoCrianca=resultado.explicacaoCrianca,
         provedor=request.provedor,
         modelo=modelo,
     )

@@ -986,6 +986,22 @@
     white-space: pre-wrap;
     font-family: inherit;
   }
+
+  .explanation-box {
+    background: linear-gradient(to right bottom, #eff6ff, #eef2ff);
+    color: #1e3a8a;
+    border-color: #bfdbfe;
+    white-space: pre-wrap;
+    font-family: inherit;
+  }
+
+  .child-box {
+    background: linear-gradient(to right bottom, #f0fdf4, #ecfdf5);
+    color: #14532d;
+    border-color: #bbf7d0;
+    white-space: pre-wrap;
+    font-family: inherit;
+  }
 }
 
 // Botoes e Acoes

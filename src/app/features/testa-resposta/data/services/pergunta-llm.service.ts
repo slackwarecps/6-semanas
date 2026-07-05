@@ -9,6 +9,8 @@ export interface PerguntaRequest {
 
 export interface PerguntaResponse {
   resposta: string;
+  explicacao: string;
+  explicacaoCrianca: string;
   provedor: string;
   modelo: string;
 }

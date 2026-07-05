@@ -30,6 +30,8 @@ export class BrowseCardsPage implements OnInit {
   showBottomSheet = false;
   bottomSheetCard: Card | null = null;
   bottomSheetAnswer = '';
+  bottomSheetExplicacao = '';
+  bottomSheetExplicacaoCrianca = '';
   isGeneratingAnswer = false;
   bottomSheetError: string | null = null;
 
@@ -248,6 +250,8 @@ export class BrowseCardsPage implements OnInit {
       this.showBottomSheet = true;
       this.bottomSheetCard = card;
       this.bottomSheetAnswer = '';
+      this.bottomSheetExplicacao = '';
+      this.bottomSheetExplicacaoCrianca = '';
       this.isGeneratingAnswer = true;
       this.bottomSheetError = null;
       this.cdr.markForCheck();
@@ -255,11 +259,13 @@ export class BrowseCardsPage implements OnInit {
 
     try {
       const result = await this.perguntaLlmService.perguntar({
-        pergunta: card.question
+        pergunta: this.formatQuestionWithOptions(card)
       });
 
       this.ngZone.run(() => {
         this.bottomSheetAnswer = result.resposta;
+        this.bottomSheetExplicacao = result.explicacao;
+        this.bottomSheetExplicacaoCrianca = result.explicacaoCrianca;
         this.isGeneratingAnswer = false;
         this.cdr.markForCheck();
       });
@@ -271,6 +277,19 @@ export class BrowseCardsPage implements OnInit {
         this.cdr.markForCheck();
       });
     }
+  }
+
+  private formatQuestionWithOptions(card: Card): string {
+    if (!card.options || card.options.length === 0) {
+      return card.question;
+    }
+
+    const optionLines = [...card.options]
+      .sort((a, b) => a.order - b.order)
+      .map(option => `[ ] ${option.id} - ${option.text}`)
+      .join('\n');
+
+    return `${card.question}\n\n${optionLines}`;
   }
 
   private tratarErro(err: unknown): string {
@@ -311,8 +330,8 @@ export class BrowseCardsPage implements OnInit {
         createdAt: this.bottomSheetCard.createdAt,
         updatedAt: new Date(),
         nextReviewDate: this.bottomSheetCard.nextReviewDate,
-        explanation: this.bottomSheetCard.explanation,
-        tenYearOld: this.bottomSheetCard.tenYearOld
+        explanation: this.bottomSheetExplicacao || undefined,
+        tenYearOld: this.bottomSheetExplicacaoCrianca || undefined
       });
 
       await this.cardRepository.save(updatedCard);
@@ -330,6 +349,8 @@ export class BrowseCardsPage implements OnInit {
     this.showBottomSheet = false;
     this.bottomSheetCard = null;
     this.bottomSheetAnswer = '';
+    this.bottomSheetExplicacao = '';
+    this.bottomSheetExplicacaoCrianca = '';
     this.bottomSheetError = null;
     this.isGeneratingAnswer = false;
   }
