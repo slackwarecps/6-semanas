@@ -1,0 +1,10 @@
+### Obter card específico
+# GET /cards/{card_id} → Retorna um card com todos seus dados (options, attempts)
+# 
+# Requer header: X-User-Id
+# Response esperado (200): CardDTO ou 404 se não existir
+
+@baseUrl = http://127.0.0.1:8000
+
+GET {{baseUrl}}/cards/card-001
+X-User-Id: user123

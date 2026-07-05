@@ -22,6 +22,11 @@ from pydantic import BaseModel, Field
 from langchain_anthropic import ChatAnthropic
 from langchain_deepseek import ChatDeepSeek
 
+from database import DB_PATH, create_db_and_tables
+from routes.cards import router as cards_router
+from routes.config import router as config_router
+from routes.jornadas import router as jornadas_router
+
 # ── Configuração de logging ────────────────────────────────────────────────
 
 LOG_DIR = Path(__file__).resolve().parent / "logs"
@@ -67,9 +72,13 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:4200"],
-    allow_methods=["GET", "POST"],
-    allow_headers=["Content-Type"],
+    allow_methods=["GET", "POST", "PUT", "DELETE"],
+    allow_headers=["Content-Type", "X-User-Id"],
 )
+
+app.include_router(cards_router)
+app.include_router(config_router)
+app.include_router(jornadas_router)
 
 
 # ── Middleware de logging de requests e responses ──────────────────────────
@@ -128,10 +137,12 @@ async def global_exception_handler(request: Request, exc: Exception):
 
 @app.on_event("startup")
 async def log_startup():
+    create_db_and_tables()
     logger.info("=" * 60)
     logger.info("SERVIDOR INICIADO")
     logger.info("FastAPI app: %s", app.title)
     logger.info("LOG_DIR: %s", LOG_DIR)
+    logger.info("DATABASE: %s", DB_PATH)
     logger.info("=" * 60)
 
 

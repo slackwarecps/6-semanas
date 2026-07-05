@@ -1,0 +1,17 @@
+### Atualizar configuração - LLM
+# PUT /config/{chave} → Cria ou atualiza uma configuração (upsert)
+# 
+# Requer header: X-User-Id
+# Response esperado (200): ConfigDTO
+# 
+# Body deve conter apenas o valor
+
+@baseUrl = http://127.0.0.1:8000
+
+PUT {{baseUrl}}/config/LLM_QUERY_DEFAULT
+Content-Type: application/json
+X-User-Id: user123
+
+{
+  "valor": "claude"
+}

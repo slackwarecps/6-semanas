@@ -1,0 +1,13 @@
+### Deletar card
+# DELETE /cards/{card_id} → Deleta um card e todos seus dados (options, attempts)
+# 
+# Requer header: X-User-Id
+# Response esperado (204): No Content
+# 
+# Operação é idempotente:
+#   - Se o card não existir, ainda retorna 204
+
+@baseUrl = http://127.0.0.1:8000
+
+DELETE {{baseUrl}}/cards/card-001
+X-User-Id: user123

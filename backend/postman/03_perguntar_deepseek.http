@@ -1,0 +1,21 @@
+### Enviar pergunta ao LLM - DeepSeek
+# POST /perguntar → Envia pergunta para análise usando DeepSeek
+# 
+# Response esperado (200):
+# {
+#   "resposta": "A alternativa correta...",
+#   "explicacao": "...explicação técnica...",
+#   "explicacaoCrianca": "...explicação simplificada...",
+#   "provedor": "deepseek",
+#   "modelo": "deepseek-chat"
+# }
+
+@baseUrl = http://127.0.0.1:8000
+
+POST {{baseUrl}}/perguntar
+Content-Type: application/json
+
+{
+  "pergunta": "What is React?\n\n[ ] A - A JavaScript library for building user interfaces\n[ ] B - A Python framework\n[ ] C - A database system\n[ ] D - A CSS preprocessor",
+  "provedor": "deepseek"
+}

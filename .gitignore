@@ -112,3 +112,6 @@ firebase-debug.log
 *.bak
 *.backup
 *.orig
+
+# Banco de dados local do backend (FastAPI/SQLModel)
+backend/database.sqlite

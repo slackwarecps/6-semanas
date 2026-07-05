@@ -1,0 +1,10 @@
+### Listar todas as jornadas
+# GET /jornadas → Lista todas as jornadas do usuário, ordenadas por ordem
+# 
+# Requer header: X-User-Id
+# Response esperado (200): lista de JornadaDTO com cardIds aninhados
+
+@baseUrl = http://127.0.0.1:8000
+
+GET {{baseUrl}}/jornadas
+X-User-Id: user123

@@ -1,0 +1,709 @@
+{
+  "info": {
+    "_postman_id": "flashcards-api-collection",
+    "name": "Flashcards API",
+    "description": "Coleção completa de endpoints para a API de Flashcards\n\nTodos os endpoints requerem o header X-User-Id para isolamento por usuário.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Base",
+      "item": [
+        {
+          "name": "Status da API",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                ""
+              ]
+            },
+            "description": "Verifica se a API está rodando e retorna informações básicas"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Perguntar (LLM)",
+      "item": [
+        {
+          "name": "Enviar pergunta ao LLM - Claude",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pergunta\": \"Your CI/CD system performs three types of Claude-powered analysis: (1) quick style checks on each PR that block merging until complete, (2) comprehensive security audits of the entire codebase run weekly, and (3) test case generation triggered nightly for recently-modified modules. The Message Batches API offers 50% cost savings but can take up to 24 hours to process. You want to optimize API costs while maintaining acceptable developer experience. Which combination correctly matches each task to its API approach?\\n\\n---\\n\\n[ ] A - Use synchronous calls for all three tasks for consistent response times, and rely on prompt caching to reduce costs across all workloads.\\n[ ] B - Use synchronous calls for PR style checks and nightly test generation; use Message Batches API only for weekly security audits.\\n[ ] C - Use the Message Batches API for all three tasks to maximize the 50% cost savings, and configure the pipeline to poll for batch completion.\\n[ ] D - Use synchronous calls for PR style checks; use the Message Batches API for weekly security audits and nightly test generation.\\n\\n---\\nTags: Domain_1::Agentic_Architecture_Orchestration Domain_2::Tool_Design_MCP_Integration Domain_5::Context_Management_Reliability\",\n  \"provedor\": \"claude\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/perguntar",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "perguntar"
+              ]
+            },
+            "description": "Envia uma pergunta para o LLM (Claude) e recebe explicações em diferentes níveis"
+          },
+          "response": []
+        },
+        {
+          "name": "Enviar pergunta ao LLM - DeepSeek",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pergunta\": \"What is the capital of France?\",\n  \"provedor\": \"deepseek\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/perguntar",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "perguntar"
+              ]
+            },
+            "description": "Envia uma pergunta para o LLM (DeepSeek) e recebe explicações"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Cards",
+      "item": [
+        {
+          "name": "Listar todos os cards",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-User-Id",
+                "value": "user123"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/cards",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "cards"
+              ]
+            },
+            "description": "Lista todos os cards do usuário, ordenados por seq"
+          },
+          "response": []
+        },
+        {
+          "name": "Obter card específico",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-User-Id",
+                "value": "user123"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/cards/card-001",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "cards",
+                "card-001"
+              ]
+            },
+            "description": "Obtém um card específico com todos os seus dados (options, attempts, etc)"
+          },
+          "response": []
+        },
+        {
+          "name": "Criar novo card",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "user123"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"card-novo-001\",\n  \"title\": \"React Hooks\",\n  \"question\": \"O que é um Hook em React?\",\n  \"answer\": \"Uma função que permite usar state e outras funcionalidades do React\",\n  \"tags\": [\"react\", \"javascript\", \"hooks\"],\n  \"options\": [\n    {\n      \"id\": \"opt-1\",\n      \"text\": \"Uma função que permite usar state\",\n      \"isCorrect\": true,\n      \"order\": 1\n    },\n    {\n      \"id\": \"opt-2\",\n      \"text\": \"Um arquivo de configuração\",\n      \"isCorrect\": false,\n      \"order\": 2\n    },\n    {\n      \"id\": \"opt-3\",\n      \"text\": \"Uma biblioteca externa\",\n      \"isCorrect\": false,\n      \"order\": 3\n    }\n  ],\n  \"state\": \"New\",\n  \"interval\": 0,\n  \"easeFactor\": 2.5,\n  \"repetitions\": 0,\n  \"attempts\": [],\n  \"createdAt\": 1720209591000,\n  \"updatedAt\": 1720209591000,\n  \"nextReviewDate\": 1720209591000,\n  \"traducao\": \"What is a Hook in React?\",\n  \"explanation\": \"Hooks são funções especiais do React que permitem usar state e outras features em functional components\",\n  \"tenYearOld\": \"Um Hook é como uma mágica que permite que um componente se lembre de coisas\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/cards",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "cards"
+              ]
+            },
+            "description": "Cria um novo card ou atualiza um existente (upsert)"
+          },
+          "response": []
+        },
+        {
+          "name": "Atualizar card existente",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "user123"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"card-001\",\n  \"title\": \"React Hooks - Atualizado\",\n  \"question\": \"O que é um Hook em React? (versão atualizada)\",\n  \"answer\": \"Uma função que permite usar state e outras funcionalidades do React de forma elegante\",\n  \"tags\": [\"react\", \"javascript\", \"hooks\", \"avançado\"],\n  \"options\": [\n    {\n      \"id\": \"opt-1\",\n      \"text\": \"Uma função que permite usar state\",\n      \"isCorrect\": true,\n      \"order\": 1\n    },\n    {\n      \"id\": \"opt-2\",\n      \"text\": \"Um arquivo de configuração\",\n      \"isCorrect\": false,\n      \"order\": 2\n    }\n  ],\n  \"state\": \"Learning\",\n  \"interval\": 1,\n  \"easeFactor\": 2.6,\n  \"repetitions\": 1,\n  \"attempts\": [\n    {\n      \"timestamp\": 1720209591000,\n      \"quality\": 4,\n      \"elapsedTime\": 5000,\n      \"wasCorrect\": true,\n      \"userAnswer\": \"opt-1\",\n      \"easeFactorBefore\": 2.5,\n      \"easeFactorAfter\": 2.6,\n      \"intervalBefore\": 0,\n      \"intervalAfter\": 1\n    }\n  ],\n  \"createdAt\": 1720209591000,\n  \"updatedAt\": 1720209592000,\n  \"nextReviewDate\": 1720296591000,\n  \"traducao\": \"What is a Hook in React?\",\n  \"explanation\": \"Hooks são funções especiais que permitem usar state em function components\",\n  \"tenYearOld\": \"Um Hook é como uma mágica que permite que um componente se lembre de coisas\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/cards",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "cards"
+              ]
+            },
+            "description": "Atualiza um card existente mantendo createdAt e seq"
+          },
+          "response": []
+        },
+        {
+          "name": "Deletar card",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "X-User-Id",
+                "value": "user123"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/cards/card-001",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "cards",
+                "card-001"
+              ]
+            },
+            "description": "Deleta um card e todos os seus dados associados (options, attempts)"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Configuração",
+      "item": [
+        {
+          "name": "Obter configuração",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-User-Id",
+                "value": "user123"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/config/LLM_QUERY_DEFAULT",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "config",
+                "LLM_QUERY_DEFAULT"
+              ]
+            },
+            "description": "Obtém uma configuração específica do usuário. Retorna 404 se não existir."
+          },
+          "response": []
+        },
+        {
+          "name": "Atualizar configuração",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "user123"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"valor\": \"claude\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/config/LLM_QUERY_DEFAULT",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "config",
+                "LLM_QUERY_DEFAULT"
+              ]
+            },
+            "description": "Cria ou atualiza uma configuração do usuário (upsert)"
+          },
+          "response": []
+        },
+        {
+          "name": "Atualizar configuração - Tema",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "user123"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"valor\": \"dark\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/config/THEME",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "config",
+                "THEME"
+              ]
+            },
+            "description": "Exemplo de atualizar configuração de tema"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Jornadas",
+      "item": [
+        {
+          "name": "Listar todas as jornadas",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-User-Id",
+                "value": "user123"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/jornadas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "jornadas"
+              ]
+            },
+            "description": "Lista todas as jornadas do usuário, ordenadas por ordem"
+          },
+          "response": []
+        },
+        {
+          "name": "Obter jornada específica",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-User-Id",
+                "value": "user123"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/jornadas/jornada-001",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "jornadas",
+                "jornada-001"
+              ]
+            },
+            "description": "Obtém uma jornada específica com a lista de cardIds vinculados"
+          },
+          "response": []
+        },
+        {
+          "name": "Criar nova jornada",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "user123"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"jornada-react-basics\",\n  \"nome\": \"React Basics\",\n  \"ativa\": true,\n  \"ordem\": 1,\n  \"createdAt\": 1720209591000,\n  \"updatedAt\": 1720209591000,\n  \"cardIds\": [\"card-001\", \"card-002\", \"card-003\"]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/jornadas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "jornadas"
+              ]
+            },
+            "description": "Cria uma nova jornada com os cards vinculados"
+          },
+          "response": []
+        },
+        {
+          "name": "Atualizar jornada",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "user123"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"jornada-react-basics\",\n  \"nome\": \"React Fundamentals\",\n  \"ativa\": false,\n  \"ordem\": 2,\n  \"createdAt\": 1720209591000,\n  \"updatedAt\": 1720209592000,\n  \"cardIds\": [\"card-001\", \"card-002\", \"card-004\"]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/jornadas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "jornadas"
+              ]
+            },
+            "description": "Atualiza uma jornada existente, mantendo createdAt"
+          },
+          "response": []
+        },
+        {
+          "name": "Deletar jornada",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "X-User-Id",
+                "value": "user123"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/jornadas/jornada-001",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "jornadas",
+                "jornada-001"
+              ]
+            },
+            "description": "Deleta uma jornada e todos seus dados associados (perguntas, progresso)"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Progresso",
+      "item": [
+        {
+          "name": "Obter progresso da jornada",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-User-Id",
+                "value": "user123"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/jornadas/jornada-001/progresso",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "jornadas",
+                "jornada-001",
+                "progresso"
+              ]
+            },
+            "description": "Obtém o progresso atual de uma jornada específica"
+          },
+          "response": []
+        },
+        {
+          "name": "Atualizar progresso da jornada",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "user123"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"jornadaId\": \"jornada-001\",\n  \"status\": \"in-progress\",\n  \"bestErrors\": 2,\n  \"completedAt\": null,\n  \"currentQuestionIndex\": 3,\n  \"currentErrors\": 1,\n  \"currentLives\": 2,\n  \"lastActiveAt\": 1720209591000,\n  \"bestTime\": 45000\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/jornadas/jornada-001/progresso",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "jornadas",
+                "jornada-001",
+                "progresso"
+              ]
+            },
+            "description": "Atualiza o progresso de uma jornada (cria se não existir)"
+          },
+          "response": []
+        },
+        {
+          "name": "Obter progresso completo (status completed)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "user123"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"jornadaId\": \"jornada-001\",\n  \"status\": \"completed\",\n  \"bestErrors\": 0,\n  \"completedAt\": 1720209600000,\n  \"currentQuestionIndex\": 5,\n  \"currentErrors\": 0,\n  \"currentLives\": 3,\n  \"lastActiveAt\": 1720209600000,\n  \"bestTime\": 35000\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/jornadas/jornada-001/progresso",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "jornadas",
+                "jornada-001",
+                "progresso"
+              ]
+            },
+            "description": "Exemplo de marcar uma jornada como completada"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Learn Stats (XP)",
+      "item": [
+        {
+          "name": "Obter XP total",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-User-Id",
+                "value": "user123"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/learn/xp",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "learn",
+                "xp"
+              ]
+            },
+            "description": "Retorna o total de XP acumulado pelo usuário"
+          },
+          "response": []
+        },
+        {
+          "name": "Adicionar XP",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "user123"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 100\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/learn/xp",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "learn",
+                "xp"
+              ]
+            },
+            "description": "Adiciona XP ao usuário e retorna o novo total"
+          },
+          "response": []
+        },
+        {
+          "name": "Adicionar 500 XP de bonus",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-User-Id",
+                "value": "user123"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 500\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/learn/xp",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "learn",
+                "xp"
+              ]
+            },
+            "description": "Exemplo de bonus: adicionar 500 XP"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Reset e Deleção",
+      "item": [
+        {
+          "name": "Resetar progresso (mantém cards e jornadas)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-User-Id",
+                "value": "user123"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/learn/reset-progress",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "learn",
+                "reset-progress"
+              ]
+            },
+            "description": "Zera o progresso de todas as jornadas e o XP total, mantendo os cards e jornadas"
+          },
+          "response": []
+        },
+        {
+          "name": "Deletar TODOS os dados do usuário",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "X-User-Id",
+                "value": "user123"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/user-data",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "user-data"
+              ]
+            },
+            "description": "⚠️ CUIDADO: Deleta TODOS os dados do usuário (cards, jornadas, progresso, XP, configurações). Esta ação é irreversível."
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://127.0.0.1:8000",
+      "type": "string"
+    }
+  ]
+}

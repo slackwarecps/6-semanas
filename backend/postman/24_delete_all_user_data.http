@@ -1,0 +1,22 @@
+### Deletar TODOS os dados do usuário
+# DELETE /user-data → Deleta TODOS os dados do usuário
+# 
+# Requer header: X-User-Id
+# Response esperado (204): No Content
+# 
+# ⚠️  CUIDADO: AÇÃO IRREVERSÍVEL!
+# 
+# Delete:
+#   - Todos os cards
+#   - Todas as opções dos cards
+#   - Todos os attempts dos cards
+#   - Todas as jornadas
+#   - Todas as perguntas das jornadas
+#   - Progresso de todas as jornadas
+#   - XP
+#   - Configurações
+
+@baseUrl = http://127.0.0.1:8000
+
+DELETE {{baseUrl}}/user-data
+X-User-Id: user123

@@ -1,0 +1,15 @@
+### Obter configuração
+# GET /config/{chave} → Retorna uma configuração específica
+# 
+# Requer header: X-User-Id
+# Response esperado (200): ConfigDTO ou 404 se não existir
+# 
+# Chaves comuns:
+#   - LLM_QUERY_DEFAULT: provedor LLM padrão (claude, deepseek)
+#   - THEME: tema da aplicação (light, dark)
+#   - LANGUAGE: idioma preferido
+
+@baseUrl = http://127.0.0.1:8000
+
+GET {{baseUrl}}/config/LLM_QUERY_DEFAULT
+X-User-Id: user123

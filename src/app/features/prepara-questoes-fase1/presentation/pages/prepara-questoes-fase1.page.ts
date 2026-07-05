@@ -5,7 +5,7 @@ import { CardRepository } from '../../../flashcard/data/repositories/card.reposi
 import { Card } from '../../../flashcard/domain/entities/card.entity';
 import { NavbarComponent } from '../../../../shared/components/navbar/navbar.component';
 import { BatchCardPreparationService } from '../../application/services/batch-card-preparation.service';
-import { SqliteAdapter } from '../../../../infrastructure/storage/sqlite.adapter';
+import { HttpConfigAdapter } from '../../../../infrastructure/storage/http-config.adapter';
 
 @Component({
   selector: 'app-prepara-questoes-fase1-page',
@@ -39,7 +39,7 @@ export class PreparaQuestoesFase1Page implements OnInit {
   constructor(
     private readonly cardRepository: CardRepository,
     private readonly batchCardPreparationService: BatchCardPreparationService,
-    private readonly sqliteAdapter: SqliteAdapter,
+    private readonly sqliteAdapter: HttpConfigAdapter,
     private readonly cdr: ChangeDetectorRef,
     private readonly ngZone: NgZone
   ) {}

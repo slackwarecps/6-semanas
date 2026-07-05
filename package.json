@@ -4,9 +4,8 @@
   "scripts": {
     "ng": "ng",
     "generate-index": "node generate-flashcards-index.js",
-    "postinstall": "cp node_modules/sql.js/dist/sql-wasm.wasm public/ 2>/dev/null || true",
     "start": "npm run generate-index && ng serve",
-    "build": "npm run postinstall && npm run generate-index && ng build",
+    "build": "npm run generate-index && ng build",
     "watch": "npm run generate-index && ng build --watch --configuration development",
     "test": "ng test",
     "test:quiz-solver": "tsx scripts/test-quiz-solver.ts"
@@ -24,7 +23,6 @@
     "@langchain/core": "^1.2.1",
     "marked": "^18.0.5",
     "rxjs": "~7.8.0",
-    "sql.js": "^1.14.1",
     "tslib": "^2.3.0",
     "zod": "^4.4.3"
   },
@@ -34,7 +32,6 @@
     "@angular/compiler-cli": "^21.2.0",
     "@types/marked": "^5.0.2",
     "@types/node": "^20.19.0",
-    "@types/sql.js": "^1.4.11",
     "dotenv": "^17.4.2",
     "jsdom": "^28.0.0",
     "playwright": "^1.61.1",

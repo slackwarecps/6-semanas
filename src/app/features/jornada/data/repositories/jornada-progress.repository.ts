@@ -1,12 +1,12 @@
 import { Injectable } from '@angular/core';
-import { SqliteAdapter } from '../../../../infrastructure/storage/sqlite.adapter';
+import { HttpJornadaAdapter } from '../../../../infrastructure/storage/http-jornada.adapter';
 import { JornadaProgress } from '../../domain/entities/jornada-progress.entity';
 
 @Injectable({
   providedIn: 'root'
 })
 export class JornadaProgressRepository {
-  constructor(private sqliteAdapter: SqliteAdapter) {}
+  constructor(private sqliteAdapter: HttpJornadaAdapter) {}
 
   async getProgress(jornadaId: string): Promise<JornadaProgress | null> {
     const row = await this.sqliteAdapter.getJornadaProgress(jornadaId);

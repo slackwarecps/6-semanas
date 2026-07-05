@@ -31,6 +31,34 @@
     }
   }
 
+  &__user {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-left: auto;
+    margin-right: 1rem;
+  }
+
+  &__user-label {
+    color: #cbd5e1;
+    font-size: 0.85rem;
+    white-space: nowrap;
+  }
+
+  &__user-select {
+    background-color: #334155;
+    border: 1px solid #475569;
+    color: #f8fafc;
+    border-radius: 6px;
+    padding: 0.35rem 0.5rem;
+    font-size: 0.9rem;
+    cursor: pointer;
+
+    &:hover {
+      background-color: #3f4f66;
+    }
+  }
+
   &__settings {
     position: relative;
   }

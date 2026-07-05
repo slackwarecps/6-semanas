@@ -1,0 +1,25 @@
+### Atualizar jornada
+# POST /jornadas → Atualiza uma jornada existente (mesma rota de create)
+# 
+# Requer header: X-User-Id
+# Response esperado (200): JornadaDTO atualizado
+# 
+# Ao atualizar:
+#   - Mantém createdAt original
+#   - Substitui nome, ativa, ordem, updatedAt e cardIds
+
+@baseUrl = http://127.0.0.1:8000
+
+POST {{baseUrl}}/jornadas
+Content-Type: application/json
+X-User-Id: user123
+
+{
+  "id": "jornada-react-basics",
+  "nome": "React Fundamentals",
+  "ativa": false,
+  "ordem": 2,
+  "createdAt": 1720209591000,
+  "updatedAt": 1720209592000,
+  "cardIds": ["card-001", "card-002", "card-004"]
+}

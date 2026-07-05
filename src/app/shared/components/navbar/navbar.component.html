@@ -9,6 +9,19 @@
     <a routerLink="/importar-cards" routerLinkActive="active">Importar</a>
   </div>
 
+  <div class="navbar__user">
+    <label for="active-user-select" class="navbar__user-label">👤 Usuário Logado</label>
+    <select
+      id="active-user-select"
+      class="navbar__user-select"
+      (change)="onUserChange($event)"
+    >
+      @for (user of users; track user) {
+        <option [value]="user" [selected]="user === activeUser">{{ user }}</option>
+      }
+    </select>
+  </div>
+
   <div class="navbar__settings">
     <button type="button" class="navbar__settings-btn" (click)="toggleSettings()">⚙️ Configurações</button>
 

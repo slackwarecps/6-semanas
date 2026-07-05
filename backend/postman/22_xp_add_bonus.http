@@ -1,0 +1,15 @@
+### Adicionar bonus XP
+# POST /learn/xp → Exemplo com bonus de 500 XP
+# 
+# Requer header: X-User-Id
+# Response esperado (200): XpDTO com novo totalXp
+
+@baseUrl = http://127.0.0.1:8000
+
+POST {{baseUrl}}/learn/xp
+Content-Type: application/json
+X-User-Id: user123
+
+{
+  "amount": 500
+}

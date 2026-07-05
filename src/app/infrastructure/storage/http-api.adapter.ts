@@ -1,4 +1,7 @@
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { firstValueFrom } from 'rxjs';
+import { environment } from '../../../environments/environment';
 import { Attempt } from '../../features/flashcard/domain/entities/attempt.entity';
 import { Card } from '../../features/flashcard/domain/entities/card.entity';
 import { CardId } from '../../features/flashcard/domain/value-objects/card-id.value-object';
@@ -9,14 +12,16 @@ import { Quality, QualityValue } from '../../features/flashcard/domain/value-obj
 import { Tag } from '../../features/flashcard/domain/value-objects/tag.value-object';
 import { StorageInterface } from './storage.interface';
 
-interface StoredOption {
+// DTOs no formato do backend (rotas /cards), que espelham o StoredCard legado.
+
+interface ApiOption {
   id: string;
   text: string;
   isCorrect: boolean;
   order: number;
 }
 
-interface StoredAttempt {
+interface ApiAttempt {
   timestamp: number;
   quality: number;
   elapsedTime: number;
@@ -28,18 +33,19 @@ interface StoredAttempt {
   intervalAfter: number;
 }
 
-interface StoredCard {
+interface ApiCard {
   id: string;
+  seq?: number;
   title: string;
   question: string;
   answer: string;
-  options?: StoredOption[];
+  options?: ApiOption[];
   tags: string[];
   state: 'New' | 'Learning' | 'Review' | 'Relearning';
   interval: number;
   easeFactor: number;
   repetitions: number;
-  attempts: StoredAttempt[];
+  attempts: ApiAttempt[];
   createdAt: number;
   updatedAt: number;
   nextReviewDate: number;
@@ -48,60 +54,49 @@ interface StoredCard {
   tenYearOld?: string;
 }
 
+/**
+ * Implementação da StorageInterface que persiste os cards no backend
+ * (FastAPI + SQLite), em vez do banco sql.js local do navegador.
+ *
+ * O header `X-User-Id` é adicionado pelo userIdInterceptor, não aqui.
+ */
 @Injectable({
   providedIn: 'root'
 })
-export class LocalStorageAdapter implements StorageInterface {
-  private readonly CARDS_KEY = 'flashcards:cards:v1';
+export class HttpApiAdapter implements StorageInterface {
+  private readonly baseUrl = `${environment.backendBaseUrl}/cards`;
+
+  constructor(private readonly http: HttpClient) {}
 
   async saveCard(card: Card): Promise<void> {
-    const stored = this.mapCardToStorage(card);
-    const existing = await this.loadAllStoredCards();
-    const index = existing.findIndex(c => c.id === stored.id);
-    
-    if (index >= 0) {
-      existing[index] = stored;
-    } else {
-      existing.push(stored);
-    }
-    
-    localStorage.setItem(this.CARDS_KEY, JSON.stringify(existing));
-    console.info(`[LocalStorage] Card ${card.id.value} salvo no localStorage`);
+    await firstValueFrom(this.http.post<ApiCard>(this.baseUrl, this.mapCardToApi(card)));
   }
 
   async loadCard(id: CardId): Promise<Card | null> {
-    const all = await this.loadAllStoredCards();
-    const stored = all.find(c => c.id === id.value);
-    return stored ? this.mapStorageToCard(stored) : null;
-  }
-
-  async loadAllCards(): Promise<Card[]> {
-    const allStored = await this.loadAllStoredCards();
-    return allStored.map(s => this.mapStorageToCard(s));
-  }
-
-  async deleteCard(id: CardId): Promise<void> {
-    const existing = await this.loadAllStoredCards();
-    const filtered = existing.filter(c => c.id !== id.value);
-    localStorage.setItem(this.CARDS_KEY, JSON.stringify(filtered));
-    console.info(`[LocalStorage] Card ${id.value} deletado do localStorage`);
-  }
-
-  private async loadAllStoredCards(): Promise<StoredCard[]> {
-    if (typeof window === 'undefined') return [];
-    const cached = localStorage.getItem(this.CARDS_KEY);
-    if (!cached) return [];
     try {
-      return JSON.parse(cached) as StoredCard[];
-    } catch (e) {
-      console.error('Falha ao parsear os cards salvos no LocalStorage, limpando cache corrompido:', e);
-      return [];
+      const dto = await firstValueFrom(this.http.get<ApiCard>(`${this.baseUrl}/${id.value}`));
+      return this.mapApiToCard(dto);
+    } catch (error) {
+      if (error instanceof HttpErrorResponse && error.status === 404) {
+        return null;
+      }
+      throw error;
     }
   }
 
-  private mapCardToStorage(card: Card): StoredCard {
+  async loadAllCards(): Promise<Card[]> {
+    const dtos = await firstValueFrom(this.http.get<ApiCard[]>(this.baseUrl));
+    return dtos.map(dto => this.mapApiToCard(dto));
+  }
+
+  async deleteCard(id: CardId): Promise<void> {
+    await firstValueFrom(this.http.delete<void>(`${this.baseUrl}/${id.value}`));
+  }
+
+  private mapCardToApi(card: Card): ApiCard {
     return {
       id: card.id.value,
+      seq: card.seq,
       title: card.title,
       question: card.question,
       answer: card.answer,
@@ -136,19 +131,20 @@ export class LocalStorageAdapter implements StorageInterface {
     };
   }
 
-  private mapStorageToCard(stored: StoredCard): Card {
+  private mapApiToCard(dto: ApiCard): Card {
     return new Card({
-      id: new CardId(stored.id),
-      title: stored.title,
-      question: stored.question,
-      answer: stored.answer,
-      options: stored.options?.map(o => new MultipleChoiceOption(o)) || [],
-      tags: stored.tags.map(t => new Tag(t)),
-      state: stored.state,
-      interval: new Interval(stored.interval),
-      easeFactor: new EaseFactor(stored.easeFactor),
-      repetitions: stored.repetitions,
-      attempts: stored.attempts.map(a => new Attempt({
+      id: new CardId(dto.id),
+      seq: dto.seq,
+      title: dto.title,
+      question: dto.question,
+      answer: dto.answer,
+      options: dto.options?.map(o => new MultipleChoiceOption(o)) || [],
+      tags: dto.tags.map(t => new Tag(t)),
+      state: dto.state,
+      interval: new Interval(dto.interval),
+      easeFactor: new EaseFactor(dto.easeFactor),
+      repetitions: dto.repetitions,
+      attempts: dto.attempts.map(a => new Attempt({
         timestamp: new Date(a.timestamp),
         quality: new Quality(a.quality as QualityValue),
         elapsedTime: a.elapsedTime,
@@ -159,12 +155,12 @@ export class LocalStorageAdapter implements StorageInterface {
         intervalBefore: new Interval(a.intervalBefore),
         intervalAfter: new Interval(a.intervalAfter)
       })),
-      createdAt: new Date(stored.createdAt),
-      updatedAt: new Date(stored.updatedAt),
-      nextReviewDate: new Date(stored.nextReviewDate),
-      traducao: stored.traducao,
-      explanation: stored.explanation,
-      tenYearOld: stored.tenYearOld
+      createdAt: new Date(dto.createdAt),
+      updatedAt: new Date(dto.updatedAt),
+      nextReviewDate: new Date(dto.nextReviewDate),
+      traducao: dto.traducao,
+      explanation: dto.explanation,
+      tenYearOld: dto.tenYearOld
     });
   }
 }

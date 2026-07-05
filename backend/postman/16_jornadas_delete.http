@@ -1,0 +1,15 @@
+### Deletar jornada
+# DELETE /jornadas/{jornada_id} → Deleta uma jornada e todos seus dados
+# 
+# Requer header: X-User-Id
+# Response esperado (204): No Content
+# 
+# Deleta:
+#   - A jornada em si
+#   - Todas as perguntas (JornadaPergunta) vinculadas
+#   - Progresso (JornadaProgresso) associado
+
+@baseUrl = http://127.0.0.1:8000
+
+DELETE {{baseUrl}}/jornadas/jornada-001
+X-User-Id: user123

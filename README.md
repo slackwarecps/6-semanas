@@ -86,15 +86,30 @@ src/app/
 
 ---
 
-## 💾 Persistência de Dados - SQLite
+## 💾 Persistência de Dados - Backend (FastAPI + SQLite)
 
-A partir da versão 2.0, a aplicação usa **SQLite** com `sql.js` para persistência de dados offline no navegador, substituindo o antigo sistema de localStorage puro.
+A partir da versão 3.0 (migração concluída — ver `spec-docs/migration_backend_plan.md`),
+**toda a persistência vive no backend** (`backend/`, FastAPI + SQLModel + SQLite), com
+suporte multi-usuário. O banco local sql.js/WASM foi removido do frontend.
 
 ### Como Funciona
 
-- **Banco de Dados:** SQLite compilado para WebAssembly (sql.js) roda 100% no navegador
-- **Persistência:** O banco é exportado e salvo em base64 no localStorage para sobreviver a refreshes e reboots do navegador
-- **Migração Automática:** Dados existentes em localStorage antigo são migrados automaticamente na primeira execução
+- **Banco de Dados:** arquivo `backend/database.sqlite`, criado automaticamente no startup do FastAPI
+- **Multi-usuário:** toda requisição de dados leva o header `X-User-Id`, injetado pelo
+  interceptor `src/app/infrastructure/http/user-id.interceptor.ts`. O usuário ativo é
+  escolhido no seletor **"👤 Usuário Logado"** da Navbar e persiste em
+  `localStorage['active_user']` (`ActiveUserService`); trocar de usuário recarrega a
+  página e alterna o ambiente de dados inteiro
+- **Adapters HTTP** (`src/app/infrastructure/storage/`):
+  - `http-api.adapter.ts` — cards (implementa a `StorageInterface`)
+  - `http-jornada.adapter.ts` — jornadas, progresso e XP
+  - `http-config.adapter.ts` — configurações por usuário
+  - `http-user-data.service.ts` — reset total dos dados do usuário
+- **⚠️ O frontend exige o backend rodando em `http://127.0.0.1:8000`**
+  (`uvicorn main:app` na pasta `backend/` — instruções em `backend/README.md`)
+- **Restore de backups legados:** `backend/restore_backup.py` importa um `.sqlite`
+  exportado pela tela Backup/Restore para o banco do backend
+  (`python restore_backup.py backup.sqlite --user fabao`)
 - **Tabelas Principais:**
   - `cards` - Cartões e seus metadados (intervalo, facilidade, repetições)
   - `card_options` - Opções de múltipla escolha para cartões
@@ -102,7 +117,8 @@ A partir da versão 2.0, a aplicação usa **SQLite** com `sql.js` para persist�
   - `jornadas` - Dados das fases (nome, ativa, ordem)
   - `jornada_perguntas` - Vinculação ordenada de cards à jornada
   - `jornada_progresso` - Histórico de conclusão, status (locked/unlocked/completed) e erros
-  - `learn_stats` - Singleton de estatísticas globais (XP total)
+  - `learn_stats` - Estatísticas por usuário (XP total)
+  - `app_config` - Configurações por usuário (ex.: modelo LLM padrão)
 
 ### Dados Armazenados por Card
 
@@ -118,16 +134,16 @@ Para resetar todos os cartões:
 2. Clique em "Resetar Cartões"
 3. Um **modal de segurança customizado** listará todas as consequências da deleção. O botão **Cancelar** recebe o foco automático por segurança (pressione Enter para desistir). A limpeza só é executada se o usuário confirmar clicando em **Confirmar Reset**.
 
-Isso remove:
-- Banco SQLite (`flashcards:sqlite:db`)
-- Backup antigo em localStorage (`flashcards:cards:v1`)
-- Flag de migração (`flashcards:migration:completed`)
+Isso remove **todos os dados do usuário ativo no backend** (cards, jornadas, progresso,
+XP e configurações — via `DELETE /user-data`), além de eventuais resquícios do banco
+sql.js legado no localStorage do navegador. Os dados dos demais usuários ficam intactos.
 
 ### Backup e Exportação
-Para realizar o backup manual do banco de dados local do navegador:
-1. Clique em "Configurações" (engrenagem) na Navbar.
-2. Clique em "Backup / Restore".
-3. Pressione o botão para baixar o arquivo físico do banco de dados SQLite (`.sqlite`) com o seu progresso e explicações salvas.
+A tela "Backup / Restore" (Configurações → Backup / Restore) baixa o banco sql.js
+**legado** que ainda estiver no localStorage do navegador (`.sqlite`). Ela foi mantida
+como rede de segurança da migração: um backup legado pode ser importado para o backend
+com `python backend/restore_backup.py <arquivo.sqlite> --user <user_id>`. Para backup
+dos dados atuais, basta copiar o arquivo `backend/database.sqlite`.
 
 ---
 

@@ -1,0 +1,10 @@
+### Listar todos os cards
+# GET /cards → Lista todos os cards do usuário, ordenados por seq
+# 
+# Requer header: X-User-Id
+# Response esperado (200): lista de CardDTO
+
+@baseUrl = http://127.0.0.1:8000
+
+GET {{baseUrl}}/cards
+X-User-Id: user123
