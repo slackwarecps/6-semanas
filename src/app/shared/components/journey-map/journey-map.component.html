@@ -24,6 +24,9 @@
             <span class="node-meta" *ngIf="item.status === 'completed'">
               Melhor resultado: {{ item.bestErrors }} {{ item.bestErrors === 1 ? 'erro' : 'erros' }}
             </span>
+            <span class="node-meta" *ngIf="item.status === 'completed' && item.bestTime">
+              ⏱️ Tempo recorde: {{ formatTime(item.bestTime) }}
+            </span>
             <span class="node-meta text-primary" *ngIf="item.status === 'unlocked'">
               Iniciar Desafio ({{ item.jornada.questionCardIds.length }} cards)
             </span>

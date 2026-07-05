@@ -8,6 +8,8 @@ import { Card } from '../../../flashcard/domain/entities/card.entity';
 import { CompleteJornadaUseCase } from '../../../jornada/application/use-cases/complete-jornada.use-case';
 import { GetJornadaQuestionsUseCase } from '../../../jornada/application/use-cases/get-jornada-questions.use-case';
 import { GetJourneyMapUseCase } from '../../../jornada/application/use-cases/get-journey-map.use-case';
+import { JornadaProgressRepository } from '../../../jornada/data/repositories/jornada-progress.repository';
+import { JornadaProgress } from '../../../jornada/domain/entities/jornada-progress.entity';
 
 @Component({
   selector: 'app-jornada-phase-page',
@@ -32,6 +34,13 @@ export class JornadaPhasePage implements OnInit {
   showCopyToastFading = false;
   phaseState: 'playing' | 'failed' | 'completed' = 'playing';
   isLoading = true;
+  showExplanationDialog = false;
+  explanationTitle = '';
+  explanationText = '';
+  showAnswerBottomSheet = false;
+  showFailedDialog = false;
+  xpEarnedInThisPlay = 0;
+  startTime = Date.now();
   private copyToastTimeoutId: ReturnType<typeof setTimeout> | null = null;
   private copyToastFadeTimeoutId: ReturnType<typeof setTimeout> | null = null;
 
@@ -41,6 +50,7 @@ export class JornadaPhasePage implements OnInit {
     private getJourneyMapUseCase: GetJourneyMapUseCase,
     private getJornadaQuestionsUseCase: GetJornadaQuestionsUseCase,
     private completeJornadaUseCase: CompleteJornadaUseCase,
+    private progressRepository: JornadaProgressRepository,
     private cdr: ChangeDetectorRef,
     private ngZone: NgZone
   ) {}
@@ -76,9 +86,25 @@ export class JornadaPhasePage implements OnInit {
 
       // Carregar questões
       const cards = await this.getJornadaQuestionsUseCase.execute(this.jornadaId);
+      const progress = await this.progressRepository.getProgress(this.jornadaId);
+
       this.ngZone.run(() => {
         this.questions = cards;
         this.resetGame();
+
+        if (progress) {
+          this.currentIndex = progress.currentQuestionIndex ?? 0;
+          this.errors = progress.currentErrors ?? 0;
+          this.lives = progress.currentLives ?? 3;
+
+          // Se vidas <= 0, reseta para iniciar do zero
+          if (this.lives <= 0) {
+            this.currentIndex = 0;
+            this.errors = 0;
+            this.lives = 3;
+          }
+        }
+
         this.isLoading = false;
         this.cdr.markForCheck();
       });
@@ -107,7 +133,73 @@ export class JornadaPhasePage implements OnInit {
     this.showAnswer = false;
     this.showCopyToast = false;
     this.showCopyToastFading = false;
+    this.showFailedDialog = false;
     this.phaseState = 'playing';
+    this.startTime = Date.now();
+  }
+
+  async saveCurrentProgress(): Promise<void> {
+    try {
+      const progress = await this.progressRepository.getProgress(this.jornadaId);
+      const currentStatus = (progress && progress.status) ? progress.status : 'unlocked';
+      await this.progressRepository.saveProgress(new JornadaProgress({
+        jornadaId: this.jornadaId,
+        status: currentStatus,
+        bestErrors: progress ? progress.bestErrors : null,
+        completedAt: progress ? progress.completedAt : null,
+        currentQuestionIndex: this.currentIndex,
+        currentErrors: this.errors,
+        currentLives: this.lives,
+        lastActiveAt: new Date()
+      }));
+    } catch (e) {
+      console.error('[JornadaPhase] Erro ao salvar progresso:', e);
+    }
+  }
+
+  async recordSelfEvaluation(isCorrect: boolean): Promise<void> {
+    this.showAnswerBottomSheet = false;
+
+    this.ngZone.run(async () => {
+      if (isCorrect) {
+        this.sessionXp += 10;
+      } else {
+        this.lives--;
+        this.errors++;
+      }
+
+      if (this.lives <= 0) {
+        this.showFailedDialog = true;
+        this.currentIndex = 0;
+        this.errors = 0;
+        this.lives = 3;
+        await this.saveCurrentProgress();
+      } else {
+        this.currentIndex++;
+        if (this.currentIndex === this.questions.length) {
+          this.phaseState = 'completed';
+          const progress = await this.progressRepository.getProgress(this.jornadaId);
+          const isReplay = progress && progress.status === 'completed';
+          this.xpEarnedInThisPlay = isReplay ? 0 : (this.sessionXp + 50);
+          const timeSpentSeconds = Math.max(1, Math.floor((Date.now() - this.startTime) / 1000));
+          await this.completeJornadaUseCase.execute(this.jornadaId, this.errors, this.sessionXp, timeSpentSeconds);
+        } else {
+          await this.saveCurrentProgress();
+        }
+      }
+
+      this.selectedOptionId = null;
+      this.showFeedback = false;
+      this.showAnswer = false;
+      this.cdr.markForCheck();
+    });
+  }
+
+  async restartJornada(): Promise<void> {
+    this.showFailedDialog = false;
+    this.resetGame();
+    await this.saveCurrentProgress();
+    this.cdr.markForCheck();
   }
 
   get currentCard(): Card | undefined {
@@ -149,11 +241,42 @@ export class JornadaPhasePage implements OnInit {
     this.cdr.markForCheck();
   }
 
+  openExplanation(type: 'technical' | 'kids' | 'translation' = 'technical'): void {
+    if (!this.currentCard) return;
+    if (type === 'technical') {
+      this.explanationTitle = 'Explicação Técnica';
+      this.explanationText = this.currentCard.explanation || 'Nenhuma explicação técnica disponível para este cartão.';
+    } else if (type === 'kids') {
+      this.explanationTitle = 'Explicação Simplificada';
+      this.explanationText = this.currentCard.tenYearOld || 'Nenhuma explicação simplificada disponível para este cartão.';
+    } else if (type === 'translation') {
+      this.explanationTitle = 'Tradução';
+      this.explanationText = this.currentCard.traducao || 'Nenhuma tradução disponível para este cartão.';
+    }
+    this.showExplanationDialog = true;
+    this.cdr.markForCheck();
+  }
+
+  closeExplanation(): void {
+    this.showExplanationDialog = false;
+    this.cdr.markForCheck();
+  }
+
+  openAnswerBottomSheet(): void {
+    if (!this.currentCard) return;
+    this.showAnswerBottomSheet = true;
+    this.cdr.markForCheck();
+  }
+
+  closeAnswerBottomSheet(): void {
+    this.showAnswerBottomSheet = false;
+    this.cdr.markForCheck();
+  }
+
   confirm(): void {
     if (this.phaseState !== 'playing' || !this.currentCard) return;
 
     if (!this.showFeedback) {
-      // Validar resposta
       if (!this.selectedOptionId) return;
 
       const correctOption = this.currentCard.options?.find(o => o.isCorrect);
@@ -172,10 +295,13 @@ export class JornadaPhasePage implements OnInit {
         this.cdr.markForCheck();
       });
     } else {
-      // Continuar para o próximo ou finalizar
       this.ngZone.run(async () => {
         if (this.lives === 0) {
-          this.phaseState = 'failed';
+          this.showFailedDialog = true;
+          this.currentIndex = 0;
+          this.errors = 0;
+          this.lives = 3;
+          await this.saveCurrentProgress();
           this.cdr.markForCheck();
           return;
         }
@@ -188,8 +314,13 @@ export class JornadaPhasePage implements OnInit {
         if (this.currentIndex === this.questions.length) {
           this.phaseState = 'completed';
           this.cdr.markForCheck();
-          // Salvar conclusão
-          await this.completeJornadaUseCase.execute(this.jornadaId, this.errors, this.sessionXp);
+          const progress = await this.progressRepository.getProgress(this.jornadaId);
+          const isReplay = progress && progress.status === 'completed';
+          this.xpEarnedInThisPlay = isReplay ? 0 : (this.sessionXp + 50);
+          const timeSpentSeconds = Math.max(1, Math.floor((Date.now() - this.startTime) / 1000));
+          await this.completeJornadaUseCase.execute(this.jornadaId, this.errors, this.sessionXp, timeSpentSeconds);
+        } else {
+          await this.saveCurrentProgress();
         }
         this.cdr.markForCheck();
       });

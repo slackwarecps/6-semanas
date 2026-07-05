@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
 import { SqliteAdapter } from '../../../infrastructure/storage/sqlite.adapter';
 
 @Component({
@@ -14,7 +14,10 @@ export class NavbarComponent {
   showSettings = false;
   showResetDialog = false;
 
-  constructor(private readonly sqliteAdapter: SqliteAdapter) {}
+  constructor(
+    private readonly sqliteAdapter: SqliteAdapter,
+    public readonly router: Router
+  ) {}
 
   toggleSettings(): void {
     this.showSettings = !this.showSettings;

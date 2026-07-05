@@ -10,6 +10,7 @@ import { PreparaQuestoesFase1Page } from './features/prepara-questoes-fase1/pres
 import { StudyPage } from './features/study/presentation/pages/study.page';
 import { TagCloudPage } from './features/tag-cloud/presentation/pages/tag-cloud.page';
 import { TestaRespostaPage } from './features/testa-resposta/presentation/pages/testa-resposta.page';
+import { DevControlPanelPage } from './features/dev-control-panel/presentation/pages/dev-control-panel.page';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
@@ -24,5 +25,6 @@ export const routes: Routes = [
   { path: 'admin/jornada', component: AdminJornadaPage },
   { path: 'learn/jornada/:id', component: JornadaPhasePage },
   { path: 'tag-cloud', component: TagCloudPage },
+  { path: 'dev/control-panel', component: DevControlPanelPage },
   { path: '**', redirectTo: 'dashboard' }
 ];

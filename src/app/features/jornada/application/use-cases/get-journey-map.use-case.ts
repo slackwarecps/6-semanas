@@ -9,6 +9,7 @@ export interface JourneyMapItem {
   jornada: Jornada;
   status: JourneyProgressStatus;
   bestErrors: number | null;
+  bestTime?: number | null;
 }
 
 export interface JourneyMapResult {
@@ -38,10 +39,12 @@ export class GetJourneyMapUseCase {
 
       let status: JourneyProgressStatus = 'locked';
       let bestErrors: number | null = null;
+      let bestTime: number | null = null;
 
       if (prog) {
         status = prog.status;
         bestErrors = prog.bestErrors;
+        bestTime = prog.bestTime;
         if (status === 'completed') {
           completedCount++;
         }
@@ -63,7 +66,8 @@ export class GetJourneyMapUseCase {
       items.push({
         jornada: j,
         status,
-        bestErrors
+        bestErrors,
+        bestTime
       });
     }
 

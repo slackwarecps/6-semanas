@@ -12,4 +12,14 @@ import { JourneyMapItem } from '../../../features/jornada/application/use-cases/
 })
 export class JourneyMapComponent {
   @Input() jornadas: JourneyMapItem[] = [];
+
+  formatTime(seconds: number | undefined | null): string {
+    if (!seconds) return '';
+    const minutes = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    if (minutes > 0) {
+      return `${minutes}m ${secs}s`;
+    }
+    return `${secs}s`;
+  }
 }

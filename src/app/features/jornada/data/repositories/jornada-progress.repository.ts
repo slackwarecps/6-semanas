@@ -15,7 +15,12 @@ export class JornadaProgressRepository {
       jornadaId: row.jornadaId,
       status: row.status,
       bestErrors: row.bestErrors,
-      completedAt: row.completedAt
+      completedAt: row.completedAt,
+      currentQuestionIndex: row.currentQuestionIndex,
+      currentErrors: row.currentErrors,
+      currentLives: row.currentLives,
+      lastActiveAt: row.lastActiveAt,
+      bestTime: row.bestTime
     });
   }
 
@@ -24,7 +29,12 @@ export class JornadaProgressRepository {
       jornadaId: progress.jornadaId,
       status: progress.status,
       bestErrors: progress.bestErrors,
-      completedAt: progress.completedAt
+      completedAt: progress.completedAt,
+      currentQuestionIndex: progress.currentQuestionIndex,
+      currentErrors: progress.currentErrors,
+      currentLives: progress.currentLives,
+      lastActiveAt: progress.lastActiveAt,
+      bestTime: progress.bestTime
     });
   }
 
@@ -34,5 +44,9 @@ export class JornadaProgressRepository {
 
   async addXp(amount: number): Promise<void> {
     await this.sqliteAdapter.addXp(amount);
+  }
+
+  async resetAllProgress(): Promise<void> {
+    await this.sqliteAdapter.resetJornadaProgress();
   }
 }

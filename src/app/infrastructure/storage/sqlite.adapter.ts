@@ -215,9 +215,31 @@ export class SqliteAdapter implements StorageInterface {
         status TEXT NOT NULL,
         bestErrors INTEGER,
         completedAt INTEGER,
+        currentQuestionIndex INTEGER DEFAULT 0,
+        currentErrors INTEGER DEFAULT 0,
+        currentLives INTEGER DEFAULT 3,
+        lastActiveAt INTEGER,
+        bestTime INTEGER,
         FOREIGN KEY (jornadaId) REFERENCES jornadas(id)
       );
     `);
+
+    // Migrações dinâmicas para os novos campos da jornada_progresso se já existirem
+    try {
+      this.db.run('ALTER TABLE jornada_progresso ADD COLUMN currentQuestionIndex INTEGER DEFAULT 0;');
+    } catch (e) {}
+    try {
+      this.db.run('ALTER TABLE jornada_progresso ADD COLUMN currentErrors INTEGER DEFAULT 0;');
+    } catch (e) {}
+    try {
+      this.db.run('ALTER TABLE jornada_progresso ADD COLUMN currentLives INTEGER DEFAULT 3;');
+    } catch (e) {}
+    try {
+      this.db.run('ALTER TABLE jornada_progresso ADD COLUMN lastActiveAt INTEGER;');
+    } catch (e) {}
+    try {
+      this.db.run('ALTER TABLE jornada_progresso ADD COLUMN bestTime INTEGER;');
+    } catch (e) {}
 
     this.db.run(`
       CREATE TABLE IF NOT EXISTS learn_stats (
@@ -702,32 +724,65 @@ export class SqliteAdapter implements StorageInterface {
       jornadaId: obj.jornadaId,
       status: obj.status,
       bestErrors: obj.bestErrors !== null ? obj.bestErrors : null,
-      completedAt: obj.completedAt !== null ? new Date(obj.completedAt) : null
+      completedAt: obj.completedAt !== null ? new Date(obj.completedAt) : null,
+      currentQuestionIndex: obj.currentQuestionIndex !== undefined ? obj.currentQuestionIndex : 0,
+      currentErrors: obj.currentErrors !== undefined ? obj.currentErrors : 0,
+      currentLives: obj.currentLives !== undefined ? obj.currentLives : 3,
+      lastActiveAt: obj.lastActiveAt !== undefined && obj.lastActiveAt !== null ? new Date(obj.lastActiveAt) : null,
+      bestTime: obj.bestTime !== undefined && obj.bestTime !== null ? obj.bestTime : null
     };
   }
 
-  async upsertJornadaProgress(row: { jornadaId: string; status: string; bestErrors: number | null; completedAt: Date | null }): Promise<void> {
+  async upsertJornadaProgress(row: {
+    jornadaId: string;
+    status: string;
+    bestErrors: number | null;
+    completedAt: Date | null;
+    currentQuestionIndex?: number;
+    currentErrors?: number;
+    currentLives?: number;
+    lastActiveAt?: Date | null;
+    bestTime?: number | null;
+  }): Promise<void> {
     await this.ensureInitialized();
     if (!this.db) return;
 
-    const existing = this.db.exec('SELECT jornadaId FROM jornada_progresso WHERE jornadaId = ?', [row.jornadaId]);
+    const existing = this.db.exec('SELECT * FROM jornada_progresso WHERE jornadaId = ?', [row.jornadaId]);
     const bestErrorsVal = row.bestErrors !== null ? row.bestErrors : null;
     const completedAtVal = row.completedAt !== null ? row.completedAt.getTime() : null;
+    const currentQuestionIndexVal = row.currentQuestionIndex !== undefined ? row.currentQuestionIndex : 0;
+    const currentErrorsVal = row.currentErrors !== undefined ? row.currentErrors : 0;
+    const currentLivesVal = row.currentLives !== undefined ? row.currentLives : 3;
+    const lastActiveAtVal = row.lastActiveAt !== undefined && row.lastActiveAt !== null ? row.lastActiveAt.getTime() : null;
+    const bestTimeVal = row.bestTime !== undefined ? row.bestTime : null;
 
     if (existing.length > 0 && existing[0].values.length > 0) {
+      const rowColumns = existing[0].columns;
+      const rowValues = existing[0].values[0];
+      const existingObj: any = {};
+      rowColumns.forEach((col, idx) => {
+        existingObj[col] = rowValues[idx];
+      });
+
+      const finalQuestionIndex = row.currentQuestionIndex !== undefined ? row.currentQuestionIndex : (existingObj.currentQuestionIndex !== undefined ? existingObj.currentQuestionIndex : 0);
+      const finalErrors = row.currentErrors !== undefined ? row.currentErrors : (existingObj.currentErrors !== undefined ? existingObj.currentErrors : 0);
+      const finalLives = row.currentLives !== undefined ? row.currentLives : (existingObj.currentLives !== undefined ? existingObj.currentLives : 3);
+      const finalLastActive = row.lastActiveAt !== undefined ? lastActiveAtVal : (existingObj.lastActiveAt !== undefined ? existingObj.lastActiveAt : null);
+      const finalBestTime = row.bestTime !== undefined ? bestTimeVal : (existingObj.bestTime !== undefined ? existingObj.bestTime : null);
+
       this.db.run(
-        `UPDATE jornada_progresso SET status = ?, bestErrors = ?, completedAt = ? WHERE jornadaId = ?`,
-        [row.status, bestErrorsVal, completedAtVal, row.jornadaId]
+        `UPDATE jornada_progresso SET status = ?, bestErrors = ?, completedAt = ?, currentQuestionIndex = ?, currentErrors = ?, currentLives = ?, lastActiveAt = ?, bestTime = ? WHERE jornadaId = ?`,
+        [row.status, bestErrorsVal, completedAtVal, finalQuestionIndex, finalErrors, finalLives, finalLastActive, finalBestTime, row.jornadaId]
       );
     } else {
       this.db.run(
-        `INSERT INTO jornada_progresso (jornadaId, status, bestErrors, completedAt) VALUES (?, ?, ?, ?)`,
-        [row.jornadaId, row.status, bestErrorsVal, completedAtVal]
+        `INSERT INTO jornada_progresso (jornadaId, status, bestErrors, completedAt, currentQuestionIndex, currentErrors, currentLives, lastActiveAt, bestTime) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [row.jornadaId, row.status, bestErrorsVal, completedAtVal, currentQuestionIndexVal, currentErrorsVal, currentLivesVal, lastActiveAtVal, bestTimeVal]
       );
     }
 
     this.persist();
-    console.info(`[SQLite] Progresso da Jornada ${row.jornadaId} atualizado para ${row.status}`);
+    console.info(`[SQLite] Progresso da Jornada ${row.jornadaId} atualizado.`);
   }
 
   async getTotalXp(): Promise<number> {
@@ -750,5 +805,14 @@ export class SqliteAdapter implements StorageInterface {
     this.db.run('UPDATE learn_stats SET totalXp = ? WHERE id = 1', [newXp]);
     this.persist();
     console.info(`[SQLite] Adicionado ${amount} XP. Novo total: ${newXp}`);
+  }
+
+  async resetJornadaProgress(): Promise<void> {
+    await this.ensureInitialized();
+    if (!this.db) return;
+    this.db.run('DELETE FROM jornada_progresso');
+    this.db.run('UPDATE learn_stats SET totalXp = 0 WHERE id = 1');
+    this.persist();
+    console.info('[SQLite] Histórico de jornadas e XP resetados com sucesso.');
   }
 }
