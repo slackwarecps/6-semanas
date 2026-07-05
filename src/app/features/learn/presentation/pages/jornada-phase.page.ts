@@ -1,13 +1,13 @@
-import { Component, OnInit, ChangeDetectorRef, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ChangeDetectorRef, Component, NgZone, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { NavbarComponent } from '../../../../shared/components/navbar/navbar.component';
 import { MarkdownPipe } from '../../../../shared/pipes/markdown.pipe';
-import { GetJourneyMapUseCase } from '../../../jornada/application/use-cases/get-journey-map.use-case';
-import { GetJornadaQuestionsUseCase } from '../../../jornada/application/use-cases/get-jornada-questions.use-case';
-import { CompleteJornadaUseCase } from '../../../jornada/application/use-cases/complete-jornada.use-case';
 import { Card } from '../../../flashcard/domain/entities/card.entity';
+import { CompleteJornadaUseCase } from '../../../jornada/application/use-cases/complete-jornada.use-case';
+import { GetJornadaQuestionsUseCase } from '../../../jornada/application/use-cases/get-jornada-questions.use-case';
+import { GetJourneyMapUseCase } from '../../../jornada/application/use-cases/get-journey-map.use-case';
 
 @Component({
   selector: 'app-jornada-phase-page',
@@ -28,8 +28,12 @@ export class JornadaPhasePage implements OnInit {
   showFeedback = false;
   showAnswer = false;
   isCorrectAttempt = false;
+  showCopyToast = false;
+  showCopyToastFading = false;
   phaseState: 'playing' | 'failed' | 'completed' = 'playing';
   isLoading = true;
+  private copyToastTimeoutId: ReturnType<typeof setTimeout> | null = null;
+  private copyToastFadeTimeoutId: ReturnType<typeof setTimeout> | null = null;
 
   constructor(
     private route: ActivatedRoute,
@@ -85,6 +89,15 @@ export class JornadaPhasePage implements OnInit {
   }
 
   resetGame(): void {
+    if (this.copyToastTimeoutId) {
+      clearTimeout(this.copyToastTimeoutId);
+      this.copyToastTimeoutId = null;
+    }
+    if (this.copyToastFadeTimeoutId) {
+      clearTimeout(this.copyToastFadeTimeoutId);
+      this.copyToastFadeTimeoutId = null;
+    }
+
     this.currentIndex = 0;
     this.lives = 3;
     this.errors = 0;
@@ -92,6 +105,8 @@ export class JornadaPhasePage implements OnInit {
     this.selectedOptionId = null;
     this.showFeedback = false;
     this.showAnswer = false;
+    this.showCopyToast = false;
+    this.showCopyToastFading = false;
     this.phaseState = 'playing';
   }
 
@@ -102,6 +117,36 @@ export class JornadaPhasePage implements OnInit {
   selectOption(optionId: string): void {
     if (this.showFeedback) return;
     this.selectedOptionId = optionId;
+  }
+
+  async copyQuestion(): Promise<void> {
+    if (!this.currentCard) return;
+
+    await navigator.clipboard.writeText(this.currentCard.question);
+    this.showCopyToast = true;
+    this.showCopyToastFading = false;
+
+    if (this.copyToastTimeoutId) {
+      clearTimeout(this.copyToastTimeoutId);
+    }
+    if (this.copyToastFadeTimeoutId) {
+      clearTimeout(this.copyToastFadeTimeoutId);
+    }
+
+    this.copyToastFadeTimeoutId = setTimeout(() => {
+      this.showCopyToastFading = true;
+      this.cdr.markForCheck();
+    }, 1600);
+
+    this.copyToastTimeoutId = setTimeout(() => {
+      this.showCopyToast = false;
+      this.showCopyToastFading = false;
+      this.copyToastTimeoutId = null;
+      this.copyToastFadeTimeoutId = null;
+      this.cdr.markForCheck();
+    }, 2000);
+
+    this.cdr.markForCheck();
   }
 
   confirm(): void {
@@ -151,7 +196,54 @@ export class JornadaPhasePage implements OnInit {
     }
   }
 
+  goToFirstQuestion(): void {
+    if (!this.canGoToFirstQuestion) return;
+    this.navigateToQuestion(0);
+  }
+
+  goToPreviousQuestion(): void {
+    if (!this.canGoToPreviousQuestion) return;
+    this.navigateToQuestion(this.currentIndex - 1);
+  }
+
+  goToNextQuestion(): void {
+    if (!this.canGoToNextQuestion) return;
+    this.navigateToQuestion(this.currentIndex + 1);
+  }
+
+  goToLastQuestion(): void {
+    if (!this.canGoToLastQuestion) return;
+    this.navigateToQuestion(this.questions.length - 1);
+  }
+
+  private navigateToQuestion(index: number): void {
+    if (index < 0 || index >= this.questions.length) return;
+
+    this.currentIndex = index;
+    this.selectedOptionId = null;
+    this.showFeedback = false;
+    this.showAnswer = false;
+    this.isCorrectAttempt = false;
+    this.cdr.markForCheck();
+  }
+
   get heartArray(): number[] {
     return Array(3).fill(0);
+  }
+
+  get canGoToFirstQuestion(): boolean {
+    return this.questions.length > 0 && this.currentIndex > 0;
+  }
+
+  get canGoToPreviousQuestion(): boolean {
+    return this.questions.length > 0 && this.currentIndex > 0;
+  }
+
+  get canGoToNextQuestion(): boolean {
+    return this.questions.length > 0 && this.currentIndex < this.questions.length - 1;
+  }
+
+  get canGoToLastQuestion(): boolean {
+    return this.questions.length > 0 && this.currentIndex < this.questions.length - 1;
   }
 }
