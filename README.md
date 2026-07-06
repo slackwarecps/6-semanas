@@ -110,6 +110,7 @@ suporte multi-usuário. O banco local sql.js/WASM foi removido do frontend.
 - **Restore de backups legados:** `backend/restore_backup.py` importa um `.sqlite`
   exportado pela tela Backup/Restore para o banco do backend
   (`python restore_backup.py backup.sqlite --user fabao`)
+- **Limpeza de ruído de tags:** `backend/clean_tags_noise.py` limpa o prefixo `"Tags:"` indesejado importado na coluna `tags` dos cards no SQLite (`python clean_tags_noise.py`)
 - **Tabelas Principais:**
   - `cards` - Cartões e seus metadados (intervalo, facilidade, repetições)
   - `card_options` - Opções de múltipla escolha para cartões
@@ -221,6 +222,21 @@ documentados em `.claude/skills/exporta-sqlite-para-anki/SKILL.md`.
 
 ---
 
+## 📋 Auditoria de Flashcards
+
+O comando `/auditoria-flashcards` (Claude Code skill em `.claude/skills/auditoria-flashcards/`) realiza a varredura completa dos arquivos Markdown em `public/flashcards/*.md` e cruza os dados contra o banco SQLite do backend (`backend/database.sqlite`), verificando contagens, tags, cartões sem alternativas de múltipla escolha e identificando cartões órfãos.
+
+---
+
+## ⚙️ Preparação de Questões em Lote (Fase 1)
+
+A rota `/prepara-questoes-fase1` permite processar e classificar cartões em lote utilizando inteligência artificial:
+- **Modo Preencher card**: Traduz a questão, define a resposta correta e gera explicações didáticas (para adultos tech leads e versão simplificada para crianças de 10 anos).
+- **Modo Atualizar tags de cenário**: Classifica semanticamente cada cartão dentro de um dos 6 cenários do exame e mapeia seus respectivos domínios (Domain 1 a 5).
+- **Tratamento de Domínios Ausentes**: Se a pergunta não for classificada em nenhum dos domínios oficiais, ela recebe a tag `ForaDosDominios`.
+
+---
+
 ## 🎮 Jornadas de Aprendizado (Modo Fases)
 
 A partir da versão 2.2, o aplicativo inclui uma trilha de aprendizagem gamificada no estilo **Duolingo** na rota `/learn`:
@@ -301,3 +317,32 @@ Para rodar uma única execução não-interativa (Single Run) nos testes:
 ```bash
 npx ng test --watch=false
 ```
+
+## REGRAS DO EXAME
+
+Aqui estão os 6 cenários possíveis descritos no guia (o exame apresenta 4 deles, sorteados aleatoriamente):
+
+1. Customer Support Resolution Agent — agente de suporte ao cliente com Claude Agent SDK e ferramentas MCP (get_customer, lookup_order, process_refund, escalate_to_human).
+2. Code Generation with Claude Code — uso do Claude Code no fluxo de desenvolvimento, com slash commands, CLAUDE.md e plan mode vs execução direta.
+3. Multi-Agent Research System — sistema de pesquisa com coordenador delegando a subagentes (busca web, análise de documentos, síntese, geração de relatórios).
+4. Developer Productivity with Claude — ferramentas de produtividade com Agent SDK, usando tools built-in (Read, Write, Bash, Grep, Glob) e servidores MCP.
+5. Claude Code for Continuous Integration — integração do Claude Code em pipelines CI/CD para code review, geração de testes e feedback em PRs.
+6. Structured Data Extraction — extração de dados estruturados de documentos com validação via JSON schemas.
+
+
+## DOMINIOS DO EXAME
+Aqui estão os 5 domínios de conteúdo do exame, com seus pesos:
+
+1. Agentic Architecture & Orchestration — 27% do conteúdo pontuado
+2. Tool Design & MCP Integration — 18%
+3. Claude Code Configuration & Workflows — 20%
+4. Prompt Engineering & Structured Output — 20%
+5. Context Management & Reliability — 15%
+
+---
+
+## 🤖 IA Context Files
+O repositório possui arquivos de contexto específicos para o assistente de IA:
+- **`CLAUDE.md`**: Diretrizes, padrões e comandos executivos para o *Claude Code*.
+- **`GEMINI.md`**: Diretrizes, padrões, persona (*walle*) e comandos operacionais para o *Gemini (Antigravity)*.
+

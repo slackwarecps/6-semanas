@@ -13,6 +13,7 @@ import logging
 import os
 import time
 from pathlib import Path
+from typing import Literal
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Request
@@ -61,6 +62,59 @@ SYSTEM_PROMPT = (
     "5) indicar claramente qual é a alternativa correta.\n\n"
     "O conteúdo da tradução deve preservar o sentido original, sem inventar informação. "
     "A explicação deve ser objetiva, técnica e pedagógica."
+)
+
+CENARIO_TAGS = (
+    "Scenario_1::Customer_Support_Agent",
+    "Scenario_2::Code_Generation_Claude_Code",
+    "Scenario_3::Multi_Agent_Research",
+    "Scenario_4::Developer_Productivity",
+    "Scenario_5::Claude_Code_CI_CD",
+    "Scenario_6::Structured_Data_Extraction",
+    "ForaDoCenario",
+)
+
+SYSTEM_PROMPT_CENARIO = (
+    "Você é um classificador de questões de um exame de certificação da Anthropic. "
+    "O exame organiza as questões em 6 cenários de produção. Você receberá o título e o "
+    "enunciado de uma questão e deve escolher o ÚNICO cenário que melhor descreve o "
+    "contexto do enunciado (não apenas o tema geral):\n\n"
+    "Scenario_1::Customer_Support_Agent — Agente de resolução de suporte ao cliente com o "
+    "Claude Agent SDK. Trata pedidos ambíguos (devoluções, disputas de cobrança, problemas "
+    "de conta) via ferramentas MCP customizadas (get_customer, lookup_order, process_refund, "
+    "escalate_to_human), buscando 80%+ de resolução no primeiro contato e sabendo quando escalar.\n\n"
+    "Scenario_2::Code_Generation_Claude_Code — Uso interativo do Claude Code para acelerar "
+    "desenvolvimento: geração de código, refatoração, debugging e documentação; integração no "
+    "workflow com slash commands customizados, CLAUDE.md e escolha entre plan mode e execução direta.\n\n"
+    "Scenario_3::Multi_Agent_Research — Sistema de pesquisa multiagente com o Claude Agent SDK: "
+    "um coordenador delega a subagentes especializados (busca web, análise de documentos, síntese, "
+    "geração de relatórios) para produzir relatórios abrangentes e com citações.\n\n"
+    "Scenario_4::Developer_Productivity — Ferramentas de produtividade para desenvolvedores com o "
+    "Claude Agent SDK: explorar codebases desconhecidas, entender sistemas legados, gerar boilerplate "
+    "e automatizar tarefas repetitivas, usando as ferramentas built-in (Read, Write, Bash, Grep, Glob) "
+    "e servidores MCP.\n\n"
+    "Scenario_5::Claude_Code_CI_CD — Claude Code integrado ao pipeline de CI/CD: code reviews "
+    "automatizados, geração de casos de teste e feedback em pull requests, com prompts que produzem "
+    "feedback acionável e minimizam falsos positivos.\n\n"
+    "Scenario_6::Structured_Data_Extraction — Sistema de extração de dados estruturados com Claude: "
+    "extrai informações de documentos não estruturados, valida a saída com JSON Schema, mantém alta "
+    "acurácia, trata edge cases e integra com sistemas downstream.\n\n"
+    "Se o enunciado não se encaixar claramente em nenhum dos 6 cenários, responda ForaDoCenario.\n\n"
+    "Além do cenário, classifique a questão nos domínios de conteúdo do exame, escolhendo de 1 a 3 "
+    "domínios que a questão realmente avalia (o mais relevante primeiro):\n"
+    "Domain_1::Agentic_Architecture_Orchestration — arquitetura agêntica e orquestração "
+    "(loops de agente, delegação, subagentes, coordenação multi-agente).\n"
+    "Domain_2::Tool_Design_MCP_Integration — design de ferramentas e integração MCP "
+    "(definição de tools, servidores MCP, contratos de ferramentas).\n"
+    "Domain_3::Claude_Code_Configuration_Workflows — configuração e workflows do Claude Code "
+    "(CLAUDE.md, slash commands, hooks, plan mode, CLI, permissões).\n"
+    "Domain_4::Prompt_Engineering_Structured_Output — engenharia de prompt e saída estruturada "
+    "(system prompts, few-shot, JSON Schema, structured output, minimizar falsos positivos).\n"
+    "Domain_5::Context_Management_Reliability — gestão de contexto e confiabilidade "
+    "(janela de contexto, caching, compactação, retries, custo, robustez em produção).\n\n"
+    "Se a questão não avaliar nenhum dos 5 domínios, responda apenas ForaDosDominios na lista "
+    "de domínios (sem combiná-lo com outros domínios).\n\n"
+    "Responda com exatamente os valores listados e uma justificativa curta (1-2 frases, em pt-BR)."
 )
 
 app = FastAPI(
@@ -182,6 +236,52 @@ class RespostaEstruturada(BaseModel):
     )
 
 
+class ClassificaCenarioRequest(BaseModel):
+    titulo: str
+    pergunta: str
+    provedor: str = "claude"  # "claude" ou "deepseek"
+
+
+class CenarioResponse(BaseModel):
+    cenario: str
+    dominios: list[str]
+    justificativa: str
+    provedor: str
+    modelo: str
+
+
+DominioTag = Literal[
+    "Domain_1::Agentic_Architecture_Orchestration",
+    "Domain_2::Tool_Design_MCP_Integration",
+    "Domain_3::Claude_Code_Configuration_Workflows",
+    "Domain_4::Prompt_Engineering_Structured_Output",
+    "Domain_5::Context_Management_Reliability",
+    "ForaDosDominios",
+]
+
+
+# Schema usado apenas para a saída estruturada do LLM (with_structured_output).
+class CenarioEstruturado(BaseModel):
+    cenario: Literal[
+        "Scenario_1::Customer_Support_Agent",
+        "Scenario_2::Code_Generation_Claude_Code",
+        "Scenario_3::Multi_Agent_Research",
+        "Scenario_4::Developer_Productivity",
+        "Scenario_5::Claude_Code_CI_CD",
+        "Scenario_6::Structured_Data_Extraction",
+        "ForaDoCenario",
+    ] = Field(description="O cenário do exame que melhor descreve o contexto do enunciado.")
+    dominios: list[DominioTag] = Field(
+        min_length=1,
+        max_length=3,
+        description="De 1 a 3 domínios de conteúdo que a questão avalia, o mais relevante primeiro.",
+    )
+    justificativa: str = Field(
+        default="",
+        description="Justificativa curta (1-2 frases, em pt-BR) da escolha do cenário.",
+    )
+
+
 # --- Escolha do LLM ---
 
 def criar_llm(provedor: str) -> tuple[ChatAnthropic | ChatDeepSeek, str]:
@@ -252,6 +352,47 @@ async def perguntar(request: PerguntaRequest) -> RespostaResponse:
         resposta=resultado.resposta,
         explicacao=resultado.explicacao,
         explicacaoCrianca=resultado.explicacaoCrianca,
+        provedor=request.provedor,
+        modelo=modelo,
+    )
+
+
+@app.post("/classifica-cenario", response_model=CenarioResponse)
+async def classifica_cenario(request: ClassificaCenarioRequest) -> CenarioResponse:
+    if not request.pergunta.strip():
+        raise HTTPException(status_code=400, detail="A pergunta não pode estar vazia.")
+
+    llm, modelo = criar_llm(request.provedor)
+
+    logger.info(
+        "CENARIO REQUEST  | provedor=%s | modelo=%s | titulo=%s | pergunta_len=%d",
+        request.provedor,
+        modelo,
+        request.titulo,
+        len(request.pergunta),
+    )
+
+    structured_llm = llm.with_structured_output(CenarioEstruturado)
+    resultado: CenarioEstruturado = await structured_llm.ainvoke(
+        [
+            ("system", SYSTEM_PROMPT_CENARIO),
+            ("human", f"Título: {request.titulo}\n\nEnunciado:\n{request.pergunta}"),
+        ]
+    )
+
+    logger.info(
+        "CENARIO RESPONSE | provedor=%s | modelo=%s | cenario=%s | dominios=%s | justificativa=%s",
+        request.provedor,
+        modelo,
+        resultado.cenario,
+        resultado.dominios,
+        resultado.justificativa,
+    )
+
+    return CenarioResponse(
+        cenario=resultado.cenario,
+        dominios=list(resultado.dominios),
+        justificativa=resultado.justificativa,
         provedor=request.provedor,
         modelo=modelo,
     )

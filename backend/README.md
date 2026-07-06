@@ -73,6 +73,14 @@ python restore_backup.py ~/Downloads/flashcards_backup_2026-07-05.sqlite --user 
 # use --dry-run para só conferir as contagens sem gravar
 ```
 
+## Limpeza de Ruído nas Tags
+
+O script `clean_tags_noise.py` remove o ruído `"Tags:"` (gerado na importação original de metadados dos arquivos Markdown) da coluna `tags` da tabela `cards` no banco de dados SQLite.
+
+```sh
+python clean_tags_noise.py
+```
+
 ## Banco de dados (Fase 1 da migração)
 
 O schema espelha o banco local do frontend (`src/app/infrastructure/storage/sqlite.adapter.ts`),

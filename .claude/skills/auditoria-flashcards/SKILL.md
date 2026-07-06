@@ -1,35 +1,38 @@
 ---
 name: auditoria-flashcards
 user-invocable: true
-description: Audita os flashcards em public/flashcards/ (contagens, tags, cards sem metadata, inconsistências) e devolve só o relatório final, rodando em contexto isolado (fork) e somente leitura.
+description: Audita os flashcards na pasta public/flashcards/ contra os registros no banco SQLite (backend/database.sqlite) para encontrar inconsistências, distribuir tags e gerar relatório final, rodando em contexto isolado (fork).
 context: fork
-allowed-tools: Read, Glob, Grep
+allowed-tools: Read, Glob, Grep, run_command
 ---
 
-# Skill: Auditoria dos flashcards (read-only, contexto isolado)
+# Skill: Auditoria dos flashcards (cruzamento com SQLite)
 
-Você está rodando num **contexto isolado (fork)**: suas leituras intermediárias
-não aparecem na conversa principal. Faça a varredura completa e devolva
-**APENAS o relatório final em markdown** como sua última mensagem.
+Você está rodando num **contexto isolado (fork)**. Faça a varredura completa, consulte o banco de dados e devolva **APENAS o relatório final em markdown** como sua última mensagem.
 
 ## Passos
 
-1. Com Glob, liste `public/flashcards/*.md` e conte o total de cards.
-   Os arquivos seguem o padrão `NNN-titulo.md` (ex.: `001-...md`).
-2. Leia `public/flashcards-metadata.json` e cruze com a lista de arquivos:
-   - cards `.md` sem entrada no metadata;
-   - entradas de metadata órfãs (sem arquivo `.md` correspondente).
-3. Com Grep, levante:
-   - a distribuição de tags (linhas de tags nos `.md`) — top 10;
-   - cards sem alternativas de múltipla escolha (arquivos sem linhas `[ ]`).
-4. Monte o relatório final:
+1. **Arquivos locais:** Com Glob, liste os arquivos `public/flashcards/*.md`. Cada arquivo segue o padrão `NNN-titulo.md` (ex.: `001-Otimizar...md`). Extraia o prefixo numérico como o sequencial do card (ex: `001` -> `seq = 1`).
+2. **Consulta SQLite:** Usando a ferramenta `run_command`, faça uma consulta no banco `backend/database.sqlite` na tabela `cards` para obter as colunas `seq`, `id`, `title` e `tags` de todos os cartões cadastrados para o usuário:
+   ```bash
+   sqlite3 backend/database.sqlite "SELECT seq, id, title, tags FROM cards ORDER BY seq;"
+   ```
+3. **Cruzamento de Dados:**
+   - Identifique arquivos `.md` na pasta que **não possuem** um registro correspondente no banco de dados SQLite (comparando o sequencial extraído do nome do arquivo com a coluna `seq` ou título).
+   - Identifique registros no banco de dados SQLite que **não possuem** um arquivo `.md` correspondente na pasta `public/flashcards/`.
+4. **Levantamento de Metadados:**
+   - Calcule a distribuição de tags (usando Grep nos arquivos `.md` ou puxando os dados consolidados da coluna `tags` do SQLite) — liste o top 10.
+   - Identifique cartões sem alternativas de múltipla escolha (arquivos `.md` que não contêm linhas com `[ ]`).
+5. **Relatório final:**
+   Monte e envie exatamente a estrutura abaixo na sua resposta:
 
-```
-# 📋 Auditoria dos Flashcards
+```markdown
+# 📋 Auditoria dos Flashcards (SQLite vs Pasta)
 
-- Total de cards: N
-- Cards com metadata: N | sem metadata: N
-- Metadata órfã: N
+- Total de arquivos .md: N
+- Total de registros no SQLite: N
+- Cards no SQLite órfãos (sem arquivo .md): N
+- Arquivos .md órfãos (sem registro no SQLite): N
 - Cards sem alternativas: N
 
 ## Top 10 tags
@@ -37,13 +40,10 @@ não aparecem na conversa principal. Faça a varredura completa e devolva
 |-----|-------|
 
 ## ⚠️ Problemas
-(lista de IDs inconsistentes, ou "Nenhum problema encontrado.")
+(Lista de inconsistências de IDs, arquivos órfãos, registros órfãos ou "Nenhum problema encontrado.")
 ```
 
 ## Restrições
 
-- **Somente leitura.** Você só tem `Read`, `Glob` e `Grep` — não tente
-  escrever arquivos, rodar comandos shell ou modificar qualquer coisa.
-  Se o usuário pedir para salvar o relatório, informe que esta skill é
-  read-only por design e sugira que a conversa principal salve o texto.
-- Não despeje conteúdo bruto dos arquivos no relatório — só agregados e IDs.
+- **Somente leitura no banco:** Embora você tenha `run_command`, utilize-o apenas para comandos de consulta (`SELECT`). Não modifique as tabelas.
+- Não despeje conteúdo bruto dos arquivos no relatório — apenas os consolidados e listas de problemas.
