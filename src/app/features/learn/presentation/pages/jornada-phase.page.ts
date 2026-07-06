@@ -264,6 +264,13 @@ export class JornadaPhasePage implements OnInit {
     this.cdr.markForCheck();
   }
 
+  browseCard(): void {
+    if (!this.currentCard) return;
+    this.router.navigate(['/browse-cards'], {
+      queryParams: { cardId: this.currentCard.id.value }
+    });
+  }
+
   openAnswerBottomSheet(): void {
     if (!this.currentCard) return;
     this.showAnswerBottomSheet = true;

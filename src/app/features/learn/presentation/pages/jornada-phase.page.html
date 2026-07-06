@@ -33,7 +33,6 @@
       <!-- Conteúdo do Card -->
       <div class="card-box content-column">
         <span class="badge-fase">{{ jornadaNome }} — Card {{ currentIndex + 1 }}/{{ questions.length }}</span>
-        <h2 class="card-title">{{ currentCard.title }}</h2>
         
         <div class="card-question-text" [innerHTML]="currentCard.question | markdown"></div>
 
@@ -78,6 +77,10 @@
       <div class="feedback-spacer" *ngIf="!showFeedback"></div>
 
       <div class="feedback-navigator" aria-label="Navegador de perguntas">
+        <div class="card-id-label" *ngIf="currentCard" (click)="browseCard()" role="button" tabindex="0">
+          <small>ID: {{ currentCard.id?.value }}</small>
+          <small *ngIf="currentCard.seq">SEQ: {{ currentCard.seq }}</small>
+        </div>
         <button type="button" class="nav-button" [disabled]="!canGoToFirstQuestion" (click)="goToFirstQuestion()">⏮</button>
         <button type="button" class="nav-button" [disabled]="!canGoToPreviousQuestion" (click)="goToPreviousQuestion()">◀</button>
         <button type="button" class="nav-button" [disabled]="!canGoToNextQuestion" (click)="goToNextQuestion()">▶</button>

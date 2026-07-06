@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectorRef, Component, NgZone, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { NavbarComponent } from '../../../../shared/components/navbar/navbar.component';
 import { CardRepository } from '../../../flashcard/data/repositories/card.repository';
 import { Card } from '../../../flashcard/domain/entities/card.entity';
@@ -21,6 +21,7 @@ export class BrowseCardsPage implements OnInit {
   filteredCards: Card[] = [];
   searchQuestionTerm = '';
   searchTagTerm = '';
+  cardIdFilter: string | null = null;
   isLoading = true;
   selectedCard: Card | null = null;
   showEditModal = false;
@@ -54,12 +55,16 @@ export class BrowseCardsPage implements OnInit {
   constructor(
     private cardRepository: CardRepository,
     private router: Router,
+    private activatedRoute: ActivatedRoute,
     private cdr: ChangeDetectorRef,
     private ngZone: NgZone,
     private perguntaLlmService: PerguntaLlmService
   ) {}
 
   ngOnInit(): void {
+    this.activatedRoute.queryParams.subscribe(params => {
+      this.cardIdFilter = params['cardId'] || null;
+    });
     this.loadCards();
     this.logDatabaseStatus();
   }
@@ -105,7 +110,8 @@ export class BrowseCardsPage implements OnInit {
     this.filteredCards = this.cards.filter(card => {
       const matchesQuestion = !questionTerm || card.question.toLowerCase().includes(questionTerm);
       const matchesTag = !tagTerm || card.tags.some(tag => tag.name.toLowerCase().includes(tagTerm));
-      return matchesQuestion && matchesTag;
+      const matchesCardId = !this.cardIdFilter || card.id.value === this.cardIdFilter;
+      return matchesQuestion && matchesTag && matchesCardId;
     });
 
     this.currentPage = 1;

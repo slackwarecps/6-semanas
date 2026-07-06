@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { AddCardPage } from './features/add-card/presentation/pages/add-card.page';
 import { AdminJornadaPage } from './features/admin-jornada/presentation/pages/admin-jornada.page';
 import { BrowseCardsPage } from './features/browse-cards/presentation/pages/browse-cards.page';
+import { CriadorDeFasesAutomaticoPage } from './features/criador-de-fases-automatico/presentation/pages/criador-de-fases-automatico.page';
 import { DashboardPage } from './features/dashboard/presentation/pages/dashboard.page';
 import { ImportCardsPage } from './features/import-cards/presentation/pages/import-cards.page';
 import { JornadaPhasePage } from './features/learn/presentation/pages/jornada-phase.page';
@@ -24,6 +25,7 @@ export const routes: Routes = [
   { path: 'learn', component: LearnPage },
   { path: 'prepara-questoes-fase1', component: PreparaQuestoesFase1Page },
   { path: 'admin/jornada', component: AdminJornadaPage },
+  { path: 'criador-de-fases-automatico', component: CriadorDeFasesAutomaticoPage },
   { path: 'learn/jornada/:id', component: JornadaPhasePage },
   { path: 'tag-cloud', component: TagCloudPage },
   { path: 'dev/control-panel', component: DevControlPanelPage },
