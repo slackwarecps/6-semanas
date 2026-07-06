@@ -1,10 +1,16 @@
 #!/usr/bin/env node
 /**
- * Exporta perguntas de public/flashcards/*.md para um pacote .colpkg importavel no Anki.
+ * Exporta perguntas do banco do app (backend/database.sqlite, tabela cards)
+ * para um pacote .colpkg importavel no Anki.
  *
- * Replica exatamente a logica de:
- *   - src/app/infrastructure/markdown-parser/markdown.parser.ts (parse dos blocos)
- *   - src/app/features/import-cards/presentation/pages/import-cards.page.ts (buildCard: monta a resposta)
+ * Fonte dos dados: backend/database.sqlite (SQLModel/FastAPI) — a fonte da
+ * verdade do app. O campo `question` ja inclui as alternativas ([ ] A - ...),
+ * `answer` traz a alternativa correta ("D - texto") e `explanation` a
+ * justificativa. Os antigos public/flashcards/*.md + flashcards-metadata.json
+ * eram apenas o seed original e nao sao mais usados aqui.
+ *
+ * Sem dependencias npm: usa o CLI `sqlite3` do macOS tanto para ler o banco
+ * (-json) quanto para gerar o collection.anki2 (script SQL).
  *
  * Uso:
  *   node export.js --quantidade 10
@@ -13,8 +19,11 @@
  *   node export.js --todas
  *   node export.js --quantidade 5 --output public/anki/meu-arquivo.colpkg
  *
+ * Os IDs/intervalos referem-se ao campo `seq` do card (1..540), aceitando com
+ * ou sem zeros a esquerda ("7" == "007").
+ *
  * Formato do card gerado no Anki:
- *   Front = <b>Titulo</b><br><br>Pergunta
+ *   Front = <b>Titulo</b><br><br>Pergunta (com alternativas)
  *   Back  = Alternativa correta: X - texto\n\nExplicacao
  *   Tags  = tags separadas por espaco (sem virgula), formato nativo do Anki
  *
@@ -35,6 +44,7 @@ const crypto = require('crypto');
 const { execFileSync } = require('child_process');
 
 const ROOT = path.resolve(__dirname, '..', '..', '..');
+const DB_PATH = path.join(ROOT, 'backend', 'database.sqlite');
 
 function parseArgs(argv) {
   const args = { quantidade: null, ids: null, intervalo: null, todas: false, output: null };
@@ -49,98 +59,49 @@ function parseArgs(argv) {
   return args;
 }
 
-function selectFiles(files, args) {
+function selectRows(rows, args) {
   if (args.ids) {
-    const wanted = new Set(args.ids.map(id => id.padStart(3, '0')));
-    const selected = files.filter(f => wanted.has((f.match(/^(\d{3})/) || [])[1]));
-    const found = new Set(selected.map(f => (f.match(/^(\d{3})/) || [])[1]));
-    const missing = [...wanted].filter(id => !found.has(id));
-    if (missing.length) throw new Error(`IDs nao encontrados no index.json: ${missing.join(', ')}`);
+    const wanted = new Set(args.ids.map(id => parseInt(id, 10)));
+    const selected = rows.filter(r => wanted.has(r.seq));
+    const found = new Set(selected.map(r => r.seq));
+    const missing = [...wanted].filter(seq => !found.has(seq));
+    if (missing.length) throw new Error(`seq nao encontrados no banco: ${missing.join(', ')}`);
     return selected;
   }
   if (args.intervalo) {
-    const [start, end] = args.intervalo.split('-').map(s => s.trim());
+    const [start, end] = args.intervalo.split('-').map(s => parseInt(s.trim(), 10));
     if (!start || !end) throw new Error('Formato de --intervalo invalido, use ex: 001-020');
-    return files.filter(f => {
-      const id = (f.match(/^(\d{3})/) || [])[1];
-      return id && id >= start.padStart(3, '0') && id <= end.padStart(3, '0');
-    });
+    return rows.filter(r => r.seq >= start && r.seq <= end);
   }
   if (args.quantidade) {
     if (args.quantidade <= 0) throw new Error('--quantidade deve ser maior que zero');
-    return files.slice(0, args.quantidade);
+    return rows.slice(0, args.quantidade);
   }
-  if (args.todas) return files;
+  if (args.todas) return rows;
   throw new Error('Especifique --quantidade N, --ids 001,002, --intervalo 001-020 ou --todas');
 }
 
-function parseMarkdown(content, fileId, metadata) {
-  const normalized = content.replace(/\r\n/g, '\n').trim();
-  const blocks = normalized.split(/\n---\n/);
-  if (blocks.length < 3) throw new Error('Formato invalido no card ' + fileId + ' (esperado >= 3 blocos separados por ---)');
-
-  const titleLine = blocks[0].split('\n').find(l => l.startsWith('Title:'));
-  const title = titleLine ? titleLine.substring('Title:'.length).trim() : 'Sem título';
-  const question = blocks[1].trim();
-  const optionsRaw = blocks[2].trim();
-
-  let tagsRaw = '';
-  if (blocks.length >= 4) {
-    tagsRaw = blocks[3].trim();
-  } else {
-    const tagsLine = normalized.split('\n').find(l => l.startsWith('Tags:'));
-    if (tagsLine) tagsRaw = tagsLine;
+function parseTags(tagsJson) {
+  let raw;
+  try {
+    raw = JSON.parse(tagsJson || '[]');
+  } catch {
+    raw = [];
   }
-
-  const options = [];
-  const optionRegex = /^\[\s*([xX\s]?)\s*\]\s*([A-D])\s*-\s*(.*)$/;
-  let order = 0;
-  for (const line of optionsRaw.split('\n')) {
-    const trimmed = line.trim();
-    const match = trimmed.match(optionRegex);
-    if (match) {
-      options.push({
-        id: match[2],
-        text: match[3].trim(),
-        isCorrect: match[1].toLowerCase() === 'x',
-        order: order++
-      });
-    }
-  }
-
-  const tags = [];
-  if (tagsRaw) {
-    const tagsLine = tagsRaw.startsWith('Tags:') ? tagsRaw : (tagsRaw.split('\n').find(l => l.startsWith('Tags:')) || '');
-    if (tagsLine) {
-      for (const part of tagsLine.substring('Tags:'.length).trim().split(/\s+/)) {
-        if (part.trim()) tags.push(part.trim());
-      }
-    }
-  }
-
-  let correctOption = '';
-  let explanation = '';
-  if (fileId && metadata && metadata[fileId]) {
-    correctOption = metadata[fileId].correctOption;
-    explanation = metadata[fileId].explanation;
-    options.forEach(opt => { opt.isCorrect = opt.id === correctOption; });
-  }
-
-  return { title, question, options, tags, correctOption, explanation };
+  // Remove residuos do seed antigo (ex: "Tags:feijao" veio da linha "Tags:" do markdown)
+  return raw
+    .map(t => String(t).replace(/^Tags:/, '').trim())
+    .filter(Boolean);
 }
 
-function buildCard(parsed) {
-  const correct = parsed.options.find(o => o.isCorrect);
-  const answer = [
-    correct ? `Alternativa correta: ${correct.id} - ${correct.text}` : '',
-    parsed.explanation || ''
-  ].filter(Boolean).join('\n\n');
-
+function buildCard(row) {
+  // Verso do card = campo `answer` do banco, exatamente como esta (sem prefixo
+  // e sem anexar `explanation`)
   return {
-    title: parsed.title,
-    question: parsed.question,
-    answer,
-    tags: parsed.tags
+    title: row.title,
+    question: row.question,
+    answer: row.answer || '',
+    tags: parseTags(row.tags)
   };
 }
 
@@ -157,62 +118,30 @@ function csumOf(sfld) {
   return parseInt(hash.substring(0, 8), 16);
 }
 
-async function main() {
+// Literal SQL de string: aspas simples duplicadas (unico escape do SQLite)
+function q(s) {
+  return `'${String(s).replace(/'/g, "''")}'`;
+}
+
+function main() {
   const args = parseArgs(process.argv.slice(2));
 
-  const indexJson = JSON.parse(fs.readFileSync(path.join(ROOT, 'public/flashcards/index.json'), 'utf8'));
-  const metadata = JSON.parse(fs.readFileSync(path.join(ROOT, 'public/flashcards-metadata.json'), 'utf8'));
+  if (!fs.existsSync(DB_PATH)) throw new Error(`Banco nao encontrado: ${DB_PATH}`);
 
-  const selectedFiles = selectFiles(indexJson.files, args);
-  if (selectedFiles.length === 0) throw new Error('Nenhum card selecionado.');
+  const rowsJson = execFileSync('sqlite3', [
+    '-json', '-readonly', DB_PATH,
+    'SELECT seq, title, question, answer, explanation, tags FROM cards WHERE seq IS NOT NULL ORDER BY seq'
+  ], { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
+  const rows = rowsJson.trim() ? JSON.parse(rowsJson) : [];
+  if (!rows.length) throw new Error('Nenhum card encontrado na tabela cards.');
 
-  const cards = selectedFiles.map(fileName => {
-    const fileIdMatch = fileName.match(/^(\d{3})/);
-    const fileId = fileIdMatch ? fileIdMatch[1] : undefined;
-    const raw = fs.readFileSync(path.join(ROOT, 'public/flashcards', fileName), 'utf8');
-    const parsed = parseMarkdown(raw, fileId, metadata);
-    return buildCard(parsed);
-  });
+  const selected = selectRows(rows, args);
+  if (selected.length === 0) throw new Error('Nenhum card selecionado.');
+
+  const cards = selected.map(buildCard);
 
   console.log(`Exportando ${cards.length} card(s):`);
   cards.forEach((c, i) => console.log(`  ${i + 1}. ${c.title} [tags: ${c.tags.join(' ')}]`));
-
-  const initSqlJs = require(path.join(ROOT, 'node_modules/sql.js/dist/sql-wasm.js'));
-  const SQL = await initSqlJs();
-  const db = new SQL.Database();
-
-  db.run(`
-    CREATE TABLE col (
-      id INTEGER PRIMARY KEY, crt INTEGER NOT NULL, mod INTEGER NOT NULL, scm INTEGER NOT NULL,
-      ver INTEGER NOT NULL, dty INTEGER NOT NULL, usn INTEGER NOT NULL, ls INTEGER NOT NULL,
-      conf TEXT NOT NULL, models TEXT NOT NULL, decks TEXT NOT NULL, dconf TEXT NOT NULL, tags TEXT NOT NULL
-    );
-    CREATE TABLE notes (
-      id INTEGER PRIMARY KEY, guid TEXT NOT NULL, mid INTEGER NOT NULL, mod INTEGER NOT NULL,
-      usn INTEGER NOT NULL, tags TEXT NOT NULL, flds TEXT NOT NULL, sfld INTEGER NOT NULL,
-      csum INTEGER NOT NULL, flags INTEGER NOT NULL, data TEXT NOT NULL
-    );
-    CREATE TABLE cards (
-      id INTEGER PRIMARY KEY, nid INTEGER NOT NULL, did INTEGER NOT NULL, ord INTEGER NOT NULL,
-      mod INTEGER NOT NULL, usn INTEGER NOT NULL, type INTEGER NOT NULL, queue INTEGER NOT NULL,
-      due INTEGER NOT NULL, ivl INTEGER NOT NULL, factor INTEGER NOT NULL, reps INTEGER NOT NULL,
-      lapses INTEGER NOT NULL, left INTEGER NOT NULL, odue INTEGER NOT NULL, odid INTEGER NOT NULL,
-      flags INTEGER NOT NULL, data TEXT NOT NULL
-    );
-    CREATE TABLE revlog (
-      id INTEGER PRIMARY KEY, cid INTEGER NOT NULL, usn INTEGER NOT NULL, ease INTEGER NOT NULL,
-      ivl INTEGER NOT NULL, lastIvl INTEGER NOT NULL, factor INTEGER NOT NULL, time INTEGER NOT NULL,
-      type INTEGER NOT NULL
-    );
-    CREATE TABLE graves (usn INTEGER NOT NULL, oid INTEGER NOT NULL, type INTEGER NOT NULL);
-    CREATE INDEX ix_notes_usn ON notes (usn);
-    CREATE INDEX ix_cards_usn ON cards (usn);
-    CREATE INDEX ix_revlog_usn ON revlog (usn);
-    CREATE INDEX ix_cards_nid ON cards (nid);
-    CREATE INDEX ix_cards_sched ON cards (did, queue, due);
-    CREATE INDEX ix_revlog_cid ON revlog (cid);
-    CREATE INDEX ix_notes_mid ON notes (mid);
-  `);
 
   const now = Date.now();
   const nowSec = Math.floor(now / 1000);
@@ -270,9 +199,44 @@ async function main() {
     dueCounts: true, curModel: String(modelId), collapseTime: 1200
   };
 
-  db.run(
-    'INSERT INTO col (id, crt, mod, scm, ver, dty, usn, ls, conf, models, decks, dconf, tags) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-    [1, nowSec, now, now, 11, 0, 0, 0, JSON.stringify(conf), JSON.stringify(model), JSON.stringify(decks), JSON.stringify(dconf), '{}']
+  const sql = [];
+  sql.push(`
+    CREATE TABLE col (
+      id INTEGER PRIMARY KEY, crt INTEGER NOT NULL, mod INTEGER NOT NULL, scm INTEGER NOT NULL,
+      ver INTEGER NOT NULL, dty INTEGER NOT NULL, usn INTEGER NOT NULL, ls INTEGER NOT NULL,
+      conf TEXT NOT NULL, models TEXT NOT NULL, decks TEXT NOT NULL, dconf TEXT NOT NULL, tags TEXT NOT NULL
+    );
+    CREATE TABLE notes (
+      id INTEGER PRIMARY KEY, guid TEXT NOT NULL, mid INTEGER NOT NULL, mod INTEGER NOT NULL,
+      usn INTEGER NOT NULL, tags TEXT NOT NULL, flds TEXT NOT NULL, sfld INTEGER NOT NULL,
+      csum INTEGER NOT NULL, flags INTEGER NOT NULL, data TEXT NOT NULL
+    );
+    CREATE TABLE cards (
+      id INTEGER PRIMARY KEY, nid INTEGER NOT NULL, did INTEGER NOT NULL, ord INTEGER NOT NULL,
+      mod INTEGER NOT NULL, usn INTEGER NOT NULL, type INTEGER NOT NULL, queue INTEGER NOT NULL,
+      due INTEGER NOT NULL, ivl INTEGER NOT NULL, factor INTEGER NOT NULL, reps INTEGER NOT NULL,
+      lapses INTEGER NOT NULL, left INTEGER NOT NULL, odue INTEGER NOT NULL, odid INTEGER NOT NULL,
+      flags INTEGER NOT NULL, data TEXT NOT NULL
+    );
+    CREATE TABLE revlog (
+      id INTEGER PRIMARY KEY, cid INTEGER NOT NULL, usn INTEGER NOT NULL, ease INTEGER NOT NULL,
+      ivl INTEGER NOT NULL, lastIvl INTEGER NOT NULL, factor INTEGER NOT NULL, time INTEGER NOT NULL,
+      type INTEGER NOT NULL
+    );
+    CREATE TABLE graves (usn INTEGER NOT NULL, oid INTEGER NOT NULL, type INTEGER NOT NULL);
+    CREATE INDEX ix_notes_usn ON notes (usn);
+    CREATE INDEX ix_cards_usn ON cards (usn);
+    CREATE INDEX ix_revlog_usn ON revlog (usn);
+    CREATE INDEX ix_cards_nid ON cards (nid);
+    CREATE INDEX ix_cards_sched ON cards (did, queue, due);
+    CREATE INDEX ix_revlog_cid ON revlog (cid);
+    CREATE INDEX ix_notes_mid ON notes (mid);
+  `);
+
+  sql.push(
+    `INSERT INTO col (id, crt, mod, scm, ver, dty, usn, ls, conf, models, decks, dconf, tags) VALUES ` +
+    `(1, ${nowSec}, ${now}, ${now}, 11, 0, 0, 0, ${q(JSON.stringify(conf))}, ${q(JSON.stringify(model))}, ` +
+    `${q(JSON.stringify(decks))}, ${q(JSON.stringify(dconf))}, '{}');`
   );
 
   let noteId = now;
@@ -287,13 +251,13 @@ async function main() {
     const tagsField = card.tags.length ? ` ${card.tags.join(' ')} ` : '';
     const guid = crypto.randomBytes(8).toString('base64').replace(/[^a-zA-Z0-9]/g, '').substring(0, 10);
 
-    db.run(
-      'INSERT INTO notes (id, guid, mid, mod, usn, tags, flds, sfld, csum, flags, data) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-      [noteId, guid, modelId, nowSec, -1, tagsField, flds, front, csumOf(front), 0, '']
+    sql.push(
+      `INSERT INTO notes (id, guid, mid, mod, usn, tags, flds, sfld, csum, flags, data) VALUES ` +
+      `(${noteId}, ${q(guid)}, ${modelId}, ${nowSec}, -1, ${q(tagsField)}, ${q(flds)}, ${q(front)}, ${csumOf(front)}, 0, '');`
     );
-    db.run(
-      'INSERT INTO cards (id, nid, did, ord, mod, usn, type, queue, due, ivl, factor, reps, lapses, left, odue, odid, flags, data) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-      [cardId, noteId, deckId, 0, nowSec, -1, 0, 0, cardId - now, 0, 0, 0, 0, 0, 0, 0, 0, '{}']
+    sql.push(
+      `INSERT INTO cards (id, nid, did, ord, mod, usn, type, queue, due, ivl, factor, reps, lapses, left, odue, odid, flags, data) VALUES ` +
+      `(${cardId}, ${noteId}, ${deckId}, 0, ${nowSec}, -1, 0, 0, ${cardId - now}, 0, 0, 0, 0, 0, 0, 0, 0, '{}');`
     );
   }
 
@@ -301,7 +265,11 @@ async function main() {
   const outputPath = path.isAbsolute(outputRel) ? outputRel : path.join(ROOT, outputRel);
   const buildDir = fs.mkdtempSync(path.join(require('os').tmpdir(), 'anki-export-'));
 
-  fs.writeFileSync(path.join(buildDir, 'collection.anki2'), Buffer.from(db.export()));
+  const sqlPath = path.join(buildDir, 'build.sql');
+  fs.writeFileSync(sqlPath, sql.join('\n'), 'utf8');
+  execFileSync('sqlite3', [path.join(buildDir, 'collection.anki2')], {
+    input: fs.readFileSync(sqlPath)
+  });
   fs.writeFileSync(path.join(buildDir, 'media'), '{}');
 
   fs.mkdirSync(path.dirname(outputPath), { recursive: true });
@@ -312,7 +280,9 @@ async function main() {
   console.log(`\nPacote gerado: ${outputPath}`);
 }
 
-main().catch(err => {
+try {
+  main();
+} catch (err) {
   console.error('Erro:', err.message);
   process.exit(1);
-});
+}
