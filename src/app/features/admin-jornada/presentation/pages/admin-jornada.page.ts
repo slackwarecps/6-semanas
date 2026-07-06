@@ -1,15 +1,15 @@
-import { Component, OnInit, ChangeDetectorRef, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ChangeDetectorRef, Component, NgZone, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { NavbarComponent } from '../../../../shared/components/navbar/navbar.component';
-import { ListJornadasUseCase } from '../../../jornada/application/use-cases/list-jornadas.use-case';
-import { GetJornadaDetailUseCase } from '../../../jornada/application/use-cases/get-jornada-detail.use-case';
-import { SaveJornadaUseCase } from '../../../jornada/application/use-cases/save-jornada.use-case';
-import { DeleteJornadaUseCase } from '../../../jornada/application/use-cases/delete-jornada.use-case';
-import { ListAvailableCardsUseCase } from '../../../jornada/application/use-cases/list-available-cards.use-case';
-import { Jornada } from '../../../jornada/domain/entities/jornada.entity';
 import { Card } from '../../../flashcard/domain/entities/card.entity';
+import { DeleteJornadaUseCase } from '../../../jornada/application/use-cases/delete-jornada.use-case';
+import { GetJornadaDetailUseCase } from '../../../jornada/application/use-cases/get-jornada-detail.use-case';
+import { ListAvailableCardsUseCase } from '../../../jornada/application/use-cases/list-available-cards.use-case';
+import { ListJornadasUseCase } from '../../../jornada/application/use-cases/list-jornadas.use-case';
+import { SaveJornadaUseCase } from '../../../jornada/application/use-cases/save-jornada.use-case';
+import { Jornada } from '../../../jornada/domain/entities/jornada.entity';
 
 @Component({
   selector: 'app-admin-jornada-page',
@@ -32,7 +32,8 @@ export class AdminJornadaPage implements OnInit {
   detailForm = {
     nome: '',
     ordem: 1,
-    ativa: false
+    ativa: false,
+    pontosTentativas: 3
   };
   selectedCardIds: Set<string> = new Set<string>();
 
@@ -100,7 +101,8 @@ export class AdminJornadaPage implements OnInit {
     this.detailForm = {
       nome: '',
       ordem: this.jornadas.length + 1,
-      ativa: false
+      ativa: false,
+      pontosTentativas: 3
     };
     this.selectedCardIds.clear();
     this.searchTerm = '';
@@ -113,7 +115,8 @@ export class AdminJornadaPage implements OnInit {
     this.detailForm = {
       nome: jornada.nome,
       ordem: jornada.ordem,
-      ativa: jornada.ativa
+      ativa: jornada.ativa,
+      pontosTentativas: jornada.pontosTentativas || 3
     };
     this.selectedCardIds = new Set<string>(jornada.questionCardIds);
     this.searchTerm = '';
@@ -145,6 +148,7 @@ export class AdminJornadaPage implements OnInit {
         nome: this.detailForm.nome.trim(),
         ordem: this.detailForm.ordem,
         ativa: this.detailForm.ativa,
+        pontosTentativas: this.detailForm.pontosTentativas,
         questionCardIds: Array.from(this.selectedCardIds)
       });
 
