@@ -122,10 +122,13 @@ app = FastAPI(
     description="Backend didático: recebe uma pergunta e responde via Claude ou DeepSeek (LangChain).",
 )
 
-# Libera CORS para o Angular em http://localhost:4200
+# Libera CORS para o Angular (suporta lista separada por vírgulas no .env)
+origins_raw = os.getenv("ALLOWED_ORIGINS", "http://localhost:4200")
+allowed_origins = [o.strip() for o in origins_raw.split(",") if o.strip()]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:4200"],
+    allow_origins=allowed_origins,
     allow_methods=["GET", "POST", "PUT", "DELETE"],
     allow_headers=["Content-Type", "X-User-Id"],
 )

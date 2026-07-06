@@ -303,6 +303,23 @@ Após inicializado, acesse `http://localhost:4200/`.
 
 > O `.env.example` na raiz do projeto é usado apenas pelo script opcional `npm run test:quiz-solver` (chamada direta ao Claude via LangChain, fora da aplicação Angular) — não é necessário para rodar o app normalmente.
 
+### 3. Backend com Docker & Deploy para VPS
+
+O backend pode ser executado em containers Docker e publicado de forma automatizada na VPS:
+
+- **Executar via Docker Compose:**
+  ```bash
+  docker compose up -d --build
+  ```
+  O servidor backend iniciará mapeando a porta externa `8001` para a interna `8000`. No ambiente VPS, ele utiliza a rede externa `coolify` e as labels do Traefik para responder sob o domínio `six-week-project.fabao.eng.br` via HTTPS.
+
+- **Deploy Automático para VPS (via SCP):**
+  Existe um script de deploy (`deploy_to_vps.sh`) que compacta o projeto local, envia para a VPS `bikinibottonsvr` na pasta `~/apps/bkp6week`, extrai o conteúdo e reinicia os containers executando o build:
+  ```bash
+  ./deploy_to_vps.sh
+  ```
+
+
 ---
 
 ## 🧪 Rodando os Testes Unitários

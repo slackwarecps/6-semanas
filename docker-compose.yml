@@ -1,0 +1,42 @@
+version: "3.9"
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: bkp6week-server
+    ports:
+      - "8001:8000"
+    volumes:
+      - ./backend/database.sqlite:/app/database.sqlite
+    env_file:
+      - ./backend/.env
+    restart: unless-stopped
+    networks:
+      - coolify
+      - default
+    labels:
+      - "traefik.enable=true"
+      # HTTPS Router
+      - "traefik.http.routers.bkp6week-backend.rule=Host(`six-week-project.fabao.eng.br`)"
+      - "traefik.http.routers.bkp6week-backend.entrypoints=https"
+      - "traefik.http.routers.bkp6week-backend.tls=true"
+      - "traefik.http.routers.bkp6week-backend.tls.certresolver=letsencrypt"
+      - "traefik.http.services.bkp6week-backend.loadbalancer.server.port=8000"
+      - "traefik.docker.network=coolify"
+      # HTTP Router (Redirecionamento)
+      - "traefik.http.routers.bkp6week-backend-http.rule=Host(`six-week-project.fabao.eng.br`)"
+      - "traefik.http.routers.bkp6week-backend-http.entrypoints=http"
+      - "traefik.http.routers.bkp6week-backend-http.middlewares=bkp6week-redirect"
+      - "traefik.http.middlewares.bkp6week-redirect.redirectscheme.scheme=https"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; exit(0 if urllib.request.urlopen('http://localhost:8000/').status == 200 else 1)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+networks:
+  coolify:
+    external: true
