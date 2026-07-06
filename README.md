@@ -318,6 +318,15 @@ Para rodar uma única execução não-interativa (Single Run) nos testes:
 npx ng test --watch=false
 ```
 
+## 🧪 Rodando os Testes End-to-End (E2E)
+
+Para validar a integridade dos fluxos completos de negócio da interface com o banco de dados (como o CRUD de Jornadas no Painel Admin), execute os testes end-to-end com o **Playwright**:
+
+```bash
+# Certifique-se de que o backend (port 8000) e o frontend (port 4200) estão rodando
+npm run test:e2e
+```
+
 ## REGRAS DO EXAME
 
 Aqui estão os 6 cenários possíveis descritos no guia (o exame apresenta 4 deles, sorteados aleatoriamente):

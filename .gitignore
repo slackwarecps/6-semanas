@@ -116,3 +116,8 @@ firebase-debug.log
 # Banco de dados local do backend (FastAPI/SQLModel)
 backend/database.sqlite
 backend/database.sqlite.bak-*
+
+# Playwright test artifacts
+playwright-report/
+test-results/
+
