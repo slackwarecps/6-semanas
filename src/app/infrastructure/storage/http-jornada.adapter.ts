@@ -8,6 +8,7 @@ interface ApiJornada {
   nome: string;
   ativa: boolean;
   ordem: number;
+  pontosTentativas: number;
   createdAt: number;
   updatedAt: number;
   cardIds: string[];
@@ -42,7 +43,7 @@ export class HttpJornadaAdapter {
   // ── Jornadas ───────────────────────────────────────────────────────────
 
   async saveJornada(
-    jornada: { id: string; nome: string; ativa: boolean; ordem: number; createdAt: Date; updatedAt: Date },
+    jornada: { id: string; nome: string; ativa: boolean; ordem: number; pontosTentativas: number; createdAt: Date; updatedAt: Date },
     cardIds: string[]
   ): Promise<void> {
     await firstValueFrom(
@@ -51,6 +52,7 @@ export class HttpJornadaAdapter {
         nome: jornada.nome,
         ativa: jornada.ativa,
         ordem: jornada.ordem,
+        pontosTentativas: jornada.pontosTentativas,
         createdAt: jornada.createdAt.getTime(),
         updatedAt: jornada.updatedAt.getTime(),
         cardIds
@@ -163,6 +165,7 @@ export class HttpJornadaAdapter {
       nome: dto.nome,
       ativa: dto.ativa,
       ordem: dto.ordem,
+      pontosTentativas: dto.pontosTentativas,
       createdAt: new Date(dto.createdAt),
       updatedAt: new Date(dto.updatedAt)
     };

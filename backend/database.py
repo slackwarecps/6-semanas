@@ -94,6 +94,7 @@ class Jornada(SQLModel, table=True):
     nome: str
     ativa: bool = False
     ordem: int = 0
+    pontosTentativas: int = 3
     createdAt: int
     updatedAt: int
 

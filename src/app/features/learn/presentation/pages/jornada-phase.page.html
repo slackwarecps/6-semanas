@@ -109,7 +109,7 @@
         <span class="stat-label">XP Acumulado</span>
       </div>
       <div class="stat-card">
-        <span class="stat-value">3</span>
+        <span class="stat-value">{{ pontosTentativas }}</span>
         <span class="stat-label">Erros Cometidos</span>
       </div>
     </div>
@@ -201,7 +201,7 @@
         <h2>💔 Vidas Esgotadas</h2>
       </div>
       <div class="failed-modal-body">
-        <p>Você cometeu 3 erros nesta tentativa e perdeu todas as suas vidas!</p>
+        <p>Você cometeu {{ pontosTentativas }} erros nesta tentativa e perdeu todas as suas vidas!</p>
         <p class="failed-alert-text"><strong>Aviso:</strong> Você precisará reiniciar esta jornada do início.</p>
       </div>
       <div class="failed-modal-footer">

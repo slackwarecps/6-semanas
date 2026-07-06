@@ -7,6 +7,7 @@ export interface SaveJornadaInput {
   nome: string;
   ordem: number;
   ativa: boolean;
+  pontosTentativas?: number;
   questionCardIds: string[];
 }
 
@@ -30,6 +31,7 @@ export class SaveJornadaUseCase {
         nome: input.nome,
         ativa: input.ativa,
         ordem: input.ordem,
+        pontosTentativas: input.pontosTentativas ?? existing.pontosTentativas,
         questionCardIds: input.questionCardIds,
         createdAt: existing.createdAt,
         updatedAt: new Date()
@@ -38,6 +40,7 @@ export class SaveJornadaUseCase {
       jornada = Jornada.create({
         nome: input.nome,
         ordem: input.ordem,
+        pontosTentativas: input.pontosTentativas,
         questionCardIds: input.questionCardIds,
         ativa: input.ativa
       });

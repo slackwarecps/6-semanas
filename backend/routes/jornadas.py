@@ -47,6 +47,7 @@ class JornadaDTO(BaseModel):
     nome: str
     ativa: bool = False
     ordem: int = 0
+    pontosTentativas: int = 3
     createdAt: int
     updatedAt: int
     cardIds: list[str] = []
@@ -90,6 +91,7 @@ def _to_dto(session: Session, user_id: str, jornada: Jornada) -> JornadaDTO:
         nome=jornada.nome,
         ativa=jornada.ativa,
         ordem=jornada.ordem,
+        pontosTentativas=jornada.pontosTentativas,
         createdAt=jornada.createdAt,
         updatedAt=jornada.updatedAt,
         cardIds=_card_ids(session, user_id, jornada.id),
@@ -142,6 +144,7 @@ def save_jornada(
         existing.nome = dto.nome
         existing.ativa = dto.ativa
         existing.ordem = dto.ordem
+        existing.pontosTentativas = dto.pontosTentativas
         existing.updatedAt = dto.updatedAt
         session.add(existing)
         jornada = existing
@@ -152,6 +155,7 @@ def save_jornada(
             nome=dto.nome,
             ativa=dto.ativa,
             ordem=dto.ordem,
+            pontosTentativas=dto.pontosTentativas,
             createdAt=dto.createdAt,
             updatedAt=dto.updatedAt,
         )

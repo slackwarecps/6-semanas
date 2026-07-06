@@ -15,6 +15,7 @@ export class JornadaRepository {
         nome: jornada.nome,
         ativa: jornada.ativa,
         ordem: jornada.ordem,
+        pontosTentativas: jornada.pontosTentativas,
         createdAt: jornada.createdAt,
         updatedAt: jornada.updatedAt
       },
