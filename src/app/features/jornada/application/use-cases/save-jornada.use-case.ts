@@ -40,7 +40,7 @@ export class SaveJornadaUseCase {
       jornada = Jornada.create({
         nome: input.nome,
         ordem: input.ordem,
-        pontosTentativas: input.pontosTentativas,
+        pontosTentativas: input.pontosTentativas ?? 3,
         questionCardIds: input.questionCardIds,
         ativa: input.ativa
       });
