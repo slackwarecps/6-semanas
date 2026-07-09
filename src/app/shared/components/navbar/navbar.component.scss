@@ -5,10 +5,88 @@
   padding: 0.75rem 1.5rem;
   background-color: #1e293b;
   color: #f8fafc;
+  position: relative;
+  z-index: 50;
 
   &__brand {
     font-weight: 700;
     font-size: 1.1rem;
+    z-index: 51;
+  }
+
+  &__hamburger {
+    display: none;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0.5rem;
+    z-index: 51;
+
+    .hamburger-box {
+      width: 24px;
+      height: 20px;
+      display: inline-block;
+      position: relative;
+    }
+
+    .hamburger-inner {
+      display: block;
+      top: 50%;
+      margin-top: -1px;
+      
+      &, &::before, &::after {
+        width: 24px;
+        height: 2px;
+        background-color: #f8fafc;
+        position: absolute;
+        transition: transform 0.15s ease;
+      }
+      
+      &::before, &::after {
+        content: "";
+        display: block;
+      }
+      
+      &::before { top: -8px; }
+      &::after { bottom: -8px; }
+      
+      &.is-active {
+        background-color: transparent;
+        &::before { transform: translate3d(0, 8px, 0) rotate(45deg); }
+        &::after { transform: translate3d(0, -8px, 0) rotate(-45deg); }
+      }
+    }
+
+    @media (max-width: 768px) {
+      display: block;
+    }
+  }
+
+  &__menu {
+    display: flex;
+    align-items: center;
+    flex-grow: 1;
+    justify-content: space-between;
+    
+    @media (max-width: 768px) {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      width: 100%;
+      background-color: #1e293b;
+      flex-direction: column;
+      align-items: flex-start;
+      padding: 0;
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease-in-out;
+      border-top: 1px solid #334155;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+
+      &--open {
+        max-height: 500px;
+      }
+    }
   }
 
   &__links {
@@ -30,14 +108,43 @@
         font-weight: 600;
       }
     }
+
+    @media (max-width: 768px) {
+      margin-left: 0;
+      flex-direction: column;
+      width: 100%;
+      gap: 0;
+
+      a {
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid #334155;
+        display: block;
+        
+        &:hover {
+          background-color: #334155;
+        }
+      }
+    }
+  }
+  
+  &__actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+
+    @media (max-width: 768px) {
+      flex-direction: column;
+      width: 100%;
+      align-items: flex-start;
+      padding: 1rem 1.5rem;
+      gap: 1rem;
+    }
   }
 
   &__user {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    margin-left: auto;
-    margin-right: 1rem;
   }
 
   &__user-label {
@@ -62,6 +169,9 @@
 
   &__settings {
     position: relative;
+    @media (max-width: 768px) {
+      width: 100%;
+    }
   }
 
   &__settings-btn {
@@ -74,6 +184,11 @@
 
     &:hover {
       background-color: #334155;
+    }
+    
+    @media (max-width: 768px) {
+      width: 100%;
+      text-align: left;
     }
   }
 
