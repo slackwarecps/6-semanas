@@ -1,7 +1,13 @@
 <app-navbar></app-navbar>
 
 <div class="phase-container">
-  <div *ngIf="showCopyToast" class="copy-toast" [class.copy-toast-fading]="showCopyToastFading" role="status" aria-live="polite">
+  <div
+    *ngIf="showCopyToast"
+    class="copy-toast"
+    [class.copy-toast-fading]="showCopyToastFading"
+    role="status"
+    aria-live="polite"
+  >
     Pergunta copiada!
   </div>
 
@@ -15,7 +21,7 @@
     <!-- Header de Status -->
     <div class="game-header">
       <a routerLink="/learn" class="btn-close" title="Voltar ao mapa">✕</a>
-      
+
       <!-- Barra de progresso da fase -->
       <div class="game-progress-bar">
         <div class="progress-fill" [style.width.%]="(currentIndex / questions.length) * 100"></div>
@@ -32,13 +38,15 @@
     <div class="content-layout" *ngIf="currentCard">
       <!-- Conteúdo do Card -->
       <div class="card-box content-column">
-        <span class="badge-fase">{{ jornadaNome }} — Card {{ currentIndex + 1 }}/{{ questions.length }}</span>
-        
+        <span class="badge-fase"
+          >{{ jornadaNome }} — Card {{ currentIndex + 1 }}/{{ questions.length }}</span
+        >
+
         <div class="card-question-text" [innerHTML]="currentCard.question | markdown"></div>
 
         <!-- Alternativas de Múltipla Escolha -->
         <ul class="options-list" *ngIf="currentCard.isMultipleChoice">
-          <li 
+          <li
             *ngFor="let option of currentCard.options"
             class="option-item"
             [class.is-selected]="selectedOptionId === option.id"
@@ -54,23 +62,41 @@
 
       <!-- Coluna de Ações -->
       <aside class="actions-column" aria-label="Ações da jornada">
-        <button type="button" class="action-card action-card-top" (click)="openExplanation('translation')">Ver tradução</button>
-        <button type="button" class="action-card" (click)="openExplanation('technical')">Ver explicacao</button>
-        <button type="button" class="action-card" (click)="openExplanation('kids')">Explicacao infantil</button>
+        <button
+          type="button"
+          class="action-card action-card-top"
+          (click)="openExplanation('translation')"
+        >
+          Ver tradução
+        </button>
+        <button type="button" class="action-card" (click)="openExplanation('technical')">
+          Ver explicacao
+        </button>
+        <button type="button" class="action-card" (click)="openExplanation('kids')">
+          Explicacao infantil
+        </button>
         <button type="button" class="action-card" (click)="copyQuestion()">Copiar pergunta</button>
-        <button type="button" class="action-card action-card-bottom" (click)="openAnswerBottomSheet()">Ver resposta</button>
+        <button
+          type="button"
+          class="action-card action-card-bottom"
+          (click)="openAnswerBottomSheet()"
+        >
+          Ver resposta
+        </button>
       </aside>
     </div>
 
     <!-- Barra Inferior de Confirmação/Feedback -->
-    <div class="feedback-bar" [class.feedback-correct]="showFeedback && isCorrectAttempt" [class.feedback-incorrect]="showFeedback && !isCorrectAttempt">
+    <div
+      class="feedback-bar"
+      [class.feedback-correct]="showFeedback && isCorrectAttempt"
+      [class.feedback-incorrect]="showFeedback && !isCorrectAttempt"
+    >
       <div class="feedback-content" *ngIf="showFeedback">
         <div class="feedback-icon">{{ isCorrectAttempt ? '🎉' : '❌' }}</div>
         <div class="feedback-text">
           <h3>{{ isCorrectAttempt ? 'Muito bem!' : 'Resposta errada...' }}</h3>
-          <p *ngIf="!isCorrectAttempt">
-            Gabarito correto destacado em verde.
-          </p>
+          <p *ngIf="!isCorrectAttempt">Gabarito correto destacado em verde.</p>
         </div>
       </div>
 
@@ -90,14 +116,48 @@
 
     <!-- Navegador de Perguntas -->
     <div class="feedback-navigator" aria-label="Navegador de perguntas">
-      <div class="card-id-label" *ngIf="currentCard" (click)="browseCard()" role="button" tabindex="0">
+      <div
+        class="card-id-label"
+        *ngIf="currentCard"
+        (click)="browseCard()"
+        role="button"
+        tabindex="0"
+      >
         <small>ID: {{ currentCard.id.value }}</small>
         <small *ngIf="currentCard.seq">SEQ: {{ currentCard.seq }}</small>
       </div>
-      <button type="button" class="nav-button" [disabled]="!canGoToFirstQuestion" (click)="goToFirstQuestion()">⏮</button>
-      <button type="button" class="nav-button" [disabled]="!canGoToPreviousQuestion" (click)="goToPreviousQuestion()">◀</button>
-      <button type="button" class="nav-button" [disabled]="!canGoToNextQuestion" (click)="goToNextQuestion()">▶</button>
-      <button type="button" class="nav-button" [disabled]="!canGoToLastQuestion" (click)="goToLastQuestion()">⏭</button>
+      <button
+        type="button"
+        class="nav-button"
+        [disabled]="!canGoToFirstQuestion"
+        (click)="goToFirstQuestion()"
+      >
+        ⏮
+      </button>
+      <button
+        type="button"
+        class="nav-button"
+        [disabled]="!canGoToPreviousQuestion"
+        (click)="goToPreviousQuestion()"
+      >
+        ◀
+      </button>
+      <button
+        type="button"
+        class="nav-button"
+        [disabled]="!canGoToNextQuestion"
+        (click)="goToNextQuestion()"
+      >
+        ▶
+      </button>
+      <button
+        type="button"
+        class="nav-button"
+        [disabled]="!canGoToLastQuestion"
+        (click)="goToLastQuestion()"
+      >
+        ⏭
+      </button>
     </div>
 
     <!-- Page Footer -->
@@ -111,7 +171,7 @@
     <div class="result-icon">💀</div>
     <h2>Você perdeu todas as vidas!</h2>
     <p>Mas não desista, cada erro é uma oportunidade de aprender.</p>
-    
+
     <div class="result-stats">
       <div class="stat-card">
         <span class="stat-value">{{ sessionXp }}</span>
@@ -124,12 +184,8 @@
     </div>
 
     <div class="result-actions">
-      <button class="btn btn-primary btn-retry" (click)="resetGame()">
-        🔄 Tentar Novamente
-      </button>
-      <a routerLink="/learn" class="btn btn-secondary btn-back">
-        🗺️ Voltar ao Mapa
-      </a>
+      <button class="btn btn-primary btn-retry" (click)="resetGame()">🔄 Tentar Novamente</button>
+      <a routerLink="/learn" class="btn btn-secondary btn-back"> 🗺️ Voltar ao Mapa </a>
     </div>
   </div>
 
@@ -137,8 +193,14 @@
   <div *ngIf="!isLoading && phaseState === 'completed'" class="result-area success-box">
     <div class="result-icon">🏆</div>
     <h2>Fase Concluída com Sucesso!</h2>
-    <p>Parabéns por completar o desafio de <strong>{{ jornadaNome }}</strong>!</p>
-    <p *ngIf="xpEarnedInThisPlay === 0" style="font-size: 13px; color: #eab308; margin-top: -10px; margin-bottom: 10px;">
+    <p>
+      Parabéns por completar o desafio de <strong>{{ jornadaNome }}</strong
+      >!
+    </p>
+    <p
+      *ngIf="xpEarnedInThisPlay === 0"
+      style="font-size: 13px; color: #eab308; margin-top: -10px; margin-bottom: 10px"
+    >
       ⚠️ O XP desta jornada já foi resgatado anteriormente! (Replay)
     </p>
 
@@ -154,9 +216,7 @@
     </div>
 
     <div class="result-actions">
-      <a routerLink="/learn" class="btn btn-primary btn-finish">
-        🗺️ Voltar ao Mapa
-      </a>
+      <a routerLink="/learn" class="btn btn-primary btn-finish"> 🗺️ Voltar ao Mapa </a>
     </div>
 
     <!-- Page Footer -->
@@ -181,28 +241,28 @@
     </div>
   </div>
 
-  <!-- Bottom Sheet de Resposta -->
-  <div *ngIf="showAnswerBottomSheet" class="answer-bottom-sheet-overlay" (click)="closeAnswerBottomSheet()">
-    <div class="answer-bottom-sheet-container" (click)="$event.stopPropagation()">
-      <div class="answer-bottom-sheet-header">
-        <div class="drag-handle"></div>
+  <!-- Dialog Simples de Resposta -->
+  <div
+    *ngIf="showAnswerBottomSheet"
+    class="answer-dialog-overlay"
+    (click)="closeAnswerBottomSheet()"
+  >
+    <div class="answer-dialog-box" (click)="$event.stopPropagation()">
+      <div class="answer-dialog-header">
         <h2>Gabarito Correto</h2>
-        <button class="btn-close" (click)="closeAnswerBottomSheet()">✕</button>
+        <button class="btn-close-dialog" (click)="closeAnswerBottomSheet()">✕</button>
       </div>
-      
-      <div class="answer-bottom-sheet-body" *ngIf="currentCard">
-        <div class="answer-content">
-          <p>A resposta correta cadastrada é:</p>
-          <div class="answer-value-box" [innerHTML]="currentCard.answer | markdown"></div>
-        </div>
+
+      <div class="answer-dialog-content" *ngIf="currentCard">
+        <div [innerHTML]="currentCard.answer | markdown"></div>
       </div>
-      
-      <div class="answer-bottom-sheet-actions">
-        <button class="btn-sheet-action btn-sheet-correct" (click)="recordSelfEvaluation(true)">
-          <span>🥳 Acertei</span>
+
+      <div class="answer-dialog-footer">
+        <button class="btn-answer btn-correct" (click)="recordSelfEvaluation(true)">
+          🥳 Acertei
         </button>
-        <button class="btn-sheet-action btn-sheet-incorrect" (click)="recordSelfEvaluation(false)">
-          <span>😢 Errei</span>
+        <button class="btn-answer btn-incorrect" (click)="recordSelfEvaluation(false)">
+          😢 Errei
         </button>
       </div>
     </div>
@@ -215,11 +275,17 @@
         <h2>💔 Vidas Esgotadas</h2>
       </div>
       <div class="failed-modal-body">
-        <p>Você cometeu {{ pontosTentativas }} erros nesta tentativa e perdeu todas as suas vidas!</p>
-        <p class="failed-alert-text"><strong>Aviso:</strong> Você precisará reiniciar esta jornada do início.</p>
+        <p>
+          Você cometeu {{ pontosTentativas }} erros nesta tentativa e perdeu todas as suas vidas!
+        </p>
+        <p class="failed-alert-text">
+          <strong>Aviso:</strong> Você precisará reiniciar esta jornada do início.
+        </p>
       </div>
       <div class="failed-modal-footer">
-        <button class="btn-failed-action btn-failed-retry" (click)="restartJornada()">🔄 Recomeçar</button>
+        <button class="btn-failed-action btn-failed-retry" (click)="restartJornada()">
+          🔄 Recomeçar
+        </button>
         <a routerLink="/learn" class="btn-failed-action btn-failed-map">🗺️ Voltar ao Mapa</a>
       </div>
     </div>

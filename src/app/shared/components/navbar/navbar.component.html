@@ -1,19 +1,29 @@
 <nav class="navbar">
   <div class="navbar__brand">📚 Flashcards</div>
 
-  <div class="navbar__links">
-    <a routerLink="/dashboard" routerLinkActive="active">Dashboard</a>
-    <a routerLink="/study" routerLinkActive="active">Estudar</a>
-    <a routerLink="/add-card" routerLinkActive="active">Adicionar</a>
-    <a routerLink="/browse-cards" routerLinkActive="active">Gerenciar</a>
-    <a routerLink="/importar-cards" routerLinkActive="active">Importar</a>
-  </div>
+  <button class="navbar__hamburger" (click)="toggleMobileMenu()" aria-label="Menu">
+    <span class="hamburger-box">
+      <span class="hamburger-inner" [class.is-active]="isMobileMenuOpen"></span>
+    </span>
+  </button>
 
-  <div class="navbar__user" style="display: flex; align-items: center; padding: 0.5rem 1rem; background-color: #f8f9fa; border-radius: 8px;">
-    <span class="navbar__user-label" style="font-weight: bold; font-size: 0.95rem; color: #333; margin: 0;">👤 {{ activeUser }}</span>
-  </div>
+  <div class="navbar__menu" [class.navbar__menu--open]="isMobileMenuOpen">
+    <div class="navbar__links">
+      <a routerLink="/dashboard" routerLinkActive="active" (click)="closeMobileMenu()">Dashboard</a>
+      <a routerLink="/study" routerLinkActive="active" (click)="closeMobileMenu()">Estudar</a>
+      <a routerLink="/add-card" routerLinkActive="active" (click)="closeMobileMenu()">Adicionar</a>
+      <a routerLink="/browse-cards" routerLinkActive="active" (click)="closeMobileMenu()">Gerenciar</a>
+      <a routerLink="/importar-cards" routerLinkActive="active" (click)="closeMobileMenu()">Importar</a>
+    </div>
 
-  <div class="navbar__settings">
-    <button type="button" class="navbar__settings-btn" (click)="logout()" style="margin-right: 12px;">🚪 Sair</button>
+    <div class="navbar__actions">
+      <div class="navbar__user" style="display: flex; align-items: center; padding: 0.5rem 1rem; background-color: #f8f9fa; border-radius: 8px;">
+        <span class="navbar__user-label" style="font-weight: bold; font-size: 0.95rem; color: #333; margin: 0;">👤 {{ activeUser }}</span>
+      </div>
+
+      <div class="navbar__settings">
+        <button type="button" class="navbar__settings-btn" (click)="logout()">🚪 Sair</button>
+      </div>
+    </div>
   </div>
 </nav>

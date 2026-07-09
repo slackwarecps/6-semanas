@@ -14,6 +14,7 @@ import { AuthService } from '../../../core/auth/auth.service';
 export class NavbarComponent {
 
   readonly activeUser: string;
+  isMobileMenuOpen = false;
 
   constructor(
     private readonly activeUserService: ActiveUserService,
@@ -23,8 +24,16 @@ export class NavbarComponent {
     this.activeUser = this.activeUserService.activeUser;
   }
 
+  toggleMobileMenu(): void {
+    this.isMobileMenuOpen = !this.isMobileMenuOpen;
+  }
+
+  closeMobileMenu(): void {
+    this.isMobileMenuOpen = false;
+  }
 
   logout(): void {
+    this.closeMobileMenu();
     this.authService.logout();
     this.router.navigate(['/login']);
   }
