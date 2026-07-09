@@ -76,28 +76,34 @@
 
       <div class="feedback-spacer" *ngIf="!showFeedback"></div>
 
-      <div class="feedback-navigator" aria-label="Navegador de perguntas">
-        <div class="card-id-label" *ngIf="currentCard" (click)="browseCard()" role="button" tabindex="0">
-          <small>ID: {{ currentCard.id?.value }}</small>
-          <small *ngIf="currentCard.seq">SEQ: {{ currentCard.seq }}</small>
-        </div>
-        <button type="button" class="nav-button" [disabled]="!canGoToFirstQuestion" (click)="goToFirstQuestion()">⏮</button>
-        <button type="button" class="nav-button" [disabled]="!canGoToPreviousQuestion" (click)="goToPreviousQuestion()">◀</button>
-        <button type="button" class="nav-button" [disabled]="!canGoToNextQuestion" (click)="goToNextQuestion()">▶</button>
-        <button type="button" class="nav-button" [disabled]="!canGoToLastQuestion" (click)="goToLastQuestion()">⏭</button>
-      </div>
-
       <div class="feedback-action">
-        <button 
-          class="btn-confirm" 
+        <button
+          class="btn-confirm"
           [class.btn-success]="showFeedback"
-          [disabled]="!selectedOptionId" 
+          [disabled]="!selectedOptionId"
           (click)="confirm()"
         >
           {{ showFeedback ? 'Continuar' : 'Verificar' }}
         </button>
       </div>
     </div>
+
+    <!-- Navegador de Perguntas -->
+    <div class="feedback-navigator" aria-label="Navegador de perguntas">
+      <div class="card-id-label" *ngIf="currentCard" (click)="browseCard()" role="button" tabindex="0">
+        <small>ID: {{ currentCard.id.value }}</small>
+        <small *ngIf="currentCard.seq">SEQ: {{ currentCard.seq }}</small>
+      </div>
+      <button type="button" class="nav-button" [disabled]="!canGoToFirstQuestion" (click)="goToFirstQuestion()">⏮</button>
+      <button type="button" class="nav-button" [disabled]="!canGoToPreviousQuestion" (click)="goToPreviousQuestion()">◀</button>
+      <button type="button" class="nav-button" [disabled]="!canGoToNextQuestion" (click)="goToNextQuestion()">▶</button>
+      <button type="button" class="nav-button" [disabled]="!canGoToLastQuestion" (click)="goToLastQuestion()">⏭</button>
+    </div>
+
+    <!-- Page Footer -->
+    <footer class="page-footer">
+      <p>© 2024 Flashcards App • Aprenda melhor, mais rápido 🚀</p>
+    </footer>
   </div>
 
   <!-- Cenário Derrota (Falhou) -->
@@ -152,6 +158,11 @@
         🗺️ Voltar ao Mapa
       </a>
     </div>
+
+    <!-- Page Footer -->
+    <footer class="page-footer">
+      <p>© 2024 Flashcards App • Aprenda melhor, mais rápido 🚀</p>
+    </footer>
   </div>
 
   <!-- Modal de Explicação -->

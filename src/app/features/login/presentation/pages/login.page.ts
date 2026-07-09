@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../../../core/auth/auth.service';
+import { ActiveUserService } from '../../../../infrastructure/http/active-user.service';
 
 @Component({
   selector: 'app-login-page',
@@ -13,6 +14,7 @@ import { AuthService } from '../../../../core/auth/auth.service';
 export class LoginPage {
   private router = inject(Router);
   private authService = inject(AuthService);
+  private activeUserService = inject(ActiveUserService);
 
   username = signal('');
   password = signal('');
@@ -22,6 +24,7 @@ export class LoginPage {
     event.preventDefault();
     if (this.username() === 'admin' && this.password() === 'Facil123') {
       this.errorMessage.set('');
+      this.activeUserService.setActiveUser(this.username());
       this.authService.login();
       this.router.navigate(['/dashboard']);
     } else {
