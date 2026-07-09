@@ -1,0 +1,194 @@
+<app-navbar></app-navbar>
+
+<div class="criador-container">
+  <div class="header">
+    <h1>🎬 Criador de Fases Automático</h1>
+  </div>
+
+  @if (form().scenarios.length > 0 && form().domains.length > 0) {
+    <div class="records-info">
+      <span class="records-label">
+        📊 Registros Existentes: <strong>{{ recordCount() }}</strong>
+      </span>
+    </div>
+  }
+
+  <form (ngSubmit)="createJornada()" class="form-wrapper">
+    <div class="form-section">
+      <!-- Escolha os cenários -->
+      <div class="form-group">
+        <label class="section-title">Escolha os cenários</label>
+        <div class="select-grid">
+          @for (scenario of scenarios(); track scenario) {
+            <label class="checkbox-item">
+              <input
+                type="checkbox"
+                [checked]="isScenarioSelected(scenario)"
+                (change)="toggleScenario(scenario)"
+              />
+              <span>{{ scenario }}</span>
+            </label>
+          }
+        </div>
+      </div>
+
+      <!-- Escolha os domínios -->
+      <div class="form-group">
+        <label class="section-title">Escolha os domínios</label>
+        @if (form().scenarios.length === 0 || availableDomains().length === 0) {
+          <p class="disabled-message">
+            Selecione pelo menos um cenário para habilitar os domínios
+          </p>
+        } @else {
+          <div class="select-grid">
+            @for (domain of domains(); track domain) {
+              @if (isDomainEnabled(domain)) {
+                <label class="checkbox-item">
+                  <input
+                    type="checkbox"
+                    [checked]="isDomainSelected(domain)"
+                    (change)="toggleDomain(domain)"
+                  />
+                  <span>{{ domain }}</span>
+                </label>
+              } @else {
+                <label class="checkbox-item checkbox-disabled">
+                  <input
+                    type="checkbox"
+                    [disabled]="true"
+                  />
+                  <span>{{ domain }}</span>
+                </label>
+              }
+            }
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Quantidade de perguntas e Máx. de erros -->
+    <div class="form-row">
+      <div class="form-group">
+        <label for="quantityQuestions">Escolha a quantidade de perguntas:</label>
+        <input
+          type="number"
+          id="quantityQuestions"
+          [value]="form().quantityQuestions"
+          (input)="updateQuantityQuestions($event.target.valueAsNumber)"
+          min="1"
+          [max]="recordCount() || 1000"
+          class="form-input"
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="maxErrors">Escolha a quantidade erros máximos:</label>
+        <input
+          type="number"
+          id="maxErrors"
+          [value]="form().maxErrors"
+          (input)="updateMaxErrors($event.target.valueAsNumber)"
+          min="1"
+          max="10"
+          class="form-input"
+        />
+      </div>
+    </div>
+
+    <!-- Título -->
+    <div class="form-group">
+      <label for="title">Escolha o título:</label>
+      <input
+        type="text"
+        id="title"
+        [(ngModel)]="form().title"
+        (input)="updateTitle($event.target.value)"
+        name="title"
+        placeholder="jornada do Bob Esponja"
+        class="form-input title-input"
+      />
+    </div>
+
+    <!-- Método de escolha -->
+    <div class="form-group">
+      <label class="section-title">
+        Escolha o método de escolha das perguntas:
+      </label>
+
+      <div class="radio-group">
+        <label class="radio-item">
+          <input
+            type="radio"
+            name="selectionMethod"
+            value="random"
+            [checked]="form().selectionMethod === 'random'"
+            (change)="setSelectionMethod('random')"
+          />
+          <span>Randômica</span>
+        </label>
+
+        <label class="radio-item">
+          <input
+            type="radio"
+            name="selectionMethod"
+            value="sequential"
+            [checked]="form().selectionMethod === 'sequential'"
+            (change)="setSelectionMethod('sequential')"
+          />
+          <span>Sequencial</span>
+        </label>
+      </div>
+
+      @if (form().selectionMethod === 'sequential') {
+        <div class="sequential-inputs">
+          <div class="input-group">
+            <label for="sequentialStart">Range Inicial:</label>
+            <input
+              type="number"
+              id="sequentialStart"
+              [value]="form().sequentialStart"
+              (input)="updateSequentialStart($event.target.valueAsNumber)"
+              min="1"
+              class="form-input"
+            />
+          </div>
+
+          <div class="input-group">
+            <label for="sequentialEnd">Range Final:</label>
+            <input
+              type="number"
+              id="sequentialEnd"
+              [value]="form().sequentialEnd"
+              (input)="updateSequentialEnd($event.target.valueAsNumber)"
+              min="1"
+              class="form-input"
+            />
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Botões -->
+    <div class="form-actions">
+      <button
+        type="button"
+        class="btn btn-secondary"
+        (click)="cancel()"
+        [disabled]="isCreating()"
+      >
+        ❌ Cancelar
+      </button>
+      <button
+        type="submit"
+        class="btn btn-primary"
+        [disabled]="isCreating() || !canCreateJornada()"
+      >
+        @if (isCreating()) {
+          ⏳ Criando...
+        } @else {
+          >> Criar Jornada
+        }
+      </button>
+    </div>
+  </form>
+</div>

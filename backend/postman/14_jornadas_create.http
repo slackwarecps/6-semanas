@@ -1,0 +1,23 @@
+### Criar nova jornada
+# POST /jornadas → Cria uma nova jornada com os cards vinculados
+# 
+# Requer header: X-User-Id
+# Response esperado (200): JornadaDTO
+# 
+# A rota substitui as perguntas (cards) vinculadas automaticamente
+
+@baseUrl = http://127.0.0.1:8000
+
+POST {{baseUrl}}/jornadas
+Content-Type: application/json
+X-User-Id: user123
+
+{
+  "id": "jornada-react-basics",
+  "nome": "React Basics",
+  "ativa": true,
+  "ordem": 1,
+  "createdAt": 1720209591000,
+  "updatedAt": 1720209591000,
+  "cardIds": ["card-001", "card-002", "card-003"]
+}

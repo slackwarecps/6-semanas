@@ -21,6 +21,7 @@ import { JornadaProgress } from '../../../jornada/domain/entities/jornada-progre
 export class JornadaPhasePage implements OnInit {
   jornadaId = '';
   jornadaNome = '';
+  pontosTentativas = 3;
   questions: Card[] = [];
   currentIndex = 0;
   lives = 3;
@@ -83,6 +84,7 @@ export class JornadaPhasePage implements OnInit {
       }
 
       this.jornadaNome = currentItem.jornada.nome;
+      this.pontosTentativas = currentItem.jornada.pontosTentativas || 3;
 
       // Carregar questões
       const cards = await this.getJornadaQuestionsUseCase.execute(this.jornadaId);
@@ -95,13 +97,13 @@ export class JornadaPhasePage implements OnInit {
         if (progress) {
           this.currentIndex = progress.currentQuestionIndex ?? 0;
           this.errors = progress.currentErrors ?? 0;
-          this.lives = progress.currentLives ?? 3;
+          this.lives = progress.currentLives ?? this.pontosTentativas;
 
           // Se vidas <= 0, reseta para iniciar do zero
           if (this.lives <= 0) {
             this.currentIndex = 0;
             this.errors = 0;
-            this.lives = 3;
+            this.lives = this.pontosTentativas;
           }
         }
 
@@ -125,7 +127,7 @@ export class JornadaPhasePage implements OnInit {
     }
 
     this.currentIndex = 0;
-    this.lives = 3;
+    this.lives = this.pontosTentativas;
     this.errors = 0;
     this.sessionXp = 0;
     this.selectedOptionId = null;
@@ -172,7 +174,7 @@ export class JornadaPhasePage implements OnInit {
         this.showFailedDialog = true;
         this.currentIndex = 0;
         this.errors = 0;
-        this.lives = 3;
+        this.lives = this.pontosTentativas;
         await this.saveCurrentProgress();
       } else {
         this.currentIndex++;
@@ -262,6 +264,13 @@ export class JornadaPhasePage implements OnInit {
     this.cdr.markForCheck();
   }
 
+  browseCard(): void {
+    if (!this.currentCard) return;
+    this.router.navigate(['/browse-cards'], {
+      queryParams: { cardId: this.currentCard.id.value }
+    });
+  }
+
   openAnswerBottomSheet(): void {
     if (!this.currentCard) return;
     this.showAnswerBottomSheet = true;
@@ -300,7 +309,7 @@ export class JornadaPhasePage implements OnInit {
           this.showFailedDialog = true;
           this.currentIndex = 0;
           this.errors = 0;
-          this.lives = 3;
+          this.lives = this.pontosTentativas;
           await this.saveCurrentProgress();
           this.cdr.markForCheck();
           return;
@@ -359,7 +368,7 @@ export class JornadaPhasePage implements OnInit {
   }
 
   get heartArray(): number[] {
-    return Array(3).fill(0);
+    return Array(this.pontosTentativas).fill(0);
   }
 
   get canGoToFirstQuestion(): boolean {

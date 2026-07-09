@@ -4,3 +4,6 @@ pydantic
 python-dotenv
 langchain-anthropic
 langchain-deepseek
+sqlmodel
+pytest
+httpx

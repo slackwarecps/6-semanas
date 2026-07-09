@@ -1,15 +1,17 @@
 ---
 name: exporta-sqlite-para-anki
 user-invocable: true
-description: Exporta perguntas de public/flashcards/*.md (o "banco" de cards do app) para um pacote .colpkg importavel no Anki, escolhendo quantidade, IDs especificos ou intervalo.
+description: Exporta perguntas do banco do app (backend/database.sqlite) para um pacote .colpkg importavel no Anki, escolhendo quantidade, IDs (seq) especificos ou intervalo.
 argument-hint: "--quantidade N | --ids 001,010,050 | --intervalo 001-020 | --todas  [--output caminho/arquivo.colpkg]"
 ---
 
 # Skill: Exportar perguntas para Anki (.colpkg)
 
-Gera um pacote `.colpkg` importável no Anki a partir das perguntas em
-`public/flashcards/*.md` (título, pergunta, alternativas e tags) combinadas com
-`public/flashcards-metadata.json` (alternativa correta + explicação).
+Gera um pacote `.colpkg` importável no Anki a partir das perguntas do banco do
+app — `backend/database.sqlite`, tabela `cards` (título, pergunta com
+alternativas, alternativa correta em `answer`, `explanation` e tags). Os antigos
+`public/flashcards/*.md` + `flashcards-metadata.json` eram só o seed original e
+não são mais usados.
 
 ## Uso
 
@@ -25,9 +27,9 @@ Gera um pacote `.colpkg` importável no Anki a partir das perguntas em
 
 | Parâmetro | Descrição |
 |---|---|
-| `--quantidade N` | Exporta as N primeiras perguntas (ordem de `public/flashcards/index.json`) |
-| `--ids 001,010,050` | Exporta só as perguntas com esses IDs (prefixo numérico do arquivo) |
-| `--intervalo 001-020` | Exporta o intervalo de IDs (inclusive) |
+| `--quantidade N` | Exporta as N primeiras perguntas (ordem do campo `seq`) |
+| `--ids 001,010,050` | Exporta só as perguntas com esses `seq` (com ou sem zeros à esquerda) |
+| `--intervalo 001-020` | Exporta o intervalo de `seq` (inclusive) |
 | `--todas` | Exporta todas as perguntas do banco |
 | `--output caminho` | Caminho de saída (padrão: `public/anki/anki-exported.colpkg`) |
 
@@ -46,13 +48,10 @@ de qualquer diretório. Ele reutiliza o `sql.js` já presente em `node_modules/`
 
 ## Mapeamento para o card do Anki
 
-- **Front**: `<b>Título</b><br><br>Pergunta`
-- **Back**: `Alternativa correta: X - texto da alternativa` + explicação (quando houver em `flashcards-metadata.json`)
-- **Tags**: tags do card separadas por espaço, sem vírgula (formato nativo do Anki)
-
-Essa é a mesma lógica de `markdown.parser.ts` + `buildCard()` de
-`import-cards.page.ts` — o card exportado é equivalente ao que o app salvaria
-no SQLite interno (título, pergunta, resposta, tags).
+- **Front**: `<b>Título</b><br><br>Pergunta` (a pergunta já inclui as alternativas `[ ] A - ...`)
+- **Back**: conteúdo do campo `answer` do banco, exatamente como está (sem prefixo e sem `explanation`)
+- **Tags**: tags do card separadas por espaço, sem vírgula (formato nativo do Anki);
+  resíduos do seed antigo com prefixo `Tags:` são limpos na exportação
 
 ## Detalhes técnicos do formato gerado
 

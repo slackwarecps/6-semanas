@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../../../../environments/environment';
-import { SqliteAdapter } from '../../../../infrastructure/storage/sqlite.adapter';
+import { HttpConfigAdapter } from '../../../../infrastructure/storage/http-config.adapter';
 
 export interface PerguntaRequest {
   pergunta: string;
@@ -22,7 +22,7 @@ export interface PerguntaResponse {
 export class PerguntaLlmService {
   constructor(
     private readonly http: HttpClient,
-    private readonly sqliteAdapter: SqliteAdapter
+    private readonly sqliteAdapter: HttpConfigAdapter
   ) {}
 
   async perguntar(request: PerguntaRequest): Promise<PerguntaResponse> {

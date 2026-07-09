@@ -1,0 +1,15 @@
+### Atualizar configuração - Tema
+# PUT /config/{chave} → Atualizar configuração de tema
+# 
+# Requer header: X-User-Id
+# Response esperado (200): ConfigDTO
+
+@baseUrl = http://127.0.0.1:8000
+
+PUT {{baseUrl}}/config/THEME
+Content-Type: application/json
+X-User-Id: user123
+
+{
+  "valor": "dark"
+}

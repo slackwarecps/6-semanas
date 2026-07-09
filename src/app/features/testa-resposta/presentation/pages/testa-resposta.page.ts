@@ -8,7 +8,7 @@ import {
   PerguntaResponse
 } from '../../../testa-resposta/data/services/pergunta-llm.service';
 import { environment } from '../../../../../environments/environment';
-import { SqliteAdapter } from '../../../../infrastructure/storage/sqlite.adapter';
+import { HttpConfigAdapter } from '../../../../infrastructure/storage/http-config.adapter';
 
 @Component({
   selector: 'app-testa-resposta-page',
@@ -27,7 +27,7 @@ export class TestaRespostaPage implements OnInit {
 
   constructor(
     private readonly perguntaLlmService: PerguntaLlmService,
-    private readonly sqliteAdapter: SqliteAdapter,
+    private readonly sqliteAdapter: HttpConfigAdapter,
     private readonly cdr: ChangeDetectorRef,
     private readonly ngZone: NgZone
   ) {}

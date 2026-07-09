@@ -1,0 +1,19 @@
+### Resetar progresso e XP
+# POST /learn/reset-progress → Zera o progresso de todas as jornadas e XP
+# 
+# Requer header: X-User-Id
+# Response esperado (204): No Content
+# 
+# O que é mantido:
+#   - Todos os cards
+#   - Todas as jornadas
+#   - Todas as configurações
+# 
+# O que é deletado:
+#   - Progresso (JornadaProgresso)
+#   - XP (LearnStats)
+
+@baseUrl = http://127.0.0.1:8000
+
+POST {{baseUrl}}/learn/reset-progress
+X-User-Id: user123

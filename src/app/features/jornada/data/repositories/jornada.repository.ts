@@ -1,12 +1,12 @@
 import { Injectable } from '@angular/core';
-import { SqliteAdapter } from '../../../../infrastructure/storage/sqlite.adapter';
+import { HttpJornadaAdapter } from '../../../../infrastructure/storage/http-jornada.adapter';
 import { Jornada } from '../../domain/entities/jornada.entity';
 
 @Injectable({
   providedIn: 'root'
 })
 export class JornadaRepository {
-  constructor(private sqliteAdapter: SqliteAdapter) {}
+  constructor(private sqliteAdapter: HttpJornadaAdapter) {}
 
   async save(jornada: Jornada): Promise<void> {
     await this.sqliteAdapter.saveJornada(
@@ -15,6 +15,7 @@ export class JornadaRepository {
         nome: jornada.nome,
         ativa: jornada.ativa,
         ordem: jornada.ordem,
+        pontosTentativas: jornada.pontosTentativas,
         createdAt: jornada.createdAt,
         updatedAt: jornada.updatedAt
       },

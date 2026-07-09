@@ -4,15 +4,19 @@ import { FormsModule } from '@angular/forms';
 import { CardRepository } from '../../../flashcard/data/repositories/card.repository';
 import { Card } from '../../../flashcard/domain/entities/card.entity';
 import { NavbarComponent } from '../../../../shared/components/navbar/navbar.component';
-import { BatchCardPreparationService } from '../../application/services/batch-card-preparation.service';
-import { SqliteAdapter } from '../../../../infrastructure/storage/sqlite.adapter';
+import {
+  BatchCardPreparationService,
+  BatchPreparationMode,
+} from '../../application/services/batch-card-preparation.service';
+import { HttpConfigAdapter } from '../../../../infrastructure/storage/http-config.adapter';
+import { hasScenarioTag } from '../../domain/scenario-tags';
 
 @Component({
   selector: 'app-prepara-questoes-fase1-page',
   standalone: true,
   imports: [CommonModule, FormsModule, NavbarComponent],
   templateUrl: './prepara-questoes-fase1.page.html',
-  styleUrls: ['./prepara-questoes-fase1.page.scss']
+  styleUrls: ['./prepara-questoes-fase1.page.scss'],
 })
 export class PreparaQuestoesFase1Page implements OnInit {
   private readonly missingAnswerText = 'Precisa Responder...';
@@ -23,6 +27,8 @@ export class PreparaQuestoesFase1Page implements OnInit {
   withoutTranslation = 0;
   withoutAnswer = 0;
   withoutExplanation = 0;
+  withoutScenarioTag = 0;
+  mode: BatchPreparationMode = 'preencher';
   progressCurrent = 0;
   progressTotal = 0;
   rangeStart = 16;
@@ -39,9 +45,9 @@ export class PreparaQuestoesFase1Page implements OnInit {
   constructor(
     private readonly cardRepository: CardRepository,
     private readonly batchCardPreparationService: BatchCardPreparationService,
-    private readonly sqliteAdapter: SqliteAdapter,
+    private readonly sqliteAdapter: HttpConfigAdapter,
     private readonly cdr: ChangeDetectorRef,
-    private readonly ngZone: NgZone
+    private readonly ngZone: NgZone,
   ) {}
 
   async ngOnInit(): Promise<void> {
@@ -61,9 +67,10 @@ export class PreparaQuestoesFase1Page implements OnInit {
     this.ngZone.run(() => {
       this.cards = cards;
       this.totalCards = cards.length;
-      this.withoutTranslation = cards.filter(card => !card.traducao?.trim()).length;
-      this.withoutAnswer = cards.filter(card => this.isMissingAnswer(card.answer)).length;
-      this.withoutExplanation = cards.filter(card => !card.explanation?.trim()).length;
+      this.withoutTranslation = cards.filter((card) => !card.traducao?.trim()).length;
+      this.withoutAnswer = cards.filter((card) => this.isMissingAnswer(card.answer)).length;
+      this.withoutExplanation = cards.filter((card) => !card.explanation?.trim()).length;
+      this.withoutScenarioTag = cards.filter((card) => !hasScenarioTag(card.tags)).length;
       this.isLoading = false;
       this.cdr.markForCheck();
     });
@@ -96,8 +103,9 @@ export class PreparaQuestoesFase1Page implements OnInit {
         this.onlyMissingAnswers,
         {
           onLog: (message: string) => this.appendLog(message),
-          onProgress: (processed: number, total: number) => this.updateProgress(processed, total)
-        }
+          onProgress: (processed: number, total: number) => this.updateProgress(processed, total),
+        },
+        this.mode,
       );
 
       this.ngZone.run(() => {
@@ -120,9 +128,16 @@ export class PreparaQuestoesFase1Page implements OnInit {
 
   private refreshCounters(): void {
     this.totalCards = this.cards.length;
-    this.withoutTranslation = this.cards.filter(card => !card.traducao?.trim()).length;
-    this.withoutAnswer = this.cards.filter(card => this.isMissingAnswer(card.answer)).length;
-    this.withoutExplanation = this.cards.filter(card => !card.explanation?.trim()).length;
+    this.withoutTranslation = this.cards.filter((card) => !card.traducao?.trim()).length;
+    this.withoutAnswer = this.cards.filter((card) => this.isMissingAnswer(card.answer)).length;
+    this.withoutExplanation = this.cards.filter((card) => !card.explanation?.trim()).length;
+    this.withoutScenarioTag = this.cards.filter((card) => !hasScenarioTag(card.tags)).length;
+  }
+
+  get onlyPendingLabel(): string {
+    return this.mode === 'tags-cenario'
+      ? 'Processar apenas as sem tag de cenário'
+      : 'Processar apenas as Sem respostas';
   }
 
   getChartHeight(value: number): number {

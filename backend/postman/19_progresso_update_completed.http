@@ -1,0 +1,23 @@
+### Atualizar progresso da jornada - Completa
+# PUT /jornadas/{jornada_id}/progresso → Marca a jornada como completa
+# 
+# Requer header: X-User-Id
+# Response esperado (200): ProgressoDTO
+
+@baseUrl = http://127.0.0.1:8000
+
+PUT {{baseUrl}}/jornadas/jornada-001/progresso
+Content-Type: application/json
+X-User-Id: user123
+
+{
+  "jornadaId": "jornada-001",
+  "status": "completed",
+  "bestErrors": 0,
+  "completedAt": 1720209600000,
+  "currentQuestionIndex": 5,
+  "currentErrors": 0,
+  "currentLives": 3,
+  "lastActiveAt": 1720209600000,
+  "bestTime": 35000
+}

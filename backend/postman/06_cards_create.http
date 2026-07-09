@@ -1,0 +1,58 @@
+### Criar novo card
+# POST /cards → Cria um novo card ou atualiza um existente (upsert)
+# 
+# Requer header: X-User-Id
+# Response esperado (200): CardDTO
+# 
+# Ao criar:
+#   - Automaticamente atribui o próximo seq
+#   - Preserva createdAt se for update
+# 
+# Ao atualizar:
+#   - Mantém createdAt e seq originais
+#   - Substitui options e attempts pelos novos
+
+@baseUrl = http://127.0.0.1:8000
+
+POST {{baseUrl}}/cards
+Content-Type: application/json
+X-User-Id: user123
+
+{
+  "id": "card-novo-001",
+  "title": "React Hooks",
+  "question": "O que é um Hook em React?",
+  "answer": "Uma função que permite usar state e outras funcionalidades do React",
+  "tags": ["react", "javascript", "hooks"],
+  "options": [
+    {
+      "id": "opt-1",
+      "text": "Uma função que permite usar state",
+      "isCorrect": true,
+      "order": 1
+    },
+    {
+      "id": "opt-2",
+      "text": "Um arquivo de configuração",
+      "isCorrect": false,
+      "order": 2
+    },
+    {
+      "id": "opt-3",
+      "text": "Uma biblioteca externa",
+      "isCorrect": false,
+      "order": 3
+    }
+  ],
+  "state": "New",
+  "interval": 0,
+  "easeFactor": 2.5,
+  "repetitions": 0,
+  "attempts": [],
+  "createdAt": 1720209591000,
+  "updatedAt": 1720209591000,
+  "nextReviewDate": 1720209591000,
+  "traducao": "What is a Hook in React?",
+  "explanation": "Hooks são funções especiais do React que permitem usar state e outras features em functional components",
+  "tenYearOld": "Um Hook é como uma mágica que permite que um componente se lembre de coisas"
+}

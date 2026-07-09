@@ -1,0 +1,10 @@
+### Obter progresso da jornada
+# GET /jornadas/{jornada_id}/progresso → Retorna o progresso de uma jornada
+# 
+# Requer header: X-User-Id
+# Response esperado (200): ProgressoDTO ou 404 se não existir
+
+@baseUrl = http://127.0.0.1:8000
+
+GET {{baseUrl}}/jornadas/jornada-001/progresso
+X-User-Id: user123

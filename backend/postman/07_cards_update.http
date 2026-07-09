@@ -1,0 +1,61 @@
+### Atualizar card existente
+# POST /cards → Atualiza um card existente (mesma rota de create)
+# 
+# Requer header: X-User-Id
+# Response esperado (200): CardDTO atualizado
+# 
+# Ao atualizar:
+#   - Mantém createdAt e seq originais
+#   - Substitui todos os campos
+#   - Substitui options e attempts completamente
+
+@baseUrl = http://127.0.0.1:8000
+
+POST {{baseUrl}}/cards
+Content-Type: application/json
+X-User-Id: user123
+
+{
+  "id": "card-001",
+  "title": "React Hooks - Atualizado",
+  "question": "O que é um Hook em React? (versão atualizada)",
+  "answer": "Uma função que permite usar state e outras funcionalidades do React de forma elegante",
+  "tags": ["react", "javascript", "hooks", "avançado"],
+  "options": [
+    {
+      "id": "opt-1",
+      "text": "Uma função que permite usar state",
+      "isCorrect": true,
+      "order": 1
+    },
+    {
+      "id": "opt-2",
+      "text": "Um arquivo de configuração",
+      "isCorrect": false,
+      "order": 2
+    }
+  ],
+  "state": "Learning",
+  "interval": 1,
+  "easeFactor": 2.6,
+  "repetitions": 1,
+  "attempts": [
+    {
+      "timestamp": 1720209591000,
+      "quality": 4,
+      "elapsedTime": 5000,
+      "wasCorrect": true,
+      "userAnswer": "opt-1",
+      "easeFactorBefore": 2.5,
+      "easeFactorAfter": 2.6,
+      "intervalBefore": 0,
+      "intervalAfter": 1
+    }
+  ],
+  "createdAt": 1720209591000,
+  "updatedAt": 1720209592000,
+  "nextReviewDate": 1720296591000,
+  "traducao": "What is a Hook in React?",
+  "explanation": "Hooks são funções especiais que permitem usar state em function components",
+  "tenYearOld": "Um Hook é como uma mágica que permite que um componente se lembre de coisas"
+}

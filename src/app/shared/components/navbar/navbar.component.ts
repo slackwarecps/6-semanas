@@ -1,7 +1,8 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
-import { SqliteAdapter } from '../../../infrastructure/storage/sqlite.adapter';
+import { ActiveUserService } from '../../../infrastructure/http/active-user.service';
+import { AuthService } from '../../../core/auth/auth.service';
 
 @Component({
   selector: 'app-navbar',
@@ -11,33 +12,20 @@ import { SqliteAdapter } from '../../../infrastructure/storage/sqlite.adapter';
   styleUrls: ['./navbar.component.scss']
 })
 export class NavbarComponent {
-  showSettings = false;
-  showResetDialog = false;
+
+  readonly activeUser: string;
 
   constructor(
-    private readonly sqliteAdapter: SqliteAdapter,
-    public readonly router: Router
-  ) {}
-
-  toggleSettings(): void {
-    this.showSettings = !this.showSettings;
+    private readonly activeUserService: ActiveUserService,
+    public readonly router: Router,
+    private readonly authService: AuthService
+  ) {
+    this.activeUser = this.activeUserService.activeUser;
   }
 
-  resetCards(): void {
-    this.showResetDialog = true;
-    this.showSettings = false;
-  }
 
-  closeResetDialog(): void {
-    this.showResetDialog = false;
-  }
-
-  confirmReset(): void {
-    localStorage.removeItem('flashcards:sqlite:db');
-    localStorage.removeItem('flashcards:cards:v1');
-    localStorage.removeItem('flashcards:migration:completed');
-    this.sqliteAdapter.reset();
-    this.showResetDialog = false;
-    window.location.reload();
+  logout(): void {
+    this.authService.logout();
+    this.router.navigate(['/login']);
   }
 }

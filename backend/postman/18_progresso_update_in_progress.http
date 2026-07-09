@@ -1,0 +1,25 @@
+### Atualizar progresso da jornada - Em andamento
+# PUT /jornadas/{jornada_id}/progresso → Cria ou atualiza o progresso (upsert)
+# 
+# Requer header: X-User-Id
+# Response esperado (200): ProgressoDTO
+# 
+# Status possíveis: not-started, in-progress, completed, abandoned
+
+@baseUrl = http://127.0.0.1:8000
+
+PUT {{baseUrl}}/jornadas/jornada-001/progresso
+Content-Type: application/json
+X-User-Id: user123
+
+{
+  "jornadaId": "jornada-001",
+  "status": "in-progress",
+  "bestErrors": 2,
+  "completedAt": null,
+  "currentQuestionIndex": 3,
+  "currentErrors": 1,
+  "currentLives": 2,
+  "lastActiveAt": 1720209591000,
+  "bestTime": 45000
+}

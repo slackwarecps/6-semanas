@@ -2,6 +2,10 @@ import { Injectable } from '@angular/core';
 import { CardRepository } from '../../../flashcard/data/repositories/card.repository';
 import { Card } from '../../../flashcard/domain/entities/card.entity';
 import { PerguntaLlmService } from '../../../testa-resposta/data/services/pergunta-llm.service';
+import { ClassificaCenarioService } from '../../data/services/classifica-cenario.service';
+import { applyClassificationTags, hasScenarioTag } from '../../domain/scenario-tags';
+
+export type BatchPreparationMode = 'preencher' | 'tags-cenario';
 
 export interface BatchPreparationResult {
   logs: string[];
@@ -20,7 +24,8 @@ export class BatchCardPreparationService {
 
   constructor(
     private readonly cardRepository: CardRepository,
-    private readonly perguntaLlmService: PerguntaLlmService
+    private readonly perguntaLlmService: PerguntaLlmService,
+    private readonly classificaCenarioService: ClassificaCenarioService,
   ) {}
 
   async processRange(
@@ -30,21 +35,26 @@ export class BatchCardPreparationService {
     callIntervalMs: number,
     shouldCancel: () => boolean,
     onlyMissingAnswers: boolean,
-    handlers: BatchPreparationHandlers = {}
+    handlers: BatchPreparationHandlers = {},
+    mode: BatchPreparationMode = 'preencher',
   ): Promise<BatchPreparationResult> {
     const start = Math.min(startSeq, endSeq);
     const end = Math.max(startSeq, endSeq);
-    const logs: string[] = [`Iniciando lote: range ${start}..${end}`];
+    const logs: string[] = [`Iniciando lote: range ${start}..${end} (modo: ${mode})`];
     handlers.onLog?.(logs[0]);
     logs.push('Processo iniciado.');
     handlers.onLog?.('Processo iniciado.');
 
-    const pending = cards.filter(card => {
+    const pending = cards.filter((card) => {
       const seq = card.seq ?? 0;
       const isInRange = seq >= start && seq <= end;
-      const hasMissingAnswer = this.isMissingAnswer(card.answer);
-
       if (!isInRange) return false;
+
+      if (mode === 'tags-cenario') {
+        return onlyMissingAnswers ? !hasScenarioTag(card.tags) : true;
+      }
+
+      const hasMissingAnswer = this.isMissingAnswer(card.answer);
       if (onlyMissingAnswers) return hasMissingAnswer;
 
       return !card.traducao?.trim() || hasMissingAnswer || !card.explanation?.trim();
@@ -77,8 +87,33 @@ export class BatchCardPreparationService {
       logs.push(`Processando card seq=${card.seq ?? '-'} id=${card.id.value}`);
       handlers.onLog?.(`Processando card seq=${card.seq ?? '-'} id=${card.id.value}`);
 
+      if (mode === 'tags-cenario') {
+        const classificacao = await this.classificaCenarioService.classificar({
+          titulo: card.title,
+          pergunta: this.formatQuestionWithOptions(card),
+        });
+
+        let dominios = classificacao.dominios || [];
+        dominios = dominios.filter((d) => d && d.trim().length > 0);
+        if (dominios.length === 0) {
+          dominios = ['ForaDosDominios'];
+        }
+
+        const updated = this.withTags(
+          card,
+          applyClassificationTags(card.tags, classificacao.cenario, dominios),
+        );
+        await this.cardRepository.save(updated);
+
+        const message = `Salvo card seq=${card.seq ?? '-'} → ${classificacao.cenario} | ${dominios.join(', ')}`;
+        logs.push(message);
+        handlers.onLog?.(message);
+        handlers.onProgress?.(i + 1, pending.length);
+        continue;
+      }
+
       const result = await this.perguntaLlmService.perguntar({
-        pergunta: this.formatQuestionWithOptions(card)
+        pergunta: this.formatQuestionWithOptions(card),
       });
 
       const [translation, explanation] = this.splitCombinedExplanation(result.explicacao);
@@ -101,7 +136,7 @@ export class BatchCardPreparationService {
         nextReviewDate: card.nextReviewDate,
         traducao: translation || card.traducao,
         explanation: explanation || card.explanation,
-        tenYearOld: result.explicacaoCrianca || card.tenYearOld
+        tenYearOld: result.explicacaoCrianca || card.tenYearOld,
       });
 
       await this.cardRepository.save(updated);
@@ -115,6 +150,29 @@ export class BatchCardPreparationService {
     return { logs, processed: pending.length, total: pending.length };
   }
 
+  private withTags(card: Card, tags: Card['tags']): Card {
+    return new Card({
+      id: card.id,
+      seq: card.seq,
+      title: card.title,
+      question: card.question,
+      answer: card.answer,
+      options: card.options,
+      tags,
+      state: card.state,
+      interval: card.interval,
+      easeFactor: card.easeFactor,
+      repetitions: card.repetitions,
+      attempts: card.attempts,
+      createdAt: card.createdAt,
+      updatedAt: new Date(),
+      nextReviewDate: card.nextReviewDate,
+      traducao: card.traducao,
+      explanation: card.explanation,
+      tenYearOld: card.tenYearOld,
+    });
+  }
+
   private isMissingAnswer(answer: string | null | undefined): boolean {
     const normalized = answer?.trim();
     return !normalized || normalized === this.missingAnswerText;
@@ -124,7 +182,7 @@ export class BatchCardPreparationService {
     if (!card.options?.length) return card.question;
     const optionLines = [...card.options]
       .sort((a, b) => a.order - b.order)
-      .map(option => `[ ] ${option.id} - ${option.text}`)
+      .map((option) => `[ ] ${option.id} - ${option.text}`)
       .join('\n');
     return `${card.question}\n\n${optionLines}`;
   }
@@ -137,6 +195,6 @@ export class BatchCardPreparationService {
   }
 
   private sleep(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 }

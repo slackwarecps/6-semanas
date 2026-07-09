@@ -1,0 +1,10 @@
+### Obter jornada específica
+# GET /jornadas/{jornada_id} → Retorna uma jornada com lista de cardIds
+# 
+# Requer header: X-User-Id
+# Response esperado (200): JornadaDTO ou 404 se não existir
+
+@baseUrl = http://127.0.0.1:8000
+
+GET {{baseUrl}}/jornadas/jornada-001
+X-User-Id: user123

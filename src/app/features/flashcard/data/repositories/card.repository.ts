@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { SqliteAdapter } from '../../../../infrastructure/storage/sqlite.adapter';
+import { HttpApiAdapter } from '../../../../infrastructure/storage/http-api.adapter';
 import { Card } from '../../domain/entities/card.entity';
 import { CardId } from '../../domain/value-objects/card-id.value-object';
 
@@ -7,7 +7,7 @@ import { CardId } from '../../domain/value-objects/card-id.value-object';
   providedIn: 'root'
 })
 export class CardRepository {
-  constructor(private readonly storage: SqliteAdapter) {}
+  constructor(private readonly storage: HttpApiAdapter) {}
 
   async save(card: Card): Promise<void> {
     await this.storage.saveCard(card);

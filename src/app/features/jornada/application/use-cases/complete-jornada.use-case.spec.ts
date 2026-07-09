@@ -15,19 +15,19 @@ describe('CompleteJornadaUseCase', () => {
       getProgress: vi.fn(),
       saveProgress: vi.fn(),
       getTotalXp: vi.fn(),
-      addXp: vi.fn()
+      addXp: vi.fn(),
     };
 
     mockJornadaRepo = {
       findAll: vi.fn(),
       findById: vi.fn(),
       save: vi.fn(),
-      delete: vi.fn()
+      delete: vi.fn(),
     };
 
     useCase = new CompleteJornadaUseCase(
       mockProgressRepo as unknown as JornadaProgressRepository,
-      mockJornadaRepo as unknown as JornadaRepository
+      mockJornadaRepo as unknown as JornadaRepository,
     );
   });
 
@@ -36,14 +36,14 @@ describe('CompleteJornadaUseCase', () => {
     mockProgressRepo.getTotalXp.mockResolvedValue(100);
     mockJornadaRepo.findAll.mockResolvedValue([]);
 
-    await useCase.execute('jornada-1', 2, 30); // 30 XP de acertos + 50 bônus = 80 XP
+    await useCase.execute('jornada-1', 2, 30, 120); // 30 XP de acertos + 50 bônus = 80 XP
 
     expect(mockProgressRepo.saveProgress).toHaveBeenCalledWith(
       expect.objectContaining({
         jornadaId: 'jornada-1',
         status: 'completed',
-        bestErrors: 2
-      })
+        bestErrors: 2,
+      }),
     );
     expect(mockProgressRepo.addXp).toHaveBeenCalledWith(80);
   });
@@ -53,19 +53,19 @@ describe('CompleteJornadaUseCase', () => {
       jornadaId: 'jornada-1',
       status: 'completed',
       bestErrors: 3,
-      completedAt: new Date()
+      completedAt: new Date(),
     });
     mockProgressRepo.getProgress.mockResolvedValue(existingProgress);
 
-    await useCase.execute('jornada-1', 1, 30); // Novo resultado com menos erros (1 < 3)
+    await useCase.execute('jornada-1', 1, 30, 120); // Novo resultado com menos erros (1 < 3)
 
     // Deve atualizar bestErrors para 1
     expect(mockProgressRepo.saveProgress).toHaveBeenCalledWith(
       expect.objectContaining({
         jornadaId: 'jornada-1',
         status: 'completed',
-        bestErrors: 1
-      })
+        bestErrors: 1,
+      }),
     );
     // Não deve adicionar XP no replay
     expect(mockProgressRepo.addXp).not.toHaveBeenCalled();
@@ -73,38 +73,40 @@ describe('CompleteJornadaUseCase', () => {
 
   it('deve desbloquear a próxima jornada ativa na ordem', async () => {
     mockProgressRepo.getProgress.mockResolvedValue(null);
-    
+
     const j1 = new Jornada({
       id: 'jornada-1',
       nome: 'Fase 1',
       ativa: true,
       ordem: 1,
+      pontosTentativas: 3,
       questionCardIds: [],
       createdAt: new Date(),
-      updatedAt: new Date()
+      updatedAt: new Date(),
     });
     const j2 = new Jornada({
       id: 'jornada-2',
       nome: 'Fase 2',
       ativa: true,
       ordem: 2,
+      pontosTentativas: 3,
       questionCardIds: [],
       createdAt: new Date(),
-      updatedAt: new Date()
+      updatedAt: new Date(),
     });
     mockJornadaRepo.findAll.mockResolvedValue([j2, j1]); // Desordenadas de propósito
     mockProgressRepo.getProgress.mockImplementation((id: string) => {
       return Promise.resolve(null);
     });
 
-    await useCase.execute('jornada-1', 0, 10);
+    await useCase.execute('jornada-1', 0, 10, 60);
 
     // Deve desbloquear j2 (jornada-2) que é a próxima ativa
     expect(mockProgressRepo.saveProgress).toHaveBeenCalledWith(
       expect.objectContaining({
         jornadaId: 'jornada-2',
-        status: 'unlocked'
-      })
+        status: 'unlocked',
+      }),
     );
   });
 });

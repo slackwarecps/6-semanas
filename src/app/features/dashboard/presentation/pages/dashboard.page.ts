@@ -60,4 +60,8 @@ export class DashboardPage implements OnInit {
   goToPreparaQuestoesFase1(): void {
     this.router.navigate(['/prepara-questoes-fase1']);
   }
+
+  goToCriadorDeFases(): void {
+    this.router.navigate(['/criador-de-fases-automatico']);
+  }
 }

@@ -1,0 +1,10 @@
+### Obter XP total do usuário
+# GET /learn/xp → Retorna o total de XP acumulado
+# 
+# Requer header: X-User-Id
+# Response esperado (200): XpDTO com totalXp
+
+@baseUrl = http://127.0.0.1:8000
+
+GET {{baseUrl}}/learn/xp
+X-User-Id: user123

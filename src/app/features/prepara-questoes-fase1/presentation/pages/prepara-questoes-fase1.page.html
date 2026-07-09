@@ -4,12 +4,14 @@
   <div class="prepare-page__header">
     <div>
       <h1>🤖 Preparar Questões Fase 1</h1>
-      <p style="margin-bottom: 0.5rem;">Análise e preparação em lote dos cards com IA.</p>
-      <div class="prepare-page__model-info" style="font-size: 0.9rem; color: #94a3b8; margin-bottom: 1.5rem;">
-        Modelo ativo por padrão: <strong style="color: #38bdf8;">{{ defaultModel }}</strong>
+      <p style="margin-bottom: 0.5rem">Análise e preparação em lote dos cards com IA.</p>
+      <div
+        class="prepare-page__model-info"
+        style="font-size: 0.9rem; color: #94a3b8; margin-bottom: 1.5rem"
+      >
+        Modelo ativo por padrão: <strong style="color: #38bdf8">{{ defaultModel }}</strong>
       </div>
     </div>
-
   </div>
 
   @if (isLoading) {
@@ -18,19 +20,31 @@
     <div class="prepare-page__chart">
       <div class="prepare-page__chart-card">
         <div class="chart-bar">
-          <div class="chart-bar__fill chart-bar__fill--total" [style.height.px]="getChartHeight(totalCards)"></div>
+          <div
+            class="chart-bar__fill chart-bar__fill--total"
+            [style.height.px]="getChartHeight(totalCards)"
+          ></div>
           <span>Total</span>
         </div>
         <div class="chart-bar">
-          <div class="chart-bar__fill chart-bar__fill--translation" [style.height.px]="getChartHeight(withoutTranslation)"></div>
+          <div
+            class="chart-bar__fill chart-bar__fill--translation"
+            [style.height.px]="getChartHeight(withoutTranslation)"
+          ></div>
           <span>Sem tradução</span>
         </div>
         <div class="chart-bar">
-          <div class="chart-bar__fill chart-bar__fill--answer" [style.height.px]="getChartHeight(withoutAnswer)"></div>
+          <div
+            class="chart-bar__fill chart-bar__fill--answer"
+            [style.height.px]="getChartHeight(withoutAnswer)"
+          ></div>
           <span>Sem resposta</span>
         </div>
         <div class="chart-bar">
-          <div class="chart-bar__fill chart-bar__fill--explanation" [style.height.px]="getChartHeight(withoutExplanation)"></div>
+          <div
+            class="chart-bar__fill chart-bar__fill--explanation"
+            [style.height.px]="getChartHeight(withoutExplanation)"
+          ></div>
           <span>Sem explicação</span>
         </div>
       </div>
@@ -53,10 +67,21 @@
         <span class="stat-card__value">{{ withoutExplanation }}</span>
         <span class="stat-card__label">Sem explicação</span>
       </div>
+      <div class="stat-card">
+        <span class="stat-card__value">{{ withoutScenarioTag }}</span>
+        <span class="stat-card__label">Sem tag de cenário</span>
+      </div>
     </div>
 
     <div class="prepare-page__range">
       <div class="prepare-page__range-row">
+        <label>
+          Modo de processamento
+          <select [(ngModel)]="mode">
+            <option value="preencher">Preencher card (IA)</option>
+            <option value="tags-cenario">Atualizar tags de cenário (IA)</option>
+          </select>
+        </label>
         <label>
           Card inicial
           <input type="number" [(ngModel)]="rangeStart" />
@@ -71,12 +96,17 @@
         </label>
         <label class="prepare-page__checkbox">
           <input type="checkbox" [(ngModel)]="onlyMissingAnswers" />
-          <span>Processar apenas as Sem respostas</span>
+          <span>{{ onlyPendingLabel }}</span>
         </label>
       </div>
 
       <div class="prepare-page__range-row prepare-page__range-row--actions">
-        <button type="button" class="prepare-page__range-action" [disabled]="isLoading || isProcessing" (click)="prepareInBatch()">
+        <button
+          type="button"
+          class="prepare-page__range-action"
+          [disabled]="isLoading || isProcessing"
+          (click)="prepareInBatch()"
+        >
           <span class="prepare-page__action-icon">⚙️</span>
           <span>Preparar em lote com IA</span>
         </button>
@@ -98,7 +128,10 @@
     <div class="prepare-page__panel">
       <p>Processando {{ progressCurrent }} de {{ progressTotal }} cards...</p>
       <div class="progress-bar">
-        <div class="progress-bar__fill" [style.width.%]="progressTotal ? (progressCurrent / progressTotal) * 100 : 0"></div>
+        <div
+          class="progress-bar__fill"
+          [style.width.%]="progressTotal ? (progressCurrent / progressTotal) * 100 : 0"
+        ></div>
       </div>
     </div>
 
@@ -119,15 +152,26 @@
     <div class="confirm-sheet__header">
       <div>
         <h3 id="confirm-batch-title">Confirmar processamento em lote</h3>
-        <p>Deseja processar os registros selecionados (de {{ rangeStart }} até {{ rangeEnd }}) agora?</p>
+        <p>
+          Deseja processar os registros selecionados (de {{ rangeStart }} até {{ rangeEnd }}) agora?
+        </p>
       </div>
     </div>
 
     <div class="confirm-sheet__actions">
-      <button type="button" class="confirm-sheet__button confirm-sheet__button--secondary" autofocus (click)="cancelBatchProcessing()">
+      <button
+        type="button"
+        class="confirm-sheet__button confirm-sheet__button--secondary"
+        autofocus
+        (click)="cancelBatchProcessing()"
+      >
         Cancelar
       </button>
-      <button type="button" class="confirm-sheet__button confirm-sheet__button--primary" (click)="confirmBatchProcessing()">
+      <button
+        type="button"
+        class="confirm-sheet__button confirm-sheet__button--primary"
+        (click)="confirmBatchProcessing()"
+      >
         Confirmar
       </button>
     </div>
