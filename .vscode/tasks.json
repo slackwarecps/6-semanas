@@ -32,6 +32,16 @@
         "isDefault": true
       },
       "problemMatcher": []
+    },
+    {
+      "label": "Deploy to VPS",
+      "type": "shell",
+      "command": "./deploy_to_vps.sh",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      }
     }
   ]
 }
