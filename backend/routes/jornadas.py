@@ -206,17 +206,15 @@ def delete_jornada(
 # ── Progresso ────────────────────────────────────────────────────────────────
 
 
-@router.get("/jornadas/{jornada_id}/progresso", response_model=ProgressoDTO)
+@router.get("/jornadas/{jornada_id}/progresso", response_model=Optional[ProgressoDTO])
 def get_progresso(
     jornada_id: str,
     user_id: str = Depends(get_user_id),
     session: Session = Depends(get_session),
-) -> ProgressoDTO:
+) -> Optional[ProgressoDTO]:
     progresso = session.get(JornadaProgresso, (user_id, jornada_id))
     if progresso is None:
-        raise HTTPException(
-            status_code=404, detail=f"Progresso da jornada '{jornada_id}' não encontrado."
-        )
+        return None
     return ProgressoDTO.model_validate(progresso, from_attributes=True)
 
 
