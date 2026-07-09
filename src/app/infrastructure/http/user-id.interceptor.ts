@@ -8,7 +8,7 @@ import { ActiveUserService } from './active-user.service';
  * (identificado pelo environment.backendBaseUrl). Requisições para outros
  * destinos passam intactas.
  *
- * O usuário vem do ActiveUserService (localStorage), selecionável na Navbar.
+ * O usuário vem do ActiveUserService (SecureStorage).
  */
 export const userIdInterceptor: HttpInterceptorFn = (req, next) => {
   if (!req.url.startsWith(environment.backendBaseUrl)) {

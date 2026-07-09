@@ -9,64 +9,11 @@
     <a routerLink="/importar-cards" routerLinkActive="active">Importar</a>
   </div>
 
-  <div class="navbar__user">
-    <label for="active-user-select" class="navbar__user-label">👤 Usuário Logado</label>
-    <select
-      id="active-user-select"
-      class="navbar__user-select"
-      (change)="onUserChange($event)"
-    >
-      @for (user of users; track user) {
-        <option [value]="user" [selected]="user === activeUser">{{ user }}</option>
-      }
-    </select>
+  <div class="navbar__user" style="display: flex; align-items: center; padding: 0.5rem 1rem; background-color: #f8f9fa; border-radius: 8px;">
+    <span class="navbar__user-label" style="font-weight: bold; font-size: 0.95rem; color: #333; margin: 0;">👤 {{ activeUser }}</span>
   </div>
 
   <div class="navbar__settings">
-    <button type="button" class="navbar__settings-btn" (click)="toggleSettings()">⚙️ Configurações</button>
-
-    @if (showSettings) {
-      <div class="navbar__dropdown">
-        <a *ngIf="router.url === '/admin/jornada'" routerLink="/dev/control-panel" class="navbar__dropdown-item" (click)="showSettings = false" style="text-decoration: none; color: inherit; display: block;">
-          🛠️ Dev Control Panel
-        </a>
-        <a routerLink="/backup-restore" class="navbar__dropdown-item" (click)="showSettings = false" style="text-decoration: none; color: inherit; display: block;">
-          💾 Backup / Restore
-        </a>
-        <button type="button" class="navbar__dropdown-item navbar__dropdown-item--danger" (click)="resetCards()">
-          🗑️ Resetar Cartões
-        </button>
-      </div>
-    }
+    <button type="button" class="navbar__settings-btn" (click)="logout()" style="margin-right: 12px;">🚪 Sair</button>
   </div>
 </nav>
-
-<!-- Modal de Confirmação de Reset -->
-<div *ngIf="showResetDialog" class="reset-modal-overlay" (click)="closeResetDialog()">
-  <div class="reset-modal-content" (click)="$event.stopPropagation()">
-    <div class="reset-modal-header">
-      <h2>⚠️ Atenção: Resetar Dados</h2>
-      <button class="btn-close" (click)="closeResetDialog()">✕</button>
-    </div>
-    
-    <div class="reset-modal-body">
-      <p>Você está prestes a realizar uma ação destrutiva irreversível. Ao confirmar:</p>
-      <ul>
-        <li>Todos os <strong>flashcards</strong> serão apagados do seu banco de dados local.</li>
-        <li>Todo o seu <strong>histórico de revisões e tentativas</strong> será removido.</li>
-        <li>Seu <strong>XP total</strong> e o progresso das <strong>jornadas</strong> serão zerados.</li>
-      </ul>
-      <p class="warning-text"><strong>Importante:</strong> Esta ação NÃO poderá ser desfeita!</p>
-    </div>
-    
-    <div class="reset-modal-footer">
-      <!-- O botão Cancelar é o principal e com foco padrão para segurança -->
-      <button class="btn-reset btn-cancel" (click)="closeResetDialog()" autofocus>
-        Cancelar
-      </button>
-      <button class="btn-reset btn-confirm-destructive" (click)="confirmReset()">
-        Confirmar Reset
-      </button>
-    </div>
-  </div>
-</div>

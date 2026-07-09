@@ -58,6 +58,16 @@ O aplicativo utiliza a fórmula **SuperMemo-2 (SM-2)** para calcular dinamicamen
 
 ---
 
+## 🔐 Tela de Login e Sessão
+
+A aplicação agora possui uma tela de login simples para controle de acesso inicial e proteção de rotas.
+- **Rota Padrão:** O acesso à raiz (`/`) redireciona automaticamente para a tela de login.
+- **Credenciais Padrão:** O sistema aceita o login com o usuário `admin` e a senha `Facil123`.
+- **Fluxo:** Após a autenticação bem-sucedida, o usuário é redirecionado para a tela principal (`/dashboard`).
+- **Proteção de Rotas:** O acesso à rota `/dashboard` está protegido pelo `authGuard`. Apenas usuários com sessão ativa (`localStorage`) podem acessá-lo.
+
+---
+
 ## 📂 Estrutura do Diretório
 
 ```
@@ -97,9 +107,7 @@ suporte multi-usuário. O banco local sql.js/WASM foi removido do frontend.
 - **Banco de Dados:** arquivo `backend/database.sqlite`, criado automaticamente no startup do FastAPI
 - **Multi-usuário:** toda requisição de dados leva o header `X-User-Id`, injetado pelo
   interceptor `src/app/infrastructure/http/user-id.interceptor.ts`. O usuário ativo é
-  escolhido no seletor **"👤 Usuário Logado"** da Navbar e persiste em
-  `localStorage['active_user']` (`ActiveUserService`); trocar de usuário recarrega a
-  página e alterna o ambiente de dados inteiro
+  exibido na Navbar e persiste em `localStorage['active_user']` (`ActiveUserService`). A troca dinâmica de usuários pela interface foi desativada.
 - **Adapters HTTP** (`src/app/infrastructure/storage/`):
   - `http-api.adapter.ts` — cards (implementa a `StorageInterface`)
   - `http-jornada.adapter.ts` — jornadas, progresso e XP
@@ -130,21 +138,11 @@ Cada cartão armazena:
 
 ### Reset e Limpeza
 
-Para resetar todos os cartões:
-1. Clique em "Configurações" (engrenagem) na Navbar
-2. Clique em "Resetar Cartões"
-3. Um **modal de segurança customizado** listará todas as consequências da deleção. O botão **Cancelar** recebe o foco automático por segurança (pressione Enter para desistir). A limpeza só é executada se o usuário confirmar clicando em **Confirmar Reset**.
-
-Isso remove **todos os dados do usuário ativo no backend** (cards, jornadas, progresso,
-XP e configurações — via `DELETE /user-data`), além de eventuais resquícios do banco
-sql.js legado no localStorage do navegador. Os dados dos demais usuários ficam intactos.
+A opção de resetar cartões via interface gráfica (botão Configurações) foi desativada. Para limpar os dados, recrie o arquivo de banco de dados `backend/database.sqlite` diretamente no servidor.
+Isso removerá **todos os dados** de todos os usuários (cards, jornadas, progresso e XP).
 
 ### Backup e Exportação
-A tela "Backup / Restore" (Configurações → Backup / Restore) baixa o banco sql.js
-**legado** que ainda estiver no localStorage do navegador (`.sqlite`). Ela foi mantida
-como rede de segurança da migração: um backup legado pode ser importado para o backend
-com `python backend/restore_backup.py <arquivo.sqlite> --user <user_id>`. Para backup
-dos dados atuais, basta copiar o arquivo `backend/database.sqlite`.
+Para fazer o backup dos dados atuais, basta copiar fisicamente o arquivo de banco de dados ativo do backend: `backend/database.sqlite`.
 
 ---
 
