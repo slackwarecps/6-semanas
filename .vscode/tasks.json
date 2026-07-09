@@ -2,24 +2,36 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "npm: start",
+      "label": "Start Backend",
       "type": "shell",
-      "command": "npm",
-      "args": ["start"],
-      "isBackground": true,
-      "problemMatcher": {
-        "pattern": {
-          "regexp": "^.*$",
-          "file": 1,
-          "location": 2,
-          "message": 3
-        },
-        "background": {
-          "activeOnStart": true,
-          "beginsPattern": "^.*ng serve.*",
-          "endsPattern": "^.*Application bundle generated.*"
-        }
+      "command": "cd backend && source venv/bin/activate && uvicorn main:app --reload",
+      "problemMatcher": [],
+      "presentation": {
+        "group": "group-dev",
+        "panel": "shared"
       }
+    },
+    {
+      "label": "Start Frontend",
+      "type": "shell",
+      "command": "npm start",
+      "problemMatcher": [],
+      "presentation": {
+        "group": "group-dev",
+        "panel": "shared"
+      }
+    },
+    {
+      "label": "Start App (All)",
+      "dependsOn": [
+        "Start Backend",
+        "Start Frontend"
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": []
     }
   ]
 }
