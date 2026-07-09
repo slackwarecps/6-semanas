@@ -78,7 +78,7 @@
 
       <div class="feedback-navigator" aria-label="Navegador de perguntas">
         <div class="card-id-label" *ngIf="currentCard" (click)="browseCard()" role="button" tabindex="0">
-          <small>ID: {{ currentCard.id?.value }}</small>
+          <small>ID: {{ currentCard.id.value }}</small>
           <small *ngIf="currentCard.seq">SEQ: {{ currentCard.seq }}</small>
         </div>
         <button type="button" class="nav-button" [disabled]="!canGoToFirstQuestion" (click)="goToFirstQuestion()">⏮</button>
