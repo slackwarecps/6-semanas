@@ -24,11 +24,11 @@ export const routes: Routes = [
   { path: 'browse-cards', component: BrowseCardsPage },
   { path: 'importar-cards', component: ImportCardsPage },
   { path: 'testa-resposta', component: TestaRespostaPage },
-  { path: 'learn', component: LearnPage },
+  { path: 'learn', component: LearnPage, canActivate: [authGuard] },
   { path: 'prepara-questoes-fase1', component: PreparaQuestoesFase1Page },
   { path: 'admin/jornada', component: AdminJornadaPage },
   { path: 'criador-de-fases-automatico', component: CriadorDeFasesAutomaticoPage },
-  { path: 'learn/jornada/:id', component: JornadaPhasePage },
+  { path: 'learn/jornada/:id', component: JornadaPhasePage, canActivate: [authGuard] },
   { path: 'tag-cloud', component: TagCloudPage },
   { path: 'dev/control-panel', component: DevControlPanelPage },
   { path: '**', redirectTo: 'dashboard' }
