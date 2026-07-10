@@ -254,6 +254,40 @@ def save_card(
     return _to_dto(card, options, attempts)
 
 
+@router.get("/scenario/1", response_model=list[CardDTO])
+def list_scenario_1_cards(
+    user_id: str = Depends(get_user_id),
+    session: Session = Depends(get_session),
+) -> list[CardDTO]:
+    """Retorna todas as perguntas do Scenario 1 ordenadas por seq."""
+    cards = session.exec(
+        select(Card)
+        .where(Card.user_id == user_id)
+        .order_by(Card.seq)
+    ).all()
+
+    # Filtra cards que contenham "Scenario_1" nas tags
+    scenario_1_cards = [
+        card
+        for card in cards
+        if any("Scenario_1" in tag for tag in json.loads(card.tags or "[]"))
+    ]
+
+    # Carrega options/attempts do usuário de uma vez
+    options_por_card: dict[str, list[CardOption]] = {}
+    for option in session.exec(select(CardOption).where(CardOption.user_id == user_id)):
+        options_por_card.setdefault(option.cardId, []).append(option)
+
+    attempts_por_card: dict[str, list[Attempt]] = {}
+    for attempt in session.exec(select(Attempt).where(Attempt.user_id == user_id)):
+        attempts_por_card.setdefault(attempt.cardId, []).append(attempt)
+
+    return [
+        _to_dto(card, options_por_card.get(card.id, []), attempts_por_card.get(card.id, []))
+        for card in scenario_1_cards
+    ]
+
+
 @router.delete("/{card_id}", status_code=204)
 def delete_card(
     card_id: str,

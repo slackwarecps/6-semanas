@@ -14,6 +14,7 @@ import { TestaRespostaPage } from './features/testa-resposta/presentation/pages/
 import { authGuard } from './core/auth/auth.guard';
 import { DevControlPanelPage } from './features/dev-control-panel/presentation/pages/dev-control-panel.page';
 import { LoginPage } from './features/login/presentation/pages/login.page';
+import { RelatoriosPage } from './features/relatorios/presentation/pages/relatorios.page';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -30,6 +31,7 @@ export const routes: Routes = [
   { path: 'criador-de-fases-automatico', component: CriadorDeFasesAutomaticoPage },
   { path: 'learn/jornada/:id', component: JornadaPhasePage, canActivate: [authGuard] },
   { path: 'tag-cloud', component: TagCloudPage },
+  { path: 'relatorios', component: RelatoriosPage },
   { path: 'dev/control-panel', component: DevControlPanelPage },
   { path: '**', redirectTo: 'dashboard' }
 ];

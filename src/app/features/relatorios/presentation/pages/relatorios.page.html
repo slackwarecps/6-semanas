@@ -1,0 +1,54 @@
+<app-navbar></app-navbar>
+
+<div class="relatorios-container">
+  <div class="header">
+    <h1>Relatório de Perguntas</h1>
+    <p class="subtitle">Scenario 1 - Customer Support Agent</p>
+  </div>
+
+  <div class="controls">
+    <button
+      class="btn btn-primary"
+      (click)="generatePdf()"
+      [disabled]="isLoading || isGeneratingPdf || questions.length === 0"
+    >
+      {{ isGeneratingPdf ? 'Gerando PDF...' : 'Baixar Relatório em PDF' }}
+    </button>
+    <button class="btn btn-secondary" (click)="goToHome()">Voltar</button>
+  </div>
+
+  <div *ngIf="isLoading" class="loading">
+    <p>Carregando perguntas...</p>
+  </div>
+
+  <div *ngIf="!isLoading && questions.length === 0" class="no-data">
+    <p>Nenhuma pergunta encontrada para o Scenario 1</p>
+  </div>
+
+  <div #reportContent class="report-content" *ngIf="!isLoading && questions.length > 0">
+    <div class="report-header">
+      <h2>Perguntas do Scenario 1</h2>
+      <p class="report-date">Gerado em {{ 'now' | date: 'dd/MM/yyyy HH:mm' }}</p>
+    </div>
+
+    <div class="questions-list">
+      <div *ngFor="let question of questions; let i = index" class="question-item">
+        <div class="question-number">
+          <strong>{{ question.seq }}</strong>
+        </div>
+        <div class="question-content">
+          <h3>{{ question.title }}</h3>
+          <p class="question-text">{{ question.question }}</p>
+          <div class="question-answer">
+            <strong>Resposta:</strong>
+            <p>{{ question.answer }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="report-footer">
+      <p>Total de perguntas: {{ questions.length }}</p>
+    </div>
+  </div>
+</div>

@@ -22,6 +22,8 @@
     "@angular/router": "^21.2.0",
     "@langchain/anthropic": "^1.5.1",
     "@langchain/core": "^1.2.1",
+    "html2canvas": "^1.4.1",
+    "jspdf": "^4.2.1",
     "marked": "^18.0.5",
     "rxjs": "~7.8.0",
     "secure-ls": "^2.0.0",
