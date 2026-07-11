@@ -1,3 +1,4 @@
+import { describe, beforeEach, it, expect, vi, type Mock } from 'vitest';
 import { InitiateDesafioUseCase } from './initiate-desafio.use-case';
 import { JornadaProgress } from '../../domain/entities/jornada-progress.entity';
 import { JornadaProgressRepository } from '../../data/repositories/jornada-progress.repository';
@@ -9,8 +10,8 @@ describe('InitiateDesafioUseCase', () => {
 
   beforeEach(() => {
     progressRepositoryMock = {
-      getProgress: jasmine.createSpy('getProgress').and.returnValue(Promise.resolve(null)),
-      saveProgress: jasmine.createSpy('saveProgress').and.returnValue(Promise.resolve())
+      getProgress: vi.fn().mockResolvedValue(null),
+      saveProgress: vi.fn().mockResolvedValue(undefined),
     };
 
     useCase = new InitiateDesafioUseCase(progressRepositoryMock as JornadaProgressRepository);
@@ -48,12 +49,10 @@ describe('InitiateDesafioUseCase', () => {
       currentErrors: 1,
       currentLives: 2,
       lastActiveAt: new Date(),
-      desafioStartTimeMs: previousStartTime
+      desafioStartTimeMs: previousStartTime,
     });
 
-    (progressRepositoryMock.getProgress as jasmine.Spy).and.returnValue(
-      Promise.resolve(previousProgress)
-    );
+    (progressRepositoryMock.getProgress as Mock).mockResolvedValue(previousProgress);
 
     const timer = await useCase.execute(jornadaId, 6);
 
@@ -73,8 +72,8 @@ describe('InitiateDesafioUseCase', () => {
 
     expect(progressRepositoryMock.saveProgress).toHaveBeenCalled();
 
-    const savedProgress = (progressRepositoryMock.saveProgress as jasmine.Spy).calls.mostRecent()
-      .args[0] as JornadaProgress;
+    const savedProgress = (progressRepositoryMock.saveProgress as Mock).mock
+      .calls[0][0] as JornadaProgress;
 
     expect(savedProgress.desafioStartTimeMs).toBeTruthy();
     expect(savedProgress.desafioStartTimeMs).toBeGreaterThan(0);
@@ -91,17 +90,15 @@ describe('InitiateDesafioUseCase', () => {
       currentErrors: 1,
       currentLives: 2,
       lastActiveAt: new Date(),
-      desafioStartTimeMs: Date.now()
+      desafioStartTimeMs: Date.now(),
     });
 
-    (progressRepositoryMock.getProgress as jasmine.Spy).and.returnValue(
-      Promise.resolve(previousProgress)
-    );
+    (progressRepositoryMock.getProgress as Mock).mockResolvedValue(previousProgress);
 
     await useCase.execute(jornadaId, 120);
 
-    const savedProgress = (progressRepositoryMock.saveProgress as jasmine.Spy).calls.mostRecent()
-      .args[0] as JornadaProgress;
+    const savedProgress = (progressRepositoryMock.saveProgress as Mock).mock
+      .calls[0][0] as JornadaProgress;
 
     expect(savedProgress.status).toBe('unlocked');
     expect(savedProgress.bestErrors).toBe(2);
@@ -117,13 +114,11 @@ describe('InitiateDesafioUseCase', () => {
       completedAt: null,
       currentQuestionIndex: 0,
       currentErrors: 0,
-      currentLives: 3
+      currentLives: 3,
       // desafioStartTimeMs: undefined
     });
 
-    (progressRepositoryMock.getProgress as jasmine.Spy).and.returnValue(
-      Promise.resolve(progressWithoutTimer)
-    );
+    (progressRepositoryMock.getProgress as Mock).mockResolvedValue(progressWithoutTimer);
 
     const beforeTime = Date.now();
     const timer = await useCase.execute(jornadaId, 120);
@@ -154,12 +149,10 @@ describe('InitiateDesafioUseCase', () => {
       currentErrors: 0,
       currentLives: 3,
       lastActiveAt: new Date(),
-      desafioStartTimeMs: startTime // Preserva o startTime original
+      desafioStartTimeMs: startTime, // Preserva o startTime original
     });
 
-    (progressRepositoryMock.getProgress as jasmine.Spy).and.returnValue(
-      Promise.resolve(progressAfter2Min)
-    );
+    (progressRepositoryMock.getProgress as Mock).mockResolvedValue(progressAfter2Min);
 
     // Simulação 2: Usuário volta ao desafio
     const timer2 = await useCase.execute(jornadaId, 6);

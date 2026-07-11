@@ -21,7 +21,8 @@ export class JornadaProgressRepository {
       currentLives: row.currentLives,
       lastActiveAt: row.lastActiveAt,
       bestTime: row.bestTime,
-      desafioStartTimeMs: row.desafioStartTimeMs
+      desafioStartTimeMs: row.desafioStartTimeMs,
+      questionsState: row.questionsState
     });
   }
 
@@ -36,7 +37,8 @@ export class JornadaProgressRepository {
       currentLives: progress.currentLives,
       lastActiveAt: progress.lastActiveAt,
       bestTime: progress.bestTime,
-      desafioStartTimeMs: progress.desafioStartTimeMs
+      desafioStartTimeMs: progress.desafioStartTimeMs,
+      questionsState: progress.questionsState
     });
   }
 

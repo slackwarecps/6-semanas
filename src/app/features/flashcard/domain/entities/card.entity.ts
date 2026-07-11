@@ -26,6 +26,7 @@ export interface CardProps {
   traducao?: string;
   explanation?: string;
   tenYearOld?: string;
+  flagged?: boolean;
 }
 
 export interface NewCardProps {
@@ -37,6 +38,7 @@ export interface NewCardProps {
   traducao?: string;
   explanation?: string;
   tenYearOld?: string;
+  flagged?: boolean;
 }
 
 export class Card {
@@ -58,6 +60,7 @@ export class Card {
   readonly traducao?: string;
   readonly explanation?: string;
   readonly tenYearOld?: string;
+  readonly flagged?: boolean;
 
   constructor(props: CardProps) {
     this.id = props.id;
@@ -78,6 +81,7 @@ export class Card {
     this.traducao = props.traducao;
     this.explanation = props.explanation;
     this.tenYearOld = props.tenYearOld;
+    this.flagged = props.flagged;
   }
 
   static create(props: NewCardProps): Card {
@@ -99,7 +103,8 @@ export class Card {
       nextReviewDate: now,
       traducao: props.traducao,
       explanation: props.explanation,
-      tenYearOld: props.tenYearOld
+      tenYearOld: props.tenYearOld,
+      flagged: props.flagged,
     });
   }
 

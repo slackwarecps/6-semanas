@@ -5,6 +5,7 @@ import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { NavbarComponent } from '../../../../shared/components/navbar/navbar.component';
 import { MarkdownPipe } from '../../../../shared/pipes/markdown.pipe';
 import { Card } from '../../../flashcard/domain/entities/card.entity';
+import { CardRepository } from '../../../flashcard/data/repositories/card.repository';
 import { CompleteJornadaUseCase } from '../../../jornada/application/use-cases/complete-jornada.use-case';
 import { GetJornadaQuestionsUseCase } from '../../../jornada/application/use-cases/get-jornada-questions.use-case';
 import { GetJourneyMapUseCase } from '../../../jornada/application/use-cases/get-journey-map.use-case';
@@ -18,7 +19,7 @@ import { DesafioTimer } from '../../../jornada/domain/value-objects/desafio-time
   standalone: true,
   imports: [CommonModule, FormsModule, RouterModule, NavbarComponent, MarkdownPipe],
   templateUrl: './jornada-phase.page.html',
-  styleUrls: ['./jornada-phase.page.scss']
+  styleUrls: ['./jornada-phase.page.scss'],
 })
 export class JornadaPhasePage implements OnInit, OnDestroy {
   jornadaId = '';
@@ -26,6 +27,7 @@ export class JornadaPhasePage implements OnInit, OnDestroy {
   pontosTentativas = 3;
   jornadaDuracao = 120;
   questions: Card[] = [];
+  questionsState: ('correct' | 'incorrect' | 'unanswered')[] = [];
   currentIndex = 0;
   lives = 3;
   errors = 0;
@@ -43,6 +45,7 @@ export class JornadaPhasePage implements OnInit, OnDestroy {
   explanationText = '';
   showAnswerBottomSheet = false;
   showFailedDialog = false;
+  showFinalizeConfirmation = false;
   xpEarnedInThisPlay = 0;
   startTime = Date.now();
   isDesafio = false;
@@ -56,6 +59,7 @@ export class JornadaPhasePage implements OnInit, OnDestroy {
   private copyToastTimeoutId: ReturnType<typeof setTimeout> | null = null;
   private copyToastFadeTimeoutId: ReturnType<typeof setTimeout> | null = null;
   private timerIntervalId: ReturnType<typeof setInterval> | null = null;
+  private periodicSaveIntervalId: ReturnType<typeof setInterval> | null = null;
 
   constructor(
     private route: ActivatedRoute,
@@ -65,8 +69,9 @@ export class JornadaPhasePage implements OnInit, OnDestroy {
     private completeJornadaUseCase: CompleteJornadaUseCase,
     private initiateDesafioUseCase: InitiateDesafioUseCase,
     private progressRepository: JornadaProgressRepository,
+    private cardRepository: CardRepository,
     private cdr: ChangeDetectorRef,
-    private ngZone: NgZone
+    private ngZone: NgZone,
   ) {}
 
   async ngOnInit(): Promise<void> {
@@ -88,7 +93,7 @@ export class JornadaPhasePage implements OnInit, OnDestroy {
 
       // Validar acesso (só Unlocked ou Completed)
       const mapData = await this.getJourneyMapUseCase.execute();
-      const currentItem = mapData.jornadas.find(item => item.jornada.id === this.jornadaId);
+      const currentItem = mapData.jornadas.find((item) => item.jornada.id === this.jornadaId);
 
       if (!currentItem || currentItem.status === 'locked') {
         console.warn(`[JornadaPhase] Acesso bloqueado para jornada ${this.jornadaId}`);
@@ -120,6 +125,17 @@ export class JornadaPhasePage implements OnInit, OnDestroy {
             this.currentIndex = 0;
             this.errors = 0;
             this.lives = this.pontosTentativas;
+            this.questionsState = Array(this.questions.length).fill('unanswered');
+          } else if (progress.questionsState && progress.questionsState.length > 0) {
+            this.questionsState = [...progress.questionsState] as (
+              'correct' | 'incorrect' | 'unanswered'
+            )[];
+            if (this.questionsState.length < this.questions.length) {
+              const diff = this.questions.length - this.questionsState.length;
+              this.questionsState.push(...Array(diff).fill('unanswered'));
+            } else if (this.questionsState.length > this.questions.length) {
+              this.questionsState = this.questionsState.slice(0, this.questions.length);
+            }
           }
         }
 
@@ -127,10 +143,12 @@ export class JornadaPhasePage implements OnInit, OnDestroy {
         if (this.isDesafio) {
           this.desafioTimer = await this.initiateDesafioUseCase.execute(
             this.jornadaId,
-            this.jornadaDuracao
+            this.jornadaDuracao,
           );
           this.startTimerInterval();
         }
+
+        this.startPeriodicProgressSave();
 
         this.isLoading = false;
         this.cdr.markForCheck();
@@ -157,10 +175,16 @@ export class JornadaPhasePage implements OnInit, OnDestroy {
       this.timerIntervalId = null;
     }
 
+    if (this.periodicSaveIntervalId) {
+      clearInterval(this.periodicSaveIntervalId);
+      this.periodicSaveIntervalId = null;
+    }
+
     this.currentIndex = 0;
     this.lives = this.pontosTentativas;
     this.errors = 0;
     this.sessionXp = 0;
+    this.questionsState = Array(this.questions.length).fill('unanswered');
     this.selectedOptionId = null;
     this.showFeedback = false;
     this.showAnswer = false;
@@ -201,6 +225,19 @@ export class JornadaPhasePage implements OnInit, OnDestroy {
     }, 1000);
   }
 
+  private startPeriodicProgressSave(): void {
+    if (this.periodicSaveIntervalId) {
+      clearInterval(this.periodicSaveIntervalId);
+    }
+    this.periodicSaveIntervalId = setInterval(() => {
+      if (this.phaseState === 'playing' && !this.isLoading) {
+        this.saveCurrentProgress().catch((e) =>
+          console.error('[JornadaPhase] Erro no salvamento periódico:', e),
+        );
+      }
+    }, 5000);
+  }
+
   private async handleDesafioTimeout(): Promise<void> {
     if (this.timerIntervalId) {
       clearInterval(this.timerIntervalId);
@@ -209,7 +246,8 @@ export class JornadaPhasePage implements OnInit, OnDestroy {
 
     this.showFailedDialog = true;
     this.phaseState = 'failed';
-    this.desafioTimeoutMessage = '⏰ Tempo esgotado! Você não conseguiu completar o desafio em 120 minutos.';
+    this.desafioTimeoutMessage =
+      '⏰ Tempo esgotado! Você não conseguiu completar o desafio em 120 minutos.';
     this.currentIndex = 0;
     this.errors = 0;
     this.lives = this.pontosTentativas;
@@ -222,10 +260,13 @@ export class JornadaPhasePage implements OnInit, OnDestroy {
     if (this.timerIntervalId) {
       clearInterval(this.timerIntervalId);
     }
+    if (this.periodicSaveIntervalId) {
+      clearInterval(this.periodicSaveIntervalId);
+    }
 
     // Salvar progresso ao sair da página (preserva tempo do desafio)
     if (this.phaseState === 'playing') {
-      this.saveCurrentProgress().catch(e => {
+      this.saveCurrentProgress().catch((e) => {
         console.error('[JornadaPhase] Erro ao salvar progresso ao sair:', e);
       });
     }
@@ -234,18 +275,21 @@ export class JornadaPhasePage implements OnInit, OnDestroy {
   async saveCurrentProgress(): Promise<void> {
     try {
       const progress = await this.progressRepository.getProgress(this.jornadaId);
-      const currentStatus = (progress && progress.status) ? progress.status : 'unlocked';
-      await this.progressRepository.saveProgress(new JornadaProgress({
-        jornadaId: this.jornadaId,
-        status: currentStatus,
-        bestErrors: progress ? progress.bestErrors : null,
-        completedAt: progress ? progress.completedAt : null,
-        currentQuestionIndex: this.currentIndex,
-        currentErrors: this.errors,
-        currentLives: this.lives,
-        lastActiveAt: new Date(),
-        desafioStartTimeMs: progress ? progress.desafioStartTimeMs : null
-      }));
+      const currentStatus = progress && progress.status ? progress.status : 'unlocked';
+      await this.progressRepository.saveProgress(
+        new JornadaProgress({
+          jornadaId: this.jornadaId,
+          status: currentStatus,
+          bestErrors: progress ? progress.bestErrors : null,
+          completedAt: progress ? progress.completedAt : null,
+          currentQuestionIndex: this.currentIndex,
+          currentErrors: this.errors,
+          currentLives: this.lives,
+          lastActiveAt: new Date(),
+          desafioStartTimeMs: progress ? progress.desafioStartTimeMs : null,
+          questionsState: this.questionsState,
+        }),
+      );
     } catch (e) {
       console.error('[JornadaPhase] Erro ao salvar progresso:', e);
     }
@@ -257,9 +301,11 @@ export class JornadaPhasePage implements OnInit, OnDestroy {
     this.ngZone.run(async () => {
       if (isCorrect) {
         this.sessionXp += 10;
+        this.questionsState[this.currentIndex] = 'correct';
       } else {
         this.lives--;
         this.errors++;
+        this.questionsState[this.currentIndex] = 'incorrect';
       }
 
       if (this.lives <= 0) {
@@ -268,6 +314,7 @@ export class JornadaPhasePage implements OnInit, OnDestroy {
         this.currentIndex = 0;
         this.errors = 0;
         this.lives = this.pontosTentativas;
+        this.questionsState = Array(this.questions.length).fill('unanswered');
         // Salvar com preservação de desafioStartTimeMs
         await this.progressRepository.saveProgress(
           new JornadaProgress({
@@ -279,21 +326,19 @@ export class JornadaPhasePage implements OnInit, OnDestroy {
             currentErrors: 0,
             currentLives: this.pontosTentativas,
             lastActiveAt: new Date(),
-            desafioStartTimeMs: progress?.desafioStartTimeMs ?? null
-          })
+            desafioStartTimeMs: progress?.desafioStartTimeMs ?? null,
+            questionsState: this.questionsState,
+          }),
         );
       } else {
-        this.currentIndex++;
-        if (this.currentIndex === this.questions.length) {
-          this.phaseState = 'completed';
-          const progress = await this.progressRepository.getProgress(this.jornadaId);
-          const isReplay = progress && progress.status === 'completed';
-          this.xpEarnedInThisPlay = isReplay ? 0 : (this.sessionXp + 50);
-          const timeSpentSeconds = Math.max(1, Math.floor((Date.now() - this.startTime) / 1000));
-          await this.completeJornadaUseCase.execute(this.jornadaId, this.errors, this.sessionXp, timeSpentSeconds);
-        } else {
+        if (this.isLastQuestion) {
           await this.saveCurrentProgress();
+          this.cdr.markForCheck();
+          return;
         }
+
+        this.currentIndex++;
+        await this.saveCurrentProgress();
       }
 
       this.selectedOptionId = null;
@@ -323,14 +368,15 @@ export class JornadaPhasePage implements OnInit, OnDestroy {
             currentLives: this.pontosTentativas,
             lastActiveAt: new Date(),
             bestTime: progress.bestTime,
-            desafioStartTimeMs: null // Limpar para forçar novo timer
-          })
+            desafioStartTimeMs: null, // Limpar para forçar novo timer
+            questionsState: this.questionsState,
+          }),
         );
       }
 
       this.desafioTimer = await this.initiateDesafioUseCase.execute(
         this.jornadaId,
-        this.jornadaDuracao
+        this.jornadaDuracao,
       );
       this.startTimerInterval();
     }
@@ -382,13 +428,17 @@ export class JornadaPhasePage implements OnInit, OnDestroy {
     if (!this.currentCard) return;
     if (type === 'technical') {
       this.explanationTitle = 'Explicação Técnica';
-      this.explanationText = this.currentCard.explanation || 'Nenhuma explicação técnica disponível para este cartão.';
+      this.explanationText =
+        this.currentCard.explanation || 'Nenhuma explicação técnica disponível para este cartão.';
     } else if (type === 'kids') {
       this.explanationTitle = 'Explicação Simplificada';
-      this.explanationText = this.currentCard.tenYearOld || 'Nenhuma explicação simplificada disponível para este cartão.';
+      this.explanationText =
+        this.currentCard.tenYearOld ||
+        'Nenhuma explicação simplificada disponível para este cartão.';
     } else if (type === 'translation') {
       this.explanationTitle = 'Tradução';
-      this.explanationText = this.currentCard.traducao || 'Nenhuma tradução disponível para este cartão.';
+      this.explanationText =
+        this.currentCard.traducao || 'Nenhuma tradução disponível para este cartão.';
     }
     this.showExplanationDialog = true;
     this.cdr.markForCheck();
@@ -402,7 +452,7 @@ export class JornadaPhasePage implements OnInit, OnDestroy {
   browseCard(): void {
     if (!this.currentCard) return;
     this.router.navigate(['/browse-cards'], {
-      queryParams: { cardId: this.currentCard.id.value }
+      queryParams: { cardId: this.currentCard.id.value },
     });
   }
 
@@ -423,7 +473,7 @@ export class JornadaPhasePage implements OnInit, OnDestroy {
     if (!this.showFeedback) {
       if (!this.selectedOptionId) return;
 
-      const correctOption = this.currentCard.options?.find(o => o.isCorrect);
+      const correctOption = this.currentCard.options?.find((o) => o.isCorrect);
       this.isCorrectAttempt = correctOption ? this.selectedOptionId === correctOption.id : false;
 
       this.ngZone.run(() => {
@@ -432,9 +482,11 @@ export class JornadaPhasePage implements OnInit, OnDestroy {
 
         if (this.isCorrectAttempt) {
           this.sessionXp += 10;
+          this.questionsState[this.currentIndex] = 'correct';
         } else {
           this.lives--;
           this.errors++;
+          this.questionsState[this.currentIndex] = 'incorrect';
         }
         this.cdr.markForCheck();
       });
@@ -446,6 +498,7 @@ export class JornadaPhasePage implements OnInit, OnDestroy {
           this.currentIndex = 0;
           this.errors = 0;
           this.lives = this.pontosTentativas;
+          this.questionsState = Array(this.questions.length).fill('unanswered');
           // Salvar com preservação de desafioStartTimeMs
           await this.progressRepository.saveProgress(
             new JornadaProgress({
@@ -457,10 +510,16 @@ export class JornadaPhasePage implements OnInit, OnDestroy {
               currentErrors: 0,
               currentLives: this.pontosTentativas,
               lastActiveAt: new Date(),
-              desafioStartTimeMs: progress?.desafioStartTimeMs ?? null
-            })
+              desafioStartTimeMs: progress?.desafioStartTimeMs ?? null,
+              questionsState: this.questionsState,
+            }),
           );
           this.cdr.markForCheck();
+          return;
+        }
+
+        if (this.isLastQuestion) {
+          this.openFinalizeConfirmation();
           return;
         }
 
@@ -469,17 +528,7 @@ export class JornadaPhasePage implements OnInit, OnDestroy {
         this.showFeedback = false;
         this.showAnswer = false;
 
-        if (this.currentIndex === this.questions.length) {
-          this.phaseState = 'completed';
-          this.cdr.markForCheck();
-          const progress = await this.progressRepository.getProgress(this.jornadaId);
-          const isReplay = progress && progress.status === 'completed';
-          this.xpEarnedInThisPlay = isReplay ? 0 : (this.sessionXp + 50);
-          const timeSpentSeconds = Math.max(1, Math.floor((Date.now() - this.startTime) / 1000));
-          await this.completeJornadaUseCase.execute(this.jornadaId, this.errors, this.sessionXp, timeSpentSeconds);
-        } else {
-          await this.saveCurrentProgress();
-        }
+        await this.saveCurrentProgress();
         this.cdr.markForCheck();
       });
     }
@@ -505,7 +554,7 @@ export class JornadaPhasePage implements OnInit, OnDestroy {
     this.navigateToQuestion(this.questions.length - 1);
   }
 
-  private navigateToQuestion(index: number): void {
+  navigateToQuestion(index: number): void {
     if (index < 0 || index >= this.questions.length) return;
 
     this.currentIndex = index;
@@ -514,6 +563,44 @@ export class JornadaPhasePage implements OnInit, OnDestroy {
     this.showAnswer = false;
     this.isCorrectAttempt = false;
     this.cdr.markForCheck();
+  }
+
+  get isLastQuestion(): boolean {
+    return this.questions.length > 0 && this.currentIndex === this.questions.length - 1;
+  }
+
+  get isCurrentQuestionAnswered(): boolean {
+    return this.questionsState[this.currentIndex] !== 'unanswered';
+  }
+
+  openFinalizeConfirmation(): void {
+    this.showFinalizeConfirmation = true;
+    this.cdr.markForCheck();
+  }
+
+  closeFinalizeConfirmation(): void {
+    this.showFinalizeConfirmation = false;
+    this.cdr.markForCheck();
+  }
+
+  async finalizeJornada(): Promise<void> {
+    this.showFinalizeConfirmation = false;
+    this.phaseState = 'completed';
+    const progress = await this.progressRepository.getProgress(this.jornadaId);
+    const isReplay = progress && progress.status === 'completed';
+    this.xpEarnedInThisPlay = isReplay ? 0 : this.sessionXp + 50;
+    const timeSpentSeconds = Math.max(1, Math.floor((Date.now() - this.startTime) / 1000));
+    await this.completeJornadaUseCase.execute(
+      this.jornadaId,
+      this.errors,
+      this.sessionXp,
+      timeSpentSeconds,
+    );
+    this.cdr.markForCheck();
+  }
+
+  get areAllQuestionsAnswered(): boolean {
+    return this.questions.length > 0 && !this.questionsState.includes('unanswered');
   }
 
   get heartArray(): number[] {
@@ -534,5 +621,38 @@ export class JornadaPhasePage implements OnInit, OnDestroy {
 
   get canGoToLastQuestion(): boolean {
     return this.questions.length > 0 && this.currentIndex < this.questions.length - 1;
+  }
+
+  async toggleFlag(): Promise<void> {
+    if (!this.currentCard) return;
+    const updatedCard = new Card({
+      id: this.currentCard.id,
+      seq: this.currentCard.seq,
+      title: this.currentCard.title,
+      question: this.currentCard.question,
+      answer: this.currentCard.answer,
+      options: this.currentCard.options,
+      tags: this.currentCard.tags,
+      state: this.currentCard.state,
+      interval: this.currentCard.interval,
+      easeFactor: this.currentCard.easeFactor,
+      repetitions: this.currentCard.repetitions,
+      attempts: this.currentCard.attempts,
+      createdAt: this.currentCard.createdAt,
+      updatedAt: new Date(),
+      nextReviewDate: this.currentCard.nextReviewDate,
+      traducao: this.currentCard.traducao,
+      explanation: this.currentCard.explanation,
+      tenYearOld: this.currentCard.tenYearOld,
+      flagged: !this.currentCard.flagged,
+    });
+
+    this.questions[this.currentIndex] = updatedCard;
+    try {
+      await this.cardRepository.save(updatedCard);
+    } catch (e) {
+      console.error('[JornadaPhase] Erro ao salvar flag do card:', e);
+    }
+    this.cdr.markForCheck();
   }
 }

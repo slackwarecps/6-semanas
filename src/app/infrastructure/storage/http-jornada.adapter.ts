@@ -27,6 +27,7 @@ interface ApiProgresso {
   lastActiveAt: number | null;
   bestTime: number | null;
   desafioStartTimeMs: number | null;
+  questionsState: string | null;
 }
 
 /**
@@ -115,6 +116,7 @@ export class HttpJornadaAdapter {
         lastActiveAt: dto.lastActiveAt !== null ? new Date(dto.lastActiveAt) : null,
         bestTime: dto.bestTime,
         desafioStartTimeMs: dto.desafioStartTimeMs,
+        questionsState: dto.questionsState ? JSON.parse(dto.questionsState) : []
       };
     } catch {
       return null;
@@ -132,6 +134,7 @@ export class HttpJornadaAdapter {
     lastActiveAt?: Date | null;
     bestTime?: number | null;
     desafioStartTimeMs?: number | null;
+    questionsState?: string[] | null;
   }): Promise<void> {
     await firstValueFrom(
       this.http.put<ApiProgresso>(`${this.baseUrl}/jornadas/${row.jornadaId}/progresso`, {
@@ -145,6 +148,7 @@ export class HttpJornadaAdapter {
         lastActiveAt: row.lastActiveAt ? row.lastActiveAt.getTime() : null,
         bestTime: row.bestTime ?? null,
         desafioStartTimeMs: row.desafioStartTimeMs ?? null,
+        questionsState: row.questionsState ? JSON.stringify(row.questionsState) : '[]'
       }),
     );
   }

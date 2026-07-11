@@ -137,6 +137,7 @@ export class BatchCardPreparationService {
         traducao: translation || card.traducao,
         explanation: explanation || card.explanation,
         tenYearOld: result.explicacaoCrianca || card.tenYearOld,
+        flagged: card.flagged,
       });
 
       await this.cardRepository.save(updated);
@@ -170,6 +171,7 @@ export class BatchCardPreparationService {
       traducao: card.traducao,
       explanation: card.explanation,
       tenYearOld: card.tenYearOld,
+      flagged: card.flagged,
     });
   }
 

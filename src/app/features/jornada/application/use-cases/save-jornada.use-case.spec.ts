@@ -28,7 +28,7 @@ describe('SaveJornadaUseCase', () => {
 
     useCase = new SaveJornadaUseCase(
       mockJornadaRepo as unknown as JornadaRepository,
-      mockProgressRepo as unknown as JornadaProgressRepository
+      mockProgressRepo as unknown as JornadaProgressRepository,
     );
   });
 
@@ -46,7 +46,7 @@ describe('SaveJornadaUseCase', () => {
         pontosTentativas: 3,
         duracao: 120,
         tipoJornada: 'normal',
-      })
+      }),
     );
   });
 
@@ -96,6 +96,8 @@ describe('SaveJornadaUseCase', () => {
     const progress = new JornadaProgress({
       jornadaId: 'jornada-1',
       status: 'unlocked',
+      bestErrors: null,
+      completedAt: null,
       currentQuestionIndex: 2,
       currentErrors: 1,
       currentLives: 2,
@@ -121,7 +123,7 @@ describe('SaveJornadaUseCase', () => {
         currentQuestionIndex: 0,
         currentErrors: 0,
         currentLives: 10,
-      })
+      }),
     );
   });
 
@@ -178,7 +180,7 @@ describe('SaveJornadaUseCase', () => {
         nome: 'Desafio de Clean Architecture',
         tipoJornada: 'desafio',
         duracao: 90,
-      })
+      }),
     );
   });
 
@@ -212,7 +214,7 @@ describe('SaveJornadaUseCase', () => {
       expect.objectContaining({
         tipoJornada: 'desafio',
         duracao: 90,
-      })
+      }),
     );
   });
 });

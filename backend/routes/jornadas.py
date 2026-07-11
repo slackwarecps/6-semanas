@@ -66,6 +66,7 @@ class ProgressoDTO(BaseModel):
     lastActiveAt: Optional[int] = None
     bestTime: Optional[int] = None
     desafioStartTimeMs: Optional[int] = None
+    questionsState: Optional[str] = "[]"
 
 
 class XpDTO(BaseModel):
@@ -247,6 +248,7 @@ def upsert_progresso(
     progresso.lastActiveAt = dto.lastActiveAt
     progresso.bestTime = dto.bestTime
     progresso.desafioStartTimeMs = dto.desafioStartTimeMs
+    progresso.questionsState = dto.questionsState
 
     session.add(progresso)
     session.commit()

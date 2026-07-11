@@ -8,7 +8,10 @@ import { CardId } from '../../features/flashcard/domain/value-objects/card-id.va
 import { EaseFactor } from '../../features/flashcard/domain/value-objects/ease-factor.value-object';
 import { Interval } from '../../features/flashcard/domain/value-objects/interval.value-object';
 import { MultipleChoiceOption } from '../../features/flashcard/domain/value-objects/multiple-choice-option.value-object';
-import { Quality, QualityValue } from '../../features/flashcard/domain/value-objects/quality.value-object';
+import {
+  Quality,
+  QualityValue,
+} from '../../features/flashcard/domain/value-objects/quality.value-object';
 import { Tag } from '../../features/flashcard/domain/value-objects/tag.value-object';
 import { StorageInterface } from './storage.interface';
 
@@ -52,6 +55,7 @@ interface ApiCard {
   traducao?: string;
   explanation?: string;
   tenYearOld?: string;
+  flagged?: boolean;
 }
 
 /**
@@ -61,7 +65,7 @@ interface ApiCard {
  * O header `X-User-Id` é adicionado pelo userIdInterceptor, não aqui.
  */
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class HttpApiAdapter implements StorageInterface {
   private readonly baseUrl = `${environment.backendBaseUrl}/cards`;
@@ -86,7 +90,7 @@ export class HttpApiAdapter implements StorageInterface {
 
   async loadAllCards(): Promise<Card[]> {
     const dtos = await firstValueFrom(this.http.get<ApiCard[]>(this.baseUrl));
-    return dtos.map(dto => this.mapApiToCard(dto));
+    return dtos.map((dto) => this.mapApiToCard(dto));
   }
 
   async deleteCard(id: CardId): Promise<void> {
@@ -100,18 +104,18 @@ export class HttpApiAdapter implements StorageInterface {
       title: card.title,
       question: card.question,
       answer: card.answer,
-      options: card.options?.map(o => ({
+      options: card.options?.map((o) => ({
         id: o.id,
         text: o.text,
         isCorrect: o.isCorrect,
-        order: o.order
+        order: o.order,
       })),
-      tags: card.tags.map(t => t.name),
+      tags: card.tags.map((t) => t.name),
       state: card.state,
       interval: card.interval.days,
       easeFactor: card.easeFactor.value,
       repetitions: card.repetitions,
-      attempts: card.attempts.map(a => ({
+      attempts: card.attempts.map((a) => ({
         timestamp: a.timestamp.getTime(),
         quality: a.quality.value,
         elapsedTime: a.elapsedTime,
@@ -120,14 +124,15 @@ export class HttpApiAdapter implements StorageInterface {
         easeFactorBefore: a.easeFactorBefore.value,
         easeFactorAfter: a.easeFactorAfter.value,
         intervalBefore: a.intervalBefore.days,
-        intervalAfter: a.intervalAfter.days
+        intervalAfter: a.intervalAfter.days,
       })),
       createdAt: card.createdAt.getTime(),
       updatedAt: card.updatedAt.getTime(),
       nextReviewDate: card.nextReviewDate.getTime(),
       traducao: card.traducao,
       explanation: card.explanation,
-      tenYearOld: card.tenYearOld
+      tenYearOld: card.tenYearOld,
+      flagged: card.flagged,
     };
   }
 
@@ -138,29 +143,33 @@ export class HttpApiAdapter implements StorageInterface {
       title: dto.title,
       question: dto.question,
       answer: dto.answer,
-      options: dto.options?.map(o => new MultipleChoiceOption(o)) || [],
-      tags: dto.tags.map(t => new Tag(t)),
+      options: dto.options?.map((o) => new MultipleChoiceOption(o)) || [],
+      tags: dto.tags.map((t) => new Tag(t)),
       state: dto.state,
       interval: new Interval(dto.interval),
       easeFactor: new EaseFactor(dto.easeFactor),
       repetitions: dto.repetitions,
-      attempts: dto.attempts.map(a => new Attempt({
-        timestamp: new Date(a.timestamp),
-        quality: new Quality(a.quality as QualityValue),
-        elapsedTime: a.elapsedTime,
-        wasCorrect: a.wasCorrect,
-        userAnswer: a.userAnswer,
-        easeFactorBefore: new EaseFactor(a.easeFactorBefore),
-        easeFactorAfter: new EaseFactor(a.easeFactorAfter),
-        intervalBefore: new Interval(a.intervalBefore),
-        intervalAfter: new Interval(a.intervalAfter)
-      })),
+      attempts: dto.attempts.map(
+        (a) =>
+          new Attempt({
+            timestamp: new Date(a.timestamp),
+            quality: new Quality(a.quality as QualityValue),
+            elapsedTime: a.elapsedTime,
+            wasCorrect: a.wasCorrect,
+            userAnswer: a.userAnswer,
+            easeFactorBefore: new EaseFactor(a.easeFactorBefore),
+            easeFactorAfter: new EaseFactor(a.easeFactorAfter),
+            intervalBefore: new Interval(a.intervalBefore),
+            intervalAfter: new Interval(a.intervalAfter),
+          }),
+      ),
       createdAt: new Date(dto.createdAt),
       updatedAt: new Date(dto.updatedAt),
       nextReviewDate: new Date(dto.nextReviewDate),
       traducao: dto.traducao,
       explanation: dto.explanation,
-      tenYearOld: dto.tenYearOld
+      tenYearOld: dto.tenYearOld,
+      flagged: dto.flagged,
     });
   }
 }

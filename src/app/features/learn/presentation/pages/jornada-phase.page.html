@@ -18,31 +18,69 @@
 
   <!-- Cenário Jogando -->
   <div *ngIf="!isLoading && phaseState === 'playing'" class="game-area">
-    <!-- Timer do Desafio (se aplicável) -->
-    <div *ngIf="isDesafio && desafioTimer" class="desafio-timer-section" [class]="'timer-' + timerColor" [class.timer-warning-blink]="timerWarning" [class.timer-critical-blink]="timerCritical">
-      <div class="timer-header">
-        <span class="timer-icon">⏰</span>
-        <span class="timer-text">{{ timerDisplay }}</span>
-      </div>
-      <div class="timer-progress-bar">
-        <div class="timer-progress-fill" [style.width.%]="timerProgressPercent"></div>
-      </div>
-    </div>
+    <!-- Header de Status (Timer + Progresso + Tentativas) -->
+    <div class="game-header-area">
+      <div class="header-main-row">
+        <!-- Botão de Fechar -->
+        <a routerLink="/learn" class="btn-close" title="Voltar ao mapa">✕</a>
 
-    <!-- Header de Status -->
-    <div class="game-header">
-      <a routerLink="/learn" class="btn-close" title="Voltar ao mapa">✕</a>
+        <!-- Coluna 1: Progresso do Tempo (se desafio) -->
+        <div class="header-col col-timer" *ngIf="isDesafio && desafioTimer">
+          <div
+            class="desafio-timer-section"
+            [class]="'timer-' + timerColor"
+            [class.timer-warning-blink]="timerWarning"
+            [class.timer-critical-blink]="timerCritical"
+          >
+            <div class="timer-header">
+              <span class="timer-icon">⏰</span>
+              <span class="timer-text">{{ timerDisplay }}</span>
+            </div>
+            <div class="timer-progress-bar">
+              <div class="timer-progress-fill" [style.width.%]="timerProgressPercent"></div>
+            </div>
+          </div>
+        </div>
 
-      <!-- Barra de progresso da fase -->
-      <div class="game-progress-bar">
-        <div class="progress-fill" [style.width.%]="(currentIndex / questions.length) * 100"></div>
+        <!-- Coluna 2: Progresso da Fase + Tentativas (Corações) -->
+        <div class="header-col col-progress-lives">
+          <!-- Barra de progresso da fase -->
+          <div class="game-progress-bar">
+            <div
+              class="progress-fill"
+              [style.width.%]="(currentIndex / questions.length) * 100"
+            ></div>
+          </div>
+          <!-- Vidas/Corações -->
+          <div class="game-lives">
+            <span *ngFor="let idx of heartArray; let i = index" class="heart">
+              {{ i < lives ? '❤️' : '🩶' }}
+            </span>
+          </div>
+        </div>
       </div>
 
-      <!-- Vidas/Corações -->
-      <div class="game-lives">
-        <span *ngFor="let idx of heartArray; let i = index" class="heart">
-          {{ i < lives ? '❤️' : '🩶' }}
-        </span>
+      <!-- Barra de Acompanhamento de Cards -->
+      <div class="cards-tracker-bar" *ngIf="questions.length > 0">
+        <span class="tracker-label">Cards</span>
+        <div class="tracker-boxes-container">
+          <div
+            *ngFor="let card of questions; let i = index"
+            class="tracker-box"
+            [class.current]="i === currentIndex"
+            [class.correct]="questionsState[i] === 'correct'"
+            [class.incorrect]="questionsState[i] === 'incorrect'"
+            [class.has-flag]="card.flagged"
+            (click)="navigateToQuestion(i)"
+            (keydown.enter)="navigateToQuestion(i)"
+            (keydown.space)="navigateToQuestion(i); $event.preventDefault()"
+            role="button"
+            tabindex="0"
+          >
+            <span class="box-number">{{ i + 1 }}</span>
+            <span *ngIf="card.flagged" class="box-flag">🚩</span>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -102,6 +140,9 @@
       class="feedback-bar"
       [class.feedback-correct]="showFeedback && isCorrectAttempt"
       [class.feedback-incorrect]="showFeedback && !isCorrectAttempt"
+      [class.feedback-bar-finalize]="
+        areAllQuestionsAnswered || (isLastQuestion && isCurrentQuestionAnswered)
+      "
     >
       <div class="feedback-content" *ngIf="showFeedback">
         <div class="feedback-icon">{{ isCorrectAttempt ? '🎉' : '❌' }}</div>
@@ -114,14 +155,39 @@
       <div class="feedback-spacer" *ngIf="!showFeedback"></div>
 
       <div class="feedback-action">
-        <button
-          class="btn-confirm"
-          [class.btn-success]="showFeedback"
-          [disabled]="!selectedOptionId"
-          (click)="confirm()"
-        >
-          {{ showFeedback ? 'Continuar' : 'Verificar' }}
-        </button>
+        <ng-container *ngIf="areAllQuestionsAnswered; else standardConfirmBtn">
+          <button class="btn-confirm btn-success" (click)="openFinalizeConfirmation()">
+            🏁 Encerrar Jornada
+          </button>
+        </ng-container>
+        <ng-template #standardConfirmBtn>
+          <ng-container *ngIf="isLastQuestion && isCurrentQuestionAnswered; else standardChoiceBtn">
+            <button class="btn-confirm btn-success" (click)="openFinalizeConfirmation()">
+              🏁 Encerrar Jornada
+            </button>
+          </ng-container>
+          <ng-template #standardChoiceBtn>
+            <!-- Se a questão atual já estiver respondida (revisão ou feedback) -->
+            <button
+              *ngIf="isCurrentQuestionAnswered"
+              class="btn-confirm btn-success"
+              (click)="goToNextQuestion()"
+            >
+              Continuar
+            </button>
+
+            <!-- Se a questão atual ainda não estiver respondida -->
+            <button
+              *ngIf="!isCurrentQuestionAnswered && currentCard?.isMultipleChoice"
+              class="btn-confirm"
+              [class.btn-success]="showFeedback"
+              [disabled]="!selectedOptionId"
+              (click)="confirm()"
+            >
+              {{ showFeedback ? 'Continuar' : 'Verificar' }}
+            </button>
+          </ng-template>
+        </ng-template>
       </div>
     </div>
 
@@ -169,6 +235,14 @@
       >
         ⏭
       </button>
+      <button
+        type="button"
+        class="nav-button flag-button"
+        [class.flagged]="currentCard?.flagged"
+        (click)="toggleFlag()"
+      >
+        🚩
+      </button>
     </div>
 
     <!-- Page Footer -->
@@ -179,9 +253,13 @@
 
   <!-- Cenário Derrota (Falhou) -->
   <div *ngIf="!isLoading && phaseState === 'failed'" class="result-area failed-box">
-    <div class="result-icon" [class.timeout-icon]="desafioTimeoutMessage">{{ desafioTimeoutMessage ? '⏰' : '💀' }}</div>
+    <div class="result-icon" [class.timeout-icon]="desafioTimeoutMessage">
+      {{ desafioTimeoutMessage ? '⏰' : '💀' }}
+    </div>
     <h2>{{ desafioTimeoutMessage ? 'Tempo Esgotado!' : 'Você perdeu todas as vidas!' }}</h2>
-    <p>{{ desafioTimeoutMessage || 'Mas não desista, cada erro é uma oportunidade de aprender.' }}</p>
+    <p>
+      {{ desafioTimeoutMessage || 'Mas não desista, cada erro é uma oportunidade de aprender.' }}
+    </p>
 
     <div class="result-stats">
       <div class="stat-card">
@@ -298,6 +376,32 @@
           🔄 Recomeçar
         </button>
         <a routerLink="/learn" class="btn-failed-action btn-failed-map">🗺️ Voltar ao Mapa</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Confirmação de Finalização -->
+  <div *ngIf="showFinalizeConfirmation" class="finalize-modal-overlay">
+    <div class="finalize-modal-content">
+      <div class="finalize-modal-header">
+        <h2>🏁 Finalizar Jornada</h2>
+      </div>
+      <div class="finalize-modal-body">
+        <p>Você respondeu a todas as perguntas desta jornada.</p>
+        <p class="finalize-alert-text">
+          Deseja realmente enviar suas respostas e finalizar a jornada?
+        </p>
+      </div>
+      <div class="finalize-modal-footer">
+        <button class="btn-finalize-action btn-finalize-confirm" (click)="finalizeJornada()">
+          Sim, finalizar
+        </button>
+        <button
+          class="btn-finalize-action btn-finalize-cancel"
+          (click)="closeFinalizeConfirmation()"
+        >
+          Não, revisar
+        </button>
       </div>
     </div>
   </div>

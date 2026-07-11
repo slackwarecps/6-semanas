@@ -14,11 +14,18 @@ export class InitiateDesafioUseCase {
 
     if (progress?.desafioStartTimeMs) {
       startTimeMs = progress.desafioStartTimeMs;
+      if (progress.lastActiveAt) {
+        const lastActiveTime = new Date(progress.lastActiveAt).getTime();
+        const timeAway = Date.now() - lastActiveTime;
+        if (timeAway > 0) {
+          startTimeMs += timeAway;
+        }
+      }
     }
 
     const timer = new DesafioTimer({
       startTimeMs,
-      durationMinutes
+      durationMinutes,
     });
 
     await this.progressRepository.saveProgress(
@@ -32,8 +39,8 @@ export class InitiateDesafioUseCase {
         currentLives: progress?.currentLives ?? 3,
         lastActiveAt: new Date(),
         bestTime: progress?.bestTime ?? null,
-        desafioStartTimeMs: startTimeMs
-      })
+        desafioStartTimeMs: startTimeMs,
+      }),
     );
 
     return timer;

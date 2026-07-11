@@ -53,6 +53,7 @@ class Card(SQLModel, table=True):
     traducao: Optional[str] = None
     explanation: Optional[str] = None
     tenYearOld: Optional[str] = None
+    flagged: bool = Field(default=False)
 
 
 class CardOption(SQLModel, table=True):
@@ -124,6 +125,7 @@ class JornadaProgresso(SQLModel, table=True):
     lastActiveAt: Optional[int] = None
     bestTime: Optional[int] = None
     desafioStartTimeMs: Optional[int] = None
+    questionsState: Optional[str] = Field(default="[]")
 
 
 class LearnStats(SQLModel, table=True):
@@ -193,6 +195,30 @@ def _migrate_add_desafio_fields() -> None:
                 print("✅ Migração: Campo 'desafioStartTimeMs' adicionado à tabela 'jornada_progresso'")
             except Exception as e:
                 print(f"⚠️ Migração 'desafioStartTimeMs': {e}")
+
+        # Verificar e adicionar flagged à tabela cards
+        try:
+            session.exec(text("SELECT flagged FROM cards LIMIT 1"))
+        except Exception:
+            # Campo não existe, adicionar
+            try:
+                session.exec(text("ALTER TABLE cards ADD COLUMN flagged INTEGER DEFAULT 0"))
+                session.commit()
+                print("✅ Migração: Campo 'flagged' adicionado à tabela 'cards'")
+            except Exception as e:
+                print(f"⚠️ Migração 'flagged': {e}")
+
+        # Verificar e adicionar questionsState à tabela jornada_progresso
+        try:
+            session.exec(text("SELECT questionsState FROM jornada_progresso LIMIT 1"))
+        except Exception:
+            # Campo não existe, adicionar
+            try:
+                session.exec(text("ALTER TABLE jornada_progresso ADD COLUMN questionsState TEXT DEFAULT '[]'"))
+                session.commit()
+                print("✅ Migração: Campo 'questionsState' adicionado à tabela 'jornada_progresso'")
+            except Exception as e:
+                print(f"⚠️ Migração 'questionsState': {e}")
 
 
 def get_session():

@@ -66,6 +66,7 @@ class CardDTO(BaseModel):
     traducao: Optional[str] = None
     explanation: Optional[str] = None
     tenYearOld: Optional[str] = None
+    flagged: bool = False
 
 
 # ── Mapeamento entidade ↔ DTO ────────────────────────────────────────────────
@@ -107,6 +108,7 @@ def _to_dto(card: Card, options: list[CardOption], attempts: list[Attempt]) -> C
         traducao=card.traducao,
         explanation=card.explanation,
         tenYearOld=card.tenYearOld,
+        flagged=card.flagged,
     )
 
 
@@ -241,6 +243,7 @@ def save_card(
         existing.traducao = dto.traducao
         existing.explanation = dto.explanation
         existing.tenYearOld = dto.tenYearOld
+        existing.flagged = dto.flagged
         session.add(existing)
         _delete_children(session, user_id, dto.id)
         card = existing
@@ -268,6 +271,7 @@ def save_card(
             traducao=dto.traducao,
             explanation=dto.explanation,
             tenYearOld=dto.tenYearOld,
+            flagged=dto.flagged,
         )
         session.add(card)
 
