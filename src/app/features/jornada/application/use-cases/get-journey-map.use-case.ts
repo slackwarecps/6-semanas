@@ -10,6 +10,7 @@ export interface JourneyMapItem {
   status: JourneyProgressStatus;
   bestErrors: number | null;
   bestTime?: number | null;
+  completedWithErrors?: boolean;
 }
 
 export interface JourneyMapResult {
@@ -45,6 +46,12 @@ export class GetJourneyMapUseCase {
         status = prog.status;
         bestErrors = prog.bestErrors;
         bestTime = prog.bestTime;
+
+        // Detectar se está em andamento
+        if (status === 'unlocked' && (prog.currentQuestionIndex > 0 || prog.currentErrors > 0)) {
+          status = 'in_progress';
+        }
+
         if (status === 'completed') {
           completedCount++;
         }
@@ -67,7 +74,8 @@ export class GetJourneyMapUseCase {
         jornada: j,
         status,
         bestErrors,
-        bestTime
+        bestTime,
+        completedWithErrors: status === 'completed' && bestErrors !== null && bestErrors > 0
       });
     }
 

@@ -20,7 +20,9 @@ export class JornadaProgressRepository {
       currentErrors: row.currentErrors,
       currentLives: row.currentLives,
       lastActiveAt: row.lastActiveAt,
-      bestTime: row.bestTime
+      bestTime: row.bestTime,
+      desafioStartTimeMs: row.desafioStartTimeMs,
+      questionsState: row.questionsState
     });
   }
 
@@ -34,7 +36,9 @@ export class JornadaProgressRepository {
       currentErrors: progress.currentErrors,
       currentLives: progress.currentLives,
       lastActiveAt: progress.lastActiveAt,
-      bestTime: progress.bestTime
+      bestTime: progress.bestTime,
+      desafioStartTimeMs: progress.desafioStartTimeMs,
+      questionsState: progress.questionsState
     });
   }
 

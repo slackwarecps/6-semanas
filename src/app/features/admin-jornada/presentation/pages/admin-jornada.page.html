@@ -102,6 +102,20 @@
           />
         </div>
 
+        <div class="form-group flex-1">
+          <label for="duracao">⏱️ Duração da Casa Desafio (minutos)</label>
+          <input
+            type="number"
+            id="duracao"
+            [(ngModel)]="detailForm.duracao"
+            name="duracao"
+            min="1"
+            max="1440"
+            placeholder="120"
+            class="form-input"
+          />
+        </div>
+
         <div class="form-group flex-checkbox">
           <label class="checkbox-label">
             <input
@@ -110,6 +124,18 @@
               name="ativa"
             />
             Ativa
+          </label>
+        </div>
+
+        <div class="form-group flex-checkbox">
+          <label class="checkbox-label">
+            <input
+              type="checkbox"
+              [ngModel]="detailForm.tipoJornada === 'desafio'"
+              (change)="detailForm.tipoJornada = $event.target.checked ? 'desafio' : 'normal'"
+              name="tipoDesafio"
+            />
+            Usar como Casa Desafio
           </label>
         </div>
       </div>

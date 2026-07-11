@@ -6,17 +6,35 @@
   <div class="journey-path" *ngIf="jornadas.length > 0">
     <div class="path-line"></div>
 
-    <div *ngFor="let item of jornadas; let i = index; let last = last" 
-         class="journey-node-container" 
-         [class.node-completed]="item.status === 'completed'"
+    <div *ngFor="let item of jornadas; let i = index; let last = last"
+         class="journey-node-container"
+         [class.node-completed]="item.status === 'completed' && !item.completedWithErrors"
+         [class.node-completed-with-errors]="item.completedWithErrors"
          [class.node-unlocked]="item.status === 'unlocked'"
+         [class.node-in-progress]="item.status === 'in_progress'"
          [class.node-locked]="item.status === 'locked'"
     >
       <ng-container *ngIf="item.status !== 'locked'; else lockedNode">
         <a [routerLink]="['/learn/jornada', item.jornada.id]" class="journey-node">
           <div class="node-circle">
-            <span class="icon" *ngIf="item.status === 'completed'">⭐️</span>
-            <span class="icon" *ngIf="item.status === 'unlocked'">🧠</span>
+            <span
+              class="icon"
+              *ngIf="item.status === 'completed' && !item.completedWithErrors"
+              title="🔄 Clique para reiniciar essa jornada"
+              (click)="resetJornada($event, item.jornada.id)">⭐️</span>
+            <span
+              class="icon"
+              *ngIf="item.completedWithErrors"
+              title="🔄 Clique para reiniciar essa jornada"
+              (click)="resetJornada($event, item.jornada.id)">💩</span>
+            <span
+              class="icon"
+              *ngIf="item.status === 'unlocked'">🧠</span>
+            <span
+              class="icon"
+              *ngIf="item.status === 'in_progress'"
+              title="🔄 Clique para reiniciar essa jornada"
+              (click)="resetJornada($event, item.jornada.id)">🏄</span>
           </div>
           <div class="node-info">
             <span class="node-number">Fase {{ i + 1 }}</span>
@@ -29,6 +47,9 @@
             </span>
             <span class="node-meta text-primary" *ngIf="item.status === 'unlocked'">
               Iniciar Desafio ({{ item.jornada.questionCardIds.length }} cards)
+            </span>
+            <span class="node-meta text-primary" *ngIf="item.status === 'in_progress'">
+              🏄 Desafio em andamento...
             </span>
           </div>
         </a>

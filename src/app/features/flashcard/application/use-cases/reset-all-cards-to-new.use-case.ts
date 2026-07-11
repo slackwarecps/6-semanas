@@ -5,14 +5,14 @@ import { EaseFactor } from '../../domain/value-objects/ease-factor.value-object'
 import { Interval } from '../../domain/value-objects/interval.value-object';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class ResetAllCardsToNewUseCase {
   constructor(private readonly cardRepository: CardRepository) {}
 
   async execute(onProgress?: (processed: number, total: number) => void): Promise<number> {
     const allCards = await this.cardRepository.findAll();
-    const cards = allCards.filter(card => card.state !== 'New');
+    const cards = allCards.filter((card) => card.state !== 'New');
     const now = new Date();
 
     onProgress?.(0, cards.length);
@@ -37,7 +37,8 @@ export class ResetAllCardsToNewUseCase {
         nextReviewDate: now,
         traducao: card.traducao,
         explanation: card.explanation,
-        tenYearOld: card.tenYearOld
+        tenYearOld: card.tenYearOld,
+        flagged: card.flagged,
       });
 
       await this.cardRepository.save(resetCard);
@@ -45,7 +46,7 @@ export class ResetAllCardsToNewUseCase {
 
       // Cede o thread principal a cada iteração para o navegador poder repintar
       // a barra de progresso (save/persist do sql.js são síncronos e pesados).
-      await new Promise<void>(resolve => setTimeout(resolve, 0));
+      await new Promise<void>((resolve) => setTimeout(resolve, 0));
     }
 
     return cards.length;

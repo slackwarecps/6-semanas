@@ -5,6 +5,8 @@ export interface JornadaProps {
   ordem: number;
   pontosTentativas: number;
   questionCardIds: string[];
+  tipoJornada: 'normal' | 'desafio';
+  duracao: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -16,6 +18,8 @@ export class Jornada {
   readonly ordem: number;
   readonly pontosTentativas: number;
   readonly questionCardIds: string[];
+  readonly tipoJornada: 'normal' | 'desafio';
+  readonly duracao: number;
   readonly createdAt: Date;
   readonly updatedAt: Date;
 
@@ -26,11 +30,13 @@ export class Jornada {
     this.ordem = props.ordem;
     this.pontosTentativas = props.pontosTentativas;
     this.questionCardIds = props.questionCardIds;
+    this.tipoJornada = props.tipoJornada;
+    this.duracao = props.duracao;
     this.createdAt = props.createdAt;
     this.updatedAt = props.updatedAt;
   }
 
-  static create(props: { nome: string; ordem: number; pontosTentativas?: number; questionCardIds?: string[]; ativa?: boolean }): Jornada {
+  static create(props: { nome: string; ordem: number; pontosTentativas?: number; questionCardIds?: string[]; ativa?: boolean; tipoJornada?: 'normal' | 'desafio'; duracao?: number }): Jornada {
     const now = new Date();
     return new Jornada({
       id: typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2, 15),
@@ -39,6 +45,8 @@ export class Jornada {
       ordem: props.ordem,
       pontosTentativas: props.pontosTentativas ?? 3,
       questionCardIds: props.questionCardIds ?? [],
+      tipoJornada: props.tipoJornada ?? 'normal',
+      duracao: props.duracao ?? 120,
       createdAt: now,
       updatedAt: now
     });

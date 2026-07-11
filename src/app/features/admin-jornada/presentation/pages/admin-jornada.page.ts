@@ -33,7 +33,9 @@ export class AdminJornadaPage implements OnInit {
     nome: '',
     ordem: 1,
     ativa: false,
-    pontosTentativas: 3
+    pontosTentativas: 3,
+    tipoJornada: 'normal' as 'normal' | 'desafio',
+    duracao: 120
   };
   selectedCardIds: Set<string> = new Set<string>();
 
@@ -102,7 +104,9 @@ export class AdminJornadaPage implements OnInit {
       nome: '',
       ordem: this.jornadas.length + 1,
       ativa: false,
-      pontosTentativas: 3
+      pontosTentativas: 3,
+      tipoJornada: 'normal',
+      duracao: 120
     };
     this.selectedCardIds.clear();
     this.searchTerm = '';
@@ -116,7 +120,9 @@ export class AdminJornadaPage implements OnInit {
       nome: jornada.nome,
       ordem: jornada.ordem,
       ativa: jornada.ativa,
-      pontosTentativas: jornada.pontosTentativas || 3
+      pontosTentativas: jornada.pontosTentativas || 3,
+      tipoJornada: jornada.tipoJornada,
+      duracao: jornada.duracao || 120
     };
     this.selectedCardIds = new Set<string>(jornada.questionCardIds);
     this.searchTerm = '';
@@ -142,6 +148,11 @@ export class AdminJornadaPage implements OnInit {
       return;
     }
 
+    if (this.detailForm.duracao <= 0) {
+      alert('⚠️ A duração deve ser maior que 0 minutos.');
+      return;
+    }
+
     try {
       await this.saveJornadaUseCase.execute({
         id: this.editingId,
@@ -149,6 +160,8 @@ export class AdminJornadaPage implements OnInit {
         ordem: this.detailForm.ordem,
         ativa: this.detailForm.ativa,
         pontosTentativas: this.detailForm.pontosTentativas,
+        tipoJornada: this.detailForm.tipoJornada,
+        duracao: this.detailForm.duracao,
         questionCardIds: Array.from(this.selectedCardIds)
       });
 
@@ -168,6 +181,8 @@ export class AdminJornadaPage implements OnInit {
         nome: jornada.nome,
         ordem: jornada.ordem,
         ativa: !jornada.ativa,
+        tipoJornada: jornada.tipoJornada,
+        duracao: jornada.duracao,
         questionCardIds: jornada.questionCardIds
       });
       await this.loadJornadas();
