@@ -179,6 +179,31 @@ def list_cards(
     ]
 
 
+@router.get("/todas", response_model=list[CardDTO])
+def list_all_cards(
+    user_id: str = Depends(get_user_id),
+    session: Session = Depends(get_session),
+) -> list[CardDTO]:
+    """Retorna TODAS as perguntas do usuário ordenadas por seq."""
+    cards = session.exec(
+        select(Card).where(Card.user_id == user_id).order_by(Card.seq)
+    ).all()
+
+    # Carrega options/attempts do usuário de uma vez
+    options_por_card: dict[str, list[CardOption]] = {}
+    for option in session.exec(select(CardOption).where(CardOption.user_id == user_id)):
+        options_por_card.setdefault(option.cardId, []).append(option)
+
+    attempts_por_card: dict[str, list[Attempt]] = {}
+    for attempt in session.exec(select(Attempt).where(Attempt.user_id == user_id)):
+        attempts_por_card.setdefault(attempt.cardId, []).append(attempt)
+
+    return [
+        _to_dto(card, options_por_card.get(card.id, []), attempts_por_card.get(card.id, []))
+        for card in cards
+    ]
+
+
 @router.get("/{card_id}", response_model=CardDTO)
 def get_card(
     card_id: str,
@@ -285,6 +310,142 @@ def list_scenario_1_cards(
     return [
         _to_dto(card, options_por_card.get(card.id, []), attempts_por_card.get(card.id, []))
         for card in scenario_1_cards
+    ]
+
+
+@router.get("/scenario/sem-classificacao", response_model=list[CardDTO])
+def list_unclassified_cards(
+    user_id: str = Depends(get_user_id),
+    session: Session = Depends(get_session),
+) -> list[CardDTO]:
+    """Retorna perguntas que não foram classificadas em nenhum cenário."""
+    cards = session.exec(
+        select(Card).where(Card.user_id == user_id).order_by(Card.seq)
+    ).all()
+
+    # Filtra cards que NÃO contenham nenhum Scenario ou ForaDoCenario nas tags
+    unclassified_cards = [
+        card
+        for card in cards
+        if not any(
+            ("Scenario_" in tag or "ForaDoCenario" in tag)
+            for tag in json.loads(card.tags or "[]")
+        )
+    ]
+
+    # Carrega options/attempts do usuário de uma vez
+    options_por_card: dict[str, list[CardOption]] = {}
+    for option in session.exec(select(CardOption).where(CardOption.user_id == user_id)):
+        options_por_card.setdefault(option.cardId, []).append(option)
+
+    attempts_por_card: dict[str, list[Attempt]] = {}
+    for attempt in session.exec(select(Attempt).where(Attempt.user_id == user_id)):
+        attempts_por_card.setdefault(attempt.cardId, []).append(attempt)
+
+    return [
+        _to_dto(card, options_por_card.get(card.id, []), attempts_por_card.get(card.id, []))
+        for card in unclassified_cards
+    ]
+
+
+@router.get("/scenario/{scenario_number}", response_model=list[CardDTO])
+def list_scenario_cards(
+    scenario_number: int,
+    user_id: str = Depends(get_user_id),
+    session: Session = Depends(get_session),
+) -> list[CardDTO]:
+    """Retorna todas as perguntas de um cenário específico ordenadas por seq."""
+    scenario_tag = f"Scenario_{scenario_number}"
+
+    cards = session.exec(
+        select(Card).where(Card.user_id == user_id).order_by(Card.seq)
+    ).all()
+
+    # Filtra cards que contenham o scenario_tag nas tags
+    scenario_cards = [
+        card
+        for card in cards
+        if any(scenario_tag in tag for tag in json.loads(card.tags or "[]"))
+    ]
+
+    # Carrega options/attempts do usuário de uma vez
+    options_por_card: dict[str, list[CardOption]] = {}
+    for option in session.exec(select(CardOption).where(CardOption.user_id == user_id)):
+        options_por_card.setdefault(option.cardId, []).append(option)
+
+    attempts_por_card: dict[str, list[Attempt]] = {}
+    for attempt in session.exec(select(Attempt).where(Attempt.user_id == user_id)):
+        attempts_por_card.setdefault(attempt.cardId, []).append(attempt)
+
+    return [
+        _to_dto(card, options_por_card.get(card.id, []), attempts_por_card.get(card.id, []))
+        for card in scenario_cards
+    ]
+
+
+@router.get("/scenario/2", response_model=list[CardDTO])
+def list_scenario_2_cards(
+    user_id: str = Depends(get_user_id),
+    session: Session = Depends(get_session),
+) -> list[CardDTO]:
+    """Retorna todas as perguntas do Scenario 2 ordenadas por seq."""
+    cards = session.exec(
+        select(Card)
+        .where(Card.user_id == user_id)
+        .order_by(Card.seq)
+    ).all()
+
+    # Filtra cards que contenham "Scenario_2" nas tags
+    scenario_2_cards = [
+        card
+        for card in cards
+        if any("Scenario_2" in tag for tag in json.loads(card.tags or "[]"))
+    ]
+
+    # Carrega options/attempts do usuário de uma vez
+    options_por_card: dict[str, list[CardOption]] = {}
+    for option in session.exec(select(CardOption).where(CardOption.user_id == user_id)):
+        options_por_card.setdefault(option.cardId, []).append(option)
+
+    attempts_por_card: dict[str, list[Attempt]] = {}
+    for attempt in session.exec(select(Attempt).where(Attempt.user_id == user_id)):
+        attempts_por_card.setdefault(attempt.cardId, []).append(attempt)
+
+    return [
+        _to_dto(card, options_por_card.get(card.id, []), attempts_por_card.get(card.id, []))
+        for card in scenario_2_cards
+    ]
+
+
+@router.get("/scenario/fora-do-cenario", response_model=list[CardDTO])
+def list_fora_do_cenario_cards(
+    user_id: str = Depends(get_user_id),
+    session: Session = Depends(get_session),
+) -> list[CardDTO]:
+    """Retorna todas as perguntas que estão fora de um cenário específico."""
+    cards = session.exec(
+        select(Card).where(Card.user_id == user_id).order_by(Card.seq)
+    ).all()
+
+    # Filtra cards que contenham "ForaDoCenario" nas tags
+    fora_cards = [
+        card
+        for card in cards
+        if any("ForaDoCenario" in tag for tag in json.loads(card.tags or "[]"))
+    ]
+
+    # Carrega options/attempts do usuário de uma vez
+    options_por_card: dict[str, list[CardOption]] = {}
+    for option in session.exec(select(CardOption).where(CardOption.user_id == user_id)):
+        options_por_card.setdefault(option.cardId, []).append(option)
+
+    attempts_por_card: dict[str, list[Attempt]] = {}
+    for attempt in session.exec(select(Attempt).where(Attempt.user_id == user_id)):
+        attempts_por_card.setdefault(attempt.cardId, []).append(attempt)
+
+    return [
+        _to_dto(card, options_por_card.get(card.id, []), attempts_por_card.get(card.id, []))
+        for card in fora_cards
     ]
 
 

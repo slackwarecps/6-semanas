@@ -3,7 +3,91 @@
 <div class="relatorios-container">
   <div class="header">
     <h1>Relatório de Perguntas</h1>
-    <p class="subtitle">Scenario 1 - Customer Support Agent</p>
+    <p class="subtitle" *ngIf="currentScenario === 'scenario1'">
+      Scenario 1 - Customer Support Agent
+    </p>
+    <p class="subtitle" *ngIf="currentScenario === 'scenario2'">
+      Scenario 2 - Code Generation Claude Code
+    </p>
+    <p class="subtitle" *ngIf="currentScenario === 'scenario3'">
+      Scenario 3 - Multi Agent Research
+    </p>
+    <p class="subtitle" *ngIf="currentScenario === 'scenario4'">
+      Scenario 4 - Developer Productivity
+    </p>
+    <p class="subtitle" *ngIf="currentScenario === 'scenario5'">Scenario 5 - Claude Code CI/CD</p>
+    <p class="subtitle" *ngIf="currentScenario === 'scenario6'">
+      Scenario 6 - Structured Data Extraction
+    </p>
+    <p class="subtitle" *ngIf="currentScenario === 'fora-do-cenario'">Perguntas Fora do Cenário</p>
+    <p class="subtitle" *ngIf="currentScenario === 'sem-classificacao'">Perguntas Sem Classificação</p>
+    <p class="subtitle" *ngIf="currentScenario === 'todas'">Todas as Perguntas</p>
+  </div>
+
+  <div class="scenario-selector">
+    <button
+      class="scenario-btn"
+      [class.active]="currentScenario === 'scenario1'"
+      (click)="loadQuestions('scenario1')"
+    >
+      S1
+    </button>
+    <button
+      class="scenario-btn"
+      [class.active]="currentScenario === 'scenario2'"
+      (click)="loadQuestions('scenario2')"
+    >
+      S2
+    </button>
+    <button
+      class="scenario-btn"
+      [class.active]="currentScenario === 'scenario3'"
+      (click)="loadQuestions('scenario3')"
+    >
+      S3
+    </button>
+    <button
+      class="scenario-btn"
+      [class.active]="currentScenario === 'scenario4'"
+      (click)="loadQuestions('scenario4')"
+    >
+      S4
+    </button>
+    <button
+      class="scenario-btn"
+      [class.active]="currentScenario === 'scenario5'"
+      (click)="loadQuestions('scenario5')"
+    >
+      S5
+    </button>
+    <button
+      class="scenario-btn"
+      [class.active]="currentScenario === 'scenario6'"
+      (click)="loadQuestions('scenario6')"
+    >
+      S6
+    </button>
+    <button
+      class="scenario-btn"
+      [class.active]="currentScenario === 'fora-do-cenario'"
+      (click)="loadQuestions('fora-do-cenario')"
+    >
+      Fora
+    </button>
+    <button
+      class="scenario-btn"
+      [class.active]="currentScenario === 'sem-classificacao'"
+      (click)="loadQuestions('sem-classificacao')"
+    >
+      Sem Class
+    </button>
+    <button
+      class="scenario-btn"
+      [class.active]="currentScenario === 'todas'"
+      (click)="loadQuestions('todas')"
+    >
+      Todas
+    </button>
   </div>
 
   <div class="controls">
@@ -22,13 +106,50 @@
   </div>
 
   <div *ngIf="!isLoading && questions.length === 0" class="no-data">
-    <p>Nenhuma pergunta encontrada para o Scenario 1</p>
+    <p>Nenhuma pergunta encontrada para este cenário</p>
   </div>
 
   <div #reportContent class="report-content" *ngIf="!isLoading && questions.length > 0">
     <div class="report-header">
-      <h2>Perguntas do Scenario 1</h2>
-      <p class="report-date">Gerado em {{ 'now' | date: 'dd/MM/yyyy HH:mm' }}</p>
+      <h2>
+        <span *ngIf="currentScenario === 'scenario1'"
+          >Perguntas do Scenario 1 - qtd: {{ questions.length }}
+          {{ questions.length === 1 ? 'pergunta' : 'perguntas' }}</span
+        >
+        <span *ngIf="currentScenario === 'scenario2'"
+          >Perguntas do Scenario 2 - qtd: {{ questions.length }}
+          {{ questions.length === 1 ? 'pergunta' : 'perguntas' }}</span
+        >
+        <span *ngIf="currentScenario === 'scenario3'"
+          >Perguntas do Scenario 3 - qtd: {{ questions.length }}
+          {{ questions.length === 1 ? 'pergunta' : 'perguntas' }}</span
+        >
+        <span *ngIf="currentScenario === 'scenario4'"
+          >Perguntas do Scenario 4 - qtd: {{ questions.length }}
+          {{ questions.length === 1 ? 'pergunta' : 'perguntas' }}</span
+        >
+        <span *ngIf="currentScenario === 'scenario5'"
+          >Perguntas do Scenario 5 - qtd: {{ questions.length }}
+          {{ questions.length === 1 ? 'pergunta' : 'perguntas' }}</span
+        >
+        <span *ngIf="currentScenario === 'scenario6'"
+          >Perguntas do Scenario 6 - qtd: {{ questions.length }}
+          {{ questions.length === 1 ? 'pergunta' : 'perguntas' }}</span
+        >
+        <span *ngIf="currentScenario === 'fora-do-cenario'"
+          >Perguntas Fora do Cenário - qtd: {{ questions.length }}
+          {{ questions.length === 1 ? 'pergunta' : 'perguntas' }}</span
+        >
+        <span *ngIf="currentScenario === 'sem-classificacao'"
+          >Perguntas Sem Classificação - qtd: {{ questions.length }}
+          {{ questions.length === 1 ? 'pergunta' : 'perguntas' }}</span
+        >
+        <span *ngIf="currentScenario === 'todas'"
+          >Todas as Perguntas - qtd: {{ questions.length }}
+          {{ questions.length === 1 ? 'pergunta' : 'perguntas' }}</span
+        >
+      </h2>
+      <p class="report-date">Gerado em {{ currentDate | date: 'dd/MM/yyyy HH:mm' }}</p>
     </div>
 
     <div class="questions-list">
@@ -42,6 +163,12 @@
           <div class="question-answer">
             <strong>Resposta:</strong>
             <p>{{ question.answer }}</p>
+          </div>
+          <div class="question-tags">
+            <strong>Tags:</strong>
+            <div class="tags-list">
+              <span *ngFor="let tag of question.tags" class="tag">{{ tag }}</span>
+            </div>
           </div>
         </div>
       </div>
