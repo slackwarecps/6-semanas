@@ -73,6 +73,31 @@ Regras de dependência:
 - Lógica de negócio nova (regras de vidas/XP/desbloqueio, SRS) não entra sem teste.
 - Backend: testes em `backend/test_*.py` (pytest).
 
+## Slash Commands Customizados
+
+### `/backup-sqlite`
+
+Faz backup completo do banco de dados SQLite em formato SQL.
+
+**Uso:**
+```
+/backup-sqlite
+```
+
+**O que faz:**
+- Cria arquivo de backup em `backend/backups/backup-servidor-DD-MM-YYYY-HHMMSS.sql`
+- Nome do arquivo inclui data e hora do backup (DD=dia, MM=mês, YYYY=ano, HHMMSS=hora:minuto:segundo)
+- Exibe tamanho do arquivo e caminho do backup
+
+**Exemplo:**
+```
+/backup-sqlite
+✅ Backup criado com sucesso!
+📁 Arquivo: backup-servidor-10-07-2026-231500.sql
+📊 Tamanho: 2.60 MB
+📍 Caminho: /Users/fabioalvaropereira/DocumentosLocal/bkp6week/backend/backups/backup-servidor-10-07-2026-231500.sql
+```
+
 ## Fluxo de trabalho
 
 - Feature nova relevante começa com um SDD em `spec-docs/` (seguir o formato dos
