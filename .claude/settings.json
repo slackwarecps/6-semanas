@@ -1,10 +1,1 @@
-{
-  "hooks": {
-    "commands": {
-      "backup-sqlite": {
-        "description": "Faz backup do banco de dados SQLite",
-        "command": "python3 .claude/scripts/backup-sqlite.py"
-      }
-    }
-  }
-}
+{}

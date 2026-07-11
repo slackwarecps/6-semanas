@@ -14,8 +14,8 @@ tar -czf "${TAR_FILE}" \
   --exclude='backend/venv' \
   --exclude='backend/__pycache__' \
   --exclude='backend/.pytest_cache' \
-  --exclude='backend/database.sqlite' \
   --exclude='backend/database.sqlite.bak*' \
+  --exclude='backend/backups' \
   --exclude="${TAR_FILE}" \
   .
 
@@ -36,7 +36,7 @@ ssh "${REMOTE}" <<EOS
   cd ${REMOTE_DIR}
   tar -xzf ${TAR_FILE}
   rm ${TAR_FILE}
-  touch backend/database.sqlite
+  mkdir -p backend/backups
   docker compose up -d --build
 EOS
 
