@@ -9,6 +9,8 @@ interface ApiJornada {
   ativa: boolean;
   ordem: number;
   pontosTentativas: number;
+  tipoJornada: 'normal' | 'desafio';
+  duracao: number;
   createdAt: number;
   updatedAt: number;
   cardIds: string[];
@@ -24,6 +26,7 @@ interface ApiProgresso {
   currentLives: number;
   lastActiveAt: number | null;
   bestTime: number | null;
+  desafioStartTimeMs: number | null;
 }
 
 /**
@@ -49,6 +52,8 @@ export class HttpJornadaAdapter {
       ativa: boolean;
       ordem: number;
       pontosTentativas: number;
+      tipoJornada: 'normal' | 'desafio';
+      duracao: number;
       createdAt: Date;
       updatedAt: Date;
     },
@@ -61,6 +66,8 @@ export class HttpJornadaAdapter {
         ativa: jornada.ativa,
         ordem: jornada.ordem,
         pontosTentativas: jornada.pontosTentativas,
+        tipoJornada: jornada.tipoJornada,
+        duracao: jornada.duracao,
         createdAt: jornada.createdAt.getTime(),
         updatedAt: jornada.updatedAt.getTime(),
         cardIds,
@@ -107,6 +114,7 @@ export class HttpJornadaAdapter {
         currentLives: dto.currentLives,
         lastActiveAt: dto.lastActiveAt !== null ? new Date(dto.lastActiveAt) : null,
         bestTime: dto.bestTime,
+        desafioStartTimeMs: dto.desafioStartTimeMs,
       };
     } catch {
       return null;
@@ -123,6 +131,7 @@ export class HttpJornadaAdapter {
     currentLives?: number;
     lastActiveAt?: Date | null;
     bestTime?: number | null;
+    desafioStartTimeMs?: number | null;
   }): Promise<void> {
     await firstValueFrom(
       this.http.put<ApiProgresso>(`${this.baseUrl}/jornadas/${row.jornadaId}/progresso`, {
@@ -135,6 +144,7 @@ export class HttpJornadaAdapter {
         currentLives: row.currentLives ?? 3,
         lastActiveAt: row.lastActiveAt ? row.lastActiveAt.getTime() : null,
         bestTime: row.bestTime ?? null,
+        desafioStartTimeMs: row.desafioStartTimeMs ?? null,
       }),
     );
   }
@@ -175,6 +185,8 @@ export class HttpJornadaAdapter {
       ativa: dto.ativa,
       ordem: dto.ordem,
       pontosTentativas: dto.pontosTentativas,
+      tipoJornada: dto.tipoJornada ?? 'normal',
+      duracao: dto.duracao ?? 120,
       createdAt: new Date(dto.createdAt),
       updatedAt: new Date(dto.updatedAt),
     };

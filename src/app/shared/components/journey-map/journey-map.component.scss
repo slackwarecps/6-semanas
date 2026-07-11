@@ -196,6 +196,15 @@
     filter: brightness(1.2);
   }
 
+  // Ícone novo (sem clicável) - não tem title e não tem click handler
+  &:not([title]) {
+    cursor: default;
+
+    &:hover {
+      filter: none;
+    }
+  }
+
   &[title]::after {
     content: attr(title);
     position: absolute;

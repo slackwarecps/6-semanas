@@ -20,22 +20,20 @@
             <span
               class="icon"
               *ngIf="item.status === 'completed' && !item.completedWithErrors"
-              title="Deseja reiniciar essa jornada?"
+              title="🔄 Clique para reiniciar essa jornada"
               (click)="resetJornada($event, item.jornada.id)">⭐️</span>
             <span
               class="icon"
               *ngIf="item.completedWithErrors"
-              title="Deseja reiniciar essa jornada?"
+              title="🔄 Clique para reiniciar essa jornada"
               (click)="resetJornada($event, item.jornada.id)">💩</span>
             <span
               class="icon"
-              *ngIf="item.status === 'unlocked'"
-              title="Deseja reiniciar essa jornada?"
-              (click)="resetJornada($event, item.jornada.id)">🧠</span>
+              *ngIf="item.status === 'unlocked'">🧠</span>
             <span
               class="icon"
               *ngIf="item.status === 'in_progress'"
-              title="Deseja reiniciar essa jornada?"
+              title="🔄 Clique para reiniciar essa jornada"
               (click)="resetJornada($event, item.jornada.id)">🏄</span>
           </div>
           <div class="node-info">

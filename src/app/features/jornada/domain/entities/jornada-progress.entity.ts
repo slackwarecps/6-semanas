@@ -10,6 +10,7 @@ export interface JornadaProgressProps {
   currentLives?: number;
   lastActiveAt?: Date | null;
   bestTime?: number | null;
+  desafioStartTimeMs?: number | null;
 }
 
 export class JornadaProgress {
@@ -22,6 +23,7 @@ export class JornadaProgress {
   readonly currentLives: number;
   readonly lastActiveAt: Date | null;
   readonly bestTime: number | null;
+  readonly desafioStartTimeMs: number | null;
 
   constructor(props: JornadaProgressProps) {
     this.jornadaId = props.jornadaId;
@@ -33,6 +35,7 @@ export class JornadaProgress {
     this.currentLives = props.currentLives ?? 3;
     this.lastActiveAt = props.lastActiveAt ?? null;
     this.bestTime = props.bestTime ?? null;
+    this.desafioStartTimeMs = props.desafioStartTimeMs ?? null;
   }
 
   static createDefault(jornadaId: string, status: JourneyProgressStatus = 'locked'): JornadaProgress {
@@ -45,7 +48,8 @@ export class JornadaProgress {
       currentErrors: 0,
       currentLives: 3,
       lastActiveAt: null,
-      bestTime: null
+      bestTime: null,
+      desafioStartTimeMs: null
     });
   }
 }

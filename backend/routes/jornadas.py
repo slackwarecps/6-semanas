@@ -48,6 +48,8 @@ class JornadaDTO(BaseModel):
     ativa: bool = False
     ordem: int = 0
     pontosTentativas: int = 3
+    tipoJornada: str = "normal"
+    duracao: int = 120
     createdAt: int
     updatedAt: int
     cardIds: list[str] = []
@@ -63,6 +65,7 @@ class ProgressoDTO(BaseModel):
     currentLives: int = 3
     lastActiveAt: Optional[int] = None
     bestTime: Optional[int] = None
+    desafioStartTimeMs: Optional[int] = None
 
 
 class XpDTO(BaseModel):
@@ -92,6 +95,8 @@ def _to_dto(session: Session, user_id: str, jornada: Jornada) -> JornadaDTO:
         ativa=jornada.ativa,
         ordem=jornada.ordem,
         pontosTentativas=jornada.pontosTentativas,
+        tipoJornada=jornada.tipoJornada,
+        duracao=jornada.duracao,
         createdAt=jornada.createdAt,
         updatedAt=jornada.updatedAt,
         cardIds=_card_ids(session, user_id, jornada.id),
@@ -145,6 +150,8 @@ def save_jornada(
         existing.ativa = dto.ativa
         existing.ordem = dto.ordem
         existing.pontosTentativas = dto.pontosTentativas
+        existing.tipoJornada = dto.tipoJornada
+        existing.duracao = dto.duracao
         existing.updatedAt = dto.updatedAt
         session.add(existing)
         jornada = existing
@@ -156,6 +163,8 @@ def save_jornada(
             ativa=dto.ativa,
             ordem=dto.ordem,
             pontosTentativas=dto.pontosTentativas,
+            tipoJornada=dto.tipoJornada,
+            duracao=dto.duracao,
             createdAt=dto.createdAt,
             updatedAt=dto.updatedAt,
         )
@@ -237,6 +246,7 @@ def upsert_progresso(
     progresso.currentLives = dto.currentLives
     progresso.lastActiveAt = dto.lastActiveAt
     progresso.bestTime = dto.bestTime
+    progresso.desafioStartTimeMs = dto.desafioStartTimeMs
 
     session.add(progresso)
     session.commit()

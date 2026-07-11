@@ -95,6 +95,8 @@ class Jornada(SQLModel, table=True):
     ativa: bool = False
     ordem: int = 0
     pontosTentativas: int = 3
+    tipoJornada: str = "normal"
+    duracao: int = 120
     createdAt: int
     updatedAt: int
 
@@ -121,6 +123,7 @@ class JornadaProgresso(SQLModel, table=True):
     currentLives: int = 3
     lastActiveAt: Optional[int] = None
     bestTime: Optional[int] = None
+    desafioStartTimeMs: Optional[int] = None
 
 
 class LearnStats(SQLModel, table=True):
@@ -147,6 +150,49 @@ class AppConfig(SQLModel, table=True):
 def create_db_and_tables() -> None:
     """Cria o arquivo SQLite e as tabelas (idempotente). Chamado no startup."""
     SQLModel.metadata.create_all(engine)
+    _migrate_add_desafio_fields()
+
+
+def _migrate_add_desafio_fields() -> None:
+    """Migração segura: adiciona campos tipoJornada, duracao e desafioStartTimeMs se não existirem."""
+    from sqlalchemy import text
+
+    with Session(engine) as session:
+        # Verificar e adicionar tipoJornada à tabela jornadas
+        try:
+            session.exec(text("SELECT tipoJornada FROM jornadas LIMIT 1"))
+        except Exception:
+            # Campo não existe, adicionar
+            try:
+                session.exec(text("ALTER TABLE jornadas ADD COLUMN tipoJornada TEXT DEFAULT 'normal'"))
+                session.commit()
+                print("✅ Migração: Campo 'tipoJornada' adicionado à tabela 'jornadas'")
+            except Exception as e:
+                print(f"⚠️ Migração 'tipoJornada': {e}")
+
+        # Verificar e adicionar duracao à tabela jornadas
+        try:
+            session.exec(text("SELECT duracao FROM jornadas LIMIT 1"))
+        except Exception:
+            # Campo não existe, adicionar
+            try:
+                session.exec(text("ALTER TABLE jornadas ADD COLUMN duracao INTEGER DEFAULT 120"))
+                session.commit()
+                print("✅ Migração: Campo 'duracao' adicionado à tabela 'jornadas'")
+            except Exception as e:
+                print(f"⚠️ Migração 'duracao': {e}")
+
+        # Verificar e adicionar desafioStartTimeMs à tabela jornada_progresso
+        try:
+            session.exec(text("SELECT desafioStartTimeMs FROM jornada_progresso LIMIT 1"))
+        except Exception:
+            # Campo não existe, adicionar
+            try:
+                session.exec(text("ALTER TABLE jornada_progresso ADD COLUMN desafioStartTimeMs INTEGER"))
+                session.commit()
+                print("✅ Migração: Campo 'desafioStartTimeMs' adicionado à tabela 'jornada_progresso'")
+            except Exception as e:
+                print(f"⚠️ Migração 'desafioStartTimeMs': {e}")
 
 
 def get_session():

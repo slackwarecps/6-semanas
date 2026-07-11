@@ -55,6 +55,126 @@
   padding-bottom: 40px;
 }
 
+/* Timer do Desafio */
+.desafio-timer-section {
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+
+  &.timer-green {
+    background-color: rgba(34, 197, 94, 0.1);
+    border: 1px solid #22c55e;
+  }
+
+  &.timer-yellow {
+    background-color: rgba(234, 179, 8, 0.1);
+    border: 1px solid #eab308;
+  }
+
+  &.timer-red {
+    background-color: rgba(239, 68, 68, 0.15);
+    border: 1px solid #ef4444;
+    animation: pulse-red 1.5s infinite;
+  }
+
+  &.timer-warning-blink {
+    animation: warning-blink 0.6s infinite !important;
+  }
+
+  &.timer-critical-blink {
+    animation: critical-blink 0.5s infinite !important;
+  }
+
+  .timer-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    font-size: 16px;
+    margin-bottom: 8px;
+
+    .timer-icon {
+      font-size: 20px;
+    }
+
+    .timer-text {
+      font-family: 'Monaco', 'Courier New', monospace;
+      letter-spacing: 0.5px;
+    }
+  }
+
+  .timer-progress-bar {
+    width: 100%;
+    height: 8px;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    overflow: hidden;
+
+    .timer-progress-fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.5s ease-out;
+
+      .timer-green & {
+        background-color: #22c55e;
+      }
+
+      .timer-yellow & {
+        background-color: #eab308;
+      }
+
+      .timer-red & {
+        background-color: #ef4444;
+      }
+    }
+  }
+}
+
+@keyframes pulse-red {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+@keyframes pulse-timeout {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+@keyframes warning-blink {
+  0%, 100% {
+    background-color: rgba(234, 179, 8, 0.1);
+    border-color: #eab308;
+    box-shadow: 0 0 8px rgba(234, 179, 8, 0.2);
+  }
+  50% {
+    background-color: rgba(234, 179, 8, 0.3);
+    border-color: #ca8a04;
+    box-shadow: 0 0 16px rgba(234, 179, 8, 0.4);
+  }
+}
+
+@keyframes critical-blink {
+  0%, 100% {
+    background-color: rgba(239, 68, 68, 0.15);
+    border-color: #ef4444;
+    box-shadow: 0 0 10px rgba(239, 68, 68, 0.3);
+  }
+  50% {
+    background-color: rgba(239, 68, 68, 0.5);
+    border-color: #dc2626;
+    box-shadow: 0 0 20px rgba(239, 68, 68, 0.6);
+  }
+}
+
 /* Header */
 .game-header {
   display: flex;
@@ -447,6 +567,10 @@
     font-size: 64px;
     margin-bottom: 8px;
     animation: bounce 2s infinite;
+
+    &.timeout-icon {
+      animation: pulse-timeout 1s infinite;
+    }
   }
 
   h2 {

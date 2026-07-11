@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectorRef, Component, NgZone, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, NgZone, OnInit, OnDestroy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { NavbarComponent } from '../../../../shared/components/navbar/navbar.component';
@@ -8,8 +8,10 @@ import { Card } from '../../../flashcard/domain/entities/card.entity';
 import { CompleteJornadaUseCase } from '../../../jornada/application/use-cases/complete-jornada.use-case';
 import { GetJornadaQuestionsUseCase } from '../../../jornada/application/use-cases/get-jornada-questions.use-case';
 import { GetJourneyMapUseCase } from '../../../jornada/application/use-cases/get-journey-map.use-case';
+import { InitiateDesafioUseCase } from '../../../jornada/application/use-cases/initiate-desafio.use-case';
 import { JornadaProgressRepository } from '../../../jornada/data/repositories/jornada-progress.repository';
 import { JornadaProgress } from '../../../jornada/domain/entities/jornada-progress.entity';
+import { DesafioTimer } from '../../../jornada/domain/value-objects/desafio-timer.value-object';
 
 @Component({
   selector: 'app-jornada-phase-page',
@@ -18,10 +20,11 @@ import { JornadaProgress } from '../../../jornada/domain/entities/jornada-progre
   templateUrl: './jornada-phase.page.html',
   styleUrls: ['./jornada-phase.page.scss']
 })
-export class JornadaPhasePage implements OnInit {
+export class JornadaPhasePage implements OnInit, OnDestroy {
   jornadaId = '';
   jornadaNome = '';
   pontosTentativas = 3;
+  jornadaDuracao = 120;
   questions: Card[] = [];
   currentIndex = 0;
   lives = 3;
@@ -42,8 +45,17 @@ export class JornadaPhasePage implements OnInit {
   showFailedDialog = false;
   xpEarnedInThisPlay = 0;
   startTime = Date.now();
+  isDesafio = false;
+  desafioTimer: DesafioTimer | null = null;
+  timerDisplay = '';
+  timerColor: 'green' | 'yellow' | 'red' = 'green';
+  timerProgressPercent = 0;
+  timerWarning = false;
+  timerCritical = false;
+  desafioTimeoutMessage = '';
   private copyToastTimeoutId: ReturnType<typeof setTimeout> | null = null;
   private copyToastFadeTimeoutId: ReturnType<typeof setTimeout> | null = null;
+  private timerIntervalId: ReturnType<typeof setInterval> | null = null;
 
   constructor(
     private route: ActivatedRoute,
@@ -51,6 +63,7 @@ export class JornadaPhasePage implements OnInit {
     private getJourneyMapUseCase: GetJourneyMapUseCase,
     private getJornadaQuestionsUseCase: GetJornadaQuestionsUseCase,
     private completeJornadaUseCase: CompleteJornadaUseCase,
+    private initiateDesafioUseCase: InitiateDesafioUseCase,
     private progressRepository: JornadaProgressRepository,
     private cdr: ChangeDetectorRef,
     private ngZone: NgZone
@@ -85,12 +98,14 @@ export class JornadaPhasePage implements OnInit {
 
       this.jornadaNome = currentItem.jornada.nome;
       this.pontosTentativas = currentItem.jornada.pontosTentativas || 3;
+      this.jornadaDuracao = currentItem.jornada.duracao || 120;
+      this.isDesafio = currentItem.jornada.tipoJornada === 'desafio';
 
       // Carregar questões
       const cards = await this.getJornadaQuestionsUseCase.execute(this.jornadaId);
       const progress = await this.progressRepository.getProgress(this.jornadaId);
 
-      this.ngZone.run(() => {
+      this.ngZone.run(async () => {
         this.questions = cards;
         this.resetGame();
 
@@ -106,6 +121,15 @@ export class JornadaPhasePage implements OnInit {
             this.errors = 0;
             this.lives = this.pontosTentativas;
           }
+        }
+
+        // Iniciar timer do desafio se for uma casa desafio
+        if (this.isDesafio) {
+          this.desafioTimer = await this.initiateDesafioUseCase.execute(
+            this.jornadaId,
+            this.jornadaDuracao
+          );
+          this.startTimerInterval();
         }
 
         this.isLoading = false;
@@ -127,6 +151,12 @@ export class JornadaPhasePage implements OnInit {
       this.copyToastFadeTimeoutId = null;
     }
 
+    // Limpar timer do desafio anterior
+    if (this.timerIntervalId) {
+      clearInterval(this.timerIntervalId);
+      this.timerIntervalId = null;
+    }
+
     this.currentIndex = 0;
     this.lives = this.pontosTentativas;
     this.errors = 0;
@@ -139,6 +169,66 @@ export class JornadaPhasePage implements OnInit {
     this.showFailedDialog = false;
     this.phaseState = 'playing';
     this.startTime = Date.now();
+    this.desafioTimeoutMessage = '';
+
+    // Resetar estado do timer do desafio
+    this.timerDisplay = '';
+    this.timerColor = 'green';
+    this.timerProgressPercent = 0;
+    this.timerWarning = false;
+    this.timerCritical = false;
+    this.desafioTimer = null;
+  }
+
+  private startTimerInterval(): void {
+    if (!this.desafioTimer) return;
+
+    this.timerIntervalId = setInterval(() => {
+      if (!this.desafioTimer) return;
+
+      const now = Date.now();
+      this.timerDisplay = this.desafioTimer.getFormattedRemaining(now);
+      this.timerColor = this.desafioTimer.getUrgencyColor(now);
+      this.timerProgressPercent = this.desafioTimer.getProgressPercent(now);
+      this.timerWarning = this.desafioTimer.isWarning(now);
+      this.timerCritical = this.desafioTimer.isCritical(now);
+
+      if (this.desafioTimer.isExpired(now)) {
+        this.handleDesafioTimeout();
+      }
+
+      this.cdr.markForCheck();
+    }, 1000);
+  }
+
+  private async handleDesafioTimeout(): Promise<void> {
+    if (this.timerIntervalId) {
+      clearInterval(this.timerIntervalId);
+      this.timerIntervalId = null;
+    }
+
+    this.showFailedDialog = true;
+    this.phaseState = 'failed';
+    this.desafioTimeoutMessage = '⏰ Tempo esgotado! Você não conseguiu completar o desafio em 120 minutos.';
+    this.currentIndex = 0;
+    this.errors = 0;
+    this.lives = this.pontosTentativas;
+
+    await this.saveCurrentProgress();
+    this.cdr.markForCheck();
+  }
+
+  ngOnDestroy(): void {
+    if (this.timerIntervalId) {
+      clearInterval(this.timerIntervalId);
+    }
+
+    // Salvar progresso ao sair da página (preserva tempo do desafio)
+    if (this.phaseState === 'playing') {
+      this.saveCurrentProgress().catch(e => {
+        console.error('[JornadaPhase] Erro ao salvar progresso ao sair:', e);
+      });
+    }
   }
 
   async saveCurrentProgress(): Promise<void> {
@@ -153,7 +243,8 @@ export class JornadaPhasePage implements OnInit {
         currentQuestionIndex: this.currentIndex,
         currentErrors: this.errors,
         currentLives: this.lives,
-        lastActiveAt: new Date()
+        lastActiveAt: new Date(),
+        desafioStartTimeMs: progress ? progress.desafioStartTimeMs : null
       }));
     } catch (e) {
       console.error('[JornadaPhase] Erro ao salvar progresso:', e);
@@ -173,10 +264,24 @@ export class JornadaPhasePage implements OnInit {
 
       if (this.lives <= 0) {
         this.showFailedDialog = true;
+        const progress = await this.progressRepository.getProgress(this.jornadaId);
         this.currentIndex = 0;
         this.errors = 0;
         this.lives = this.pontosTentativas;
-        await this.saveCurrentProgress();
+        // Salvar com preservação de desafioStartTimeMs
+        await this.progressRepository.saveProgress(
+          new JornadaProgress({
+            jornadaId: this.jornadaId,
+            status: progress?.status ?? 'unlocked',
+            bestErrors: progress?.bestErrors ?? null,
+            completedAt: progress?.completedAt ?? null,
+            currentQuestionIndex: 0,
+            currentErrors: 0,
+            currentLives: this.pontosTentativas,
+            lastActiveAt: new Date(),
+            desafioStartTimeMs: progress?.desafioStartTimeMs ?? null
+          })
+        );
       } else {
         this.currentIndex++;
         if (this.currentIndex === this.questions.length) {
@@ -201,6 +306,35 @@ export class JornadaPhasePage implements OnInit {
   async restartJornada(): Promise<void> {
     this.showFailedDialog = false;
     this.resetGame();
+
+    // Ao reiniciar após falha, reseta o timer do desafio
+    if (this.isDesafio) {
+      // Limpar o desafioStartTimeMs anterior para forçar um novo timer
+      const progress = await this.progressRepository.getProgress(this.jornadaId);
+      if (progress) {
+        await this.progressRepository.saveProgress(
+          new JornadaProgress({
+            jornadaId: this.jornadaId,
+            status: progress.status,
+            bestErrors: progress.bestErrors,
+            completedAt: progress.completedAt,
+            currentQuestionIndex: 0,
+            currentErrors: 0,
+            currentLives: this.pontosTentativas,
+            lastActiveAt: new Date(),
+            bestTime: progress.bestTime,
+            desafioStartTimeMs: null // Limpar para forçar novo timer
+          })
+        );
+      }
+
+      this.desafioTimer = await this.initiateDesafioUseCase.execute(
+        this.jornadaId,
+        this.jornadaDuracao
+      );
+      this.startTimerInterval();
+    }
+
     await this.saveCurrentProgress();
     this.cdr.markForCheck();
   }
@@ -308,10 +442,24 @@ export class JornadaPhasePage implements OnInit {
       this.ngZone.run(async () => {
         if (this.lives === 0) {
           this.showFailedDialog = true;
+          const progress = await this.progressRepository.getProgress(this.jornadaId);
           this.currentIndex = 0;
           this.errors = 0;
           this.lives = this.pontosTentativas;
-          await this.saveCurrentProgress();
+          // Salvar com preservação de desafioStartTimeMs
+          await this.progressRepository.saveProgress(
+            new JornadaProgress({
+              jornadaId: this.jornadaId,
+              status: progress?.status ?? 'unlocked',
+              bestErrors: progress?.bestErrors ?? null,
+              completedAt: progress?.completedAt ?? null,
+              currentQuestionIndex: 0,
+              currentErrors: 0,
+              currentLives: this.pontosTentativas,
+              lastActiveAt: new Date(),
+              desafioStartTimeMs: progress?.desafioStartTimeMs ?? null
+            })
+          );
           this.cdr.markForCheck();
           return;
         }

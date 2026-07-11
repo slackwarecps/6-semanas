@@ -18,6 +18,17 @@
 
   <!-- Cenário Jogando -->
   <div *ngIf="!isLoading && phaseState === 'playing'" class="game-area">
+    <!-- Timer do Desafio (se aplicável) -->
+    <div *ngIf="isDesafio && desafioTimer" class="desafio-timer-section" [class]="'timer-' + timerColor" [class.timer-warning-blink]="timerWarning" [class.timer-critical-blink]="timerCritical">
+      <div class="timer-header">
+        <span class="timer-icon">⏰</span>
+        <span class="timer-text">{{ timerDisplay }}</span>
+      </div>
+      <div class="timer-progress-bar">
+        <div class="timer-progress-fill" [style.width.%]="timerProgressPercent"></div>
+      </div>
+    </div>
+
     <!-- Header de Status -->
     <div class="game-header">
       <a routerLink="/learn" class="btn-close" title="Voltar ao mapa">✕</a>
@@ -168,9 +179,9 @@
 
   <!-- Cenário Derrota (Falhou) -->
   <div *ngIf="!isLoading && phaseState === 'failed'" class="result-area failed-box">
-    <div class="result-icon">💀</div>
-    <h2>Você perdeu todas as vidas!</h2>
-    <p>Mas não desista, cada erro é uma oportunidade de aprender.</p>
+    <div class="result-icon" [class.timeout-icon]="desafioTimeoutMessage">{{ desafioTimeoutMessage ? '⏰' : '💀' }}</div>
+    <h2>{{ desafioTimeoutMessage ? 'Tempo Esgotado!' : 'Você perdeu todas as vidas!' }}</h2>
+    <p>{{ desafioTimeoutMessage || 'Mas não desista, cada erro é uma oportunidade de aprender.' }}</p>
 
     <div class="result-stats">
       <div class="stat-card">
