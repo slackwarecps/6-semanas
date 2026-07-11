@@ -1,4 +1,4 @@
-export type JourneyProgressStatus = 'locked' | 'unlocked' | 'completed';
+export type JourneyProgressStatus = 'locked' | 'unlocked' | 'in_progress' | 'completed';
 
 export interface JornadaProgressProps {
   jornadaId: string;

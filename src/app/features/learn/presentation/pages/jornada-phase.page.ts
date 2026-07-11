@@ -99,8 +99,9 @@ export class JornadaPhasePage implements OnInit {
           this.errors = progress.currentErrors ?? 0;
           this.lives = progress.currentLives ?? this.pontosTentativas;
 
-          // Se vidas <= 0, reseta para iniciar do zero
-          if (this.lives <= 0) {
+          // Reseta se vidas esgotaram OU se o progresso está obsoleto
+          // (pontosTentativas da jornada mudou desde o último save)
+          if (this.lives <= 0 || this.lives > this.pontosTentativas) {
             this.currentIndex = 0;
             this.errors = 0;
             this.lives = this.pontosTentativas;
