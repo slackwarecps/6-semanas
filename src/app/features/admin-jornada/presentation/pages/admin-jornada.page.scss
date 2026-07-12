@@ -7,6 +7,23 @@
   display: flex;
   flex-direction: column;
   gap: 24px;
+
+  > .header {
+    order: 1;
+  }
+
+  > .loading,
+  > .empty-state {
+    order: 2;
+  }
+
+  > .detail-panel {
+    order: 2;
+  }
+
+  > .master-panel {
+    order: 3;
+  }
 }
 
 .header {
