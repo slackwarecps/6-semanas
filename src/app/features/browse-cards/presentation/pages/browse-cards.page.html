@@ -41,92 +41,156 @@
       </div>
     </div>
 
-    <table class="cards-table">
-      <thead>
-        <tr>
-          <th class="col-id">ID</th>
-          <th class="col-title">Título</th>
-          <th class="col-question">Pergunta</th>
-          <th class="col-answer">Resposta</th>
-          <th class="col-actions">Ações</th>
-        </tr>
-      </thead>
-      <tbody *ngFor="let card of paginatedCards" class="card-item-body">
-        <tr
-          class="card-row"
-          (click)="openEditModal(card)"
-        >
-          <td class="col-id">
-            <span class="card-id">{{ card.seq ?? '—' }}</span>
-          </td>
-          <td class="col-title">
-            <span class="card-title">{{ card.title }}</span>
-          </td>
-          <td class="col-question">
-            <div class="card-text-full">{{ card.question }}</div>
-          </td>
-          <td class="col-answer">
-            <span class="card-text">{{ getTruncatedText(card.answer, 80) }}</span>
-          </td>
-          <td class="col-actions">
-            <button
-              class="btn-ai"
-              (click)="responderComIA(card, $event)"
-              title="Responder com IA"
-            >
-              🤖 IA
-            </button>
-            <button
-              class="btn-delete"
-              (click)="deleteCard(card, $event)"
-              title="Deletar cartão"
-            >
-              🗑️ Deletar
-            </button>
-          </td>
-        </tr>
-        <tr class="card-tags-row" (click)="openEditModal(card)">
-          <td></td>
-          <td colspan="4" class="col-tags-container">
+    <div class="cards-list-desktop">
+      <table class="cards-table">
+        <thead>
+          <tr>
+            <th class="col-id">ID</th>
+            <th class="col-title">Título</th>
+            <th class="col-question">Pergunta</th>
+            <th class="col-answer">Resposta</th>
+            <th class="col-actions">Ações</th>
+          </tr>
+        </thead>
+        <tbody *ngFor="let card of paginatedCards" class="card-item-body">
+          <tr class="card-row" (click)="openEditModal(card)">
+            <td class="col-id" data-label="ID">
+              <span class="card-id">{{ card.seq ?? '—' }}</span>
+            </td>
+            <td class="col-title" data-label="Título">
+              <span class="card-title">{{ card.title }}</span>
+            </td>
+            <td class="col-question" data-label="Pergunta">
+              <div class="card-text-full">{{ card.question }}</div>
+            </td>
+            <td class="col-answer" data-label="Resposta">
+              <span class="card-text">{{ getTruncatedText(card.answer, 80) }}</span>
+            </td>
+            <td class="col-actions">
+              <button
+                class="btn-ai"
+                (click)="responderComIA(card, $event)"
+                title="Responder com IA"
+              >
+                🤖 IA
+              </button>
+              <button
+                class="btn-delete"
+                (click)="deleteCard(card, $event)"
+                title="Deletar cartão"
+              >
+                🗑️ Deletar
+              </button>
+            </td>
+          </tr>
+          <tr class="card-tags-row" (click)="openEditModal(card)">
+            <td colspan="5" class="col-tags-container" data-label="Tags">
+              <div class="card-tags-list">
+                <span *ngFor="let tag of card.tags" class="tag-badge-pill">{{ tag.name }}</span>
+                <span *ngIf="card.tags.length === 0" class="no-tags">Sem tags</span>
+              </div>
+            </td>
+          </tr>
+          <tr class="card-stats-row" (click)="openEditModal(card)">
+            <td colspan="5" class="col-stats-container">
+              <div class="card-stats-list">
+                <span class="stat-item">
+                  <span class="stat-label">Estado:</span>
+                  <span class="stat-val badge-state" [ngClass]="'badge-state--' + card.state.toLowerCase()">{{ card.state }}</span>
+                </span>
+                <span class="stat-item">
+                  <span class="stat-label">Repetições:</span>
+                  <span class="stat-val">{{ card.repetitions }}</span>
+                </span>
+                <span class="stat-item">
+                  <span class="stat-label">Intervalo:</span>
+                  <span class="stat-val">{{ card.interval.days }} dias</span>
+                </span>
+                <span class="stat-item">
+                  <span class="stat-label">Fator Ease:</span>
+                  <span class="stat-val">{{ card.easeFactor.value | number:'1.2-2' }}</span>
+                </span>
+                <span class="stat-item">
+                  <span class="stat-label">Próxima Revisão:</span>
+                  <span class="stat-val">{{ card.nextReviewDate | date:'dd/MM/yyyy HH:mm' }}</span>
+                </span>
+                <span class="stat-item">
+                  <span class="stat-label">Tentativas:</span>
+                  <span class="stat-val">{{ card.attempts.length }}</span>
+                </span>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Mobile Card List -->
+    <div class="cards-list-mobile">
+      <div *ngFor="let card of paginatedCards" class="mobile-card">
+        <div class="mobile-card-header" (click)="openEditModal(card)">
+          <div class="card-id-title">
+            <span class="card-id-badge">{{ card.seq ?? '—' }}</span>
+            <span class="card-title-mobile">{{ card.title }}</span>
+          </div>
+        </div>
+
+        <div class="mobile-card-content" (click)="openEditModal(card)">
+          <div class="card-field">
+            <span class="field-label">Pergunta</span>
+            <div class="field-value card-text-full">{{ card.question }}</div>
+          </div>
+
+          <div class="card-field">
+            <span class="field-label">Resposta</span>
+            <div class="field-value card-text">{{ getTruncatedText(card.answer, 100) }}</div>
+          </div>
+
+          <div class="card-field" *ngIf="card.tags.length > 0">
+            <span class="field-label">Tags</span>
             <div class="card-tags-list">
               <span *ngFor="let tag of card.tags" class="tag-badge-pill">{{ tag.name }}</span>
-              <span *ngIf="card.tags.length === 0" class="no-tags">Sem tags</span>
             </div>
-          </td>
-        </tr>
-        <tr class="card-stats-row" (click)="openEditModal(card)">
-          <td></td>
-          <td colspan="4" class="col-stats-container">
-            <div class="card-stats-list">
-              <span class="stat-item">
-                <span class="stat-label">Estado:</span>
-                <span class="stat-val badge-state" [ngClass]="'badge-state--' + card.state.toLowerCase()">{{ card.state }}</span>
-              </span>
-              <span class="stat-item">
-                <span class="stat-label">Repetições:</span>
-                <span class="stat-val">{{ card.repetitions }}</span>
-              </span>
-              <span class="stat-item">
-                <span class="stat-label">Intervalo:</span>
-                <span class="stat-val">{{ card.interval.days }} dias</span>
-              </span>
-              <span class="stat-item">
-                <span class="stat-label">Fator Ease:</span>
-                <span class="stat-val">{{ card.easeFactor.value | number:'1.2-2' }}</span>
-              </span>
-              <span class="stat-item">
-                <span class="stat-label">Próxima Revisão:</span>
-                <span class="stat-val">{{ card.nextReviewDate | date:'dd/MM/yyyy HH:mm' }}</span>
-              </span>
-              <span class="stat-item">
-                <span class="stat-label">Tentativas:</span>
-                <span class="stat-val">{{ card.attempts.length }}</span>
-              </span>
+          </div>
+
+          <div class="card-stats">
+            <div class="stat-item-mobile">
+              <span class="stat-label">Estado:</span>
+              <span class="badge-state" [ngClass]="'badge-state--' + card.state.toLowerCase()">{{ card.state }}</span>
             </div>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+            <div class="stat-item-mobile">
+              <span class="stat-label">Reps:</span>
+              <span>{{ card.repetitions }}</span>
+            </div>
+            <div class="stat-item-mobile">
+              <span class="stat-label">Intervalo:</span>
+              <span>{{ card.interval.days }}d</span>
+            </div>
+            <div class="stat-item-mobile">
+              <span class="stat-label">Ease:</span>
+              <span>{{ card.easeFactor.value | number:'1.2-2' }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="mobile-card-actions">
+          <button
+            class="btn-ai"
+            (click)="responderComIA(card, $event)"
+            title="Responder com IA"
+          >
+            🤖 IA
+          </button>
+          <button
+            class="btn-delete"
+            (click)="deleteCard(card, $event)"
+            title="Deletar cartão"
+          >
+            🗑️ Deletar
+          </button>
+        </div>
+      </div>
+    </div>
 
     <!-- Paginador -->
     <div class="paginator">
@@ -189,15 +253,27 @@
         </div>
 
         <div class="form-group">
-          <label for="question">Pergunta *</label>
+          <div class="form-group-header">
+            <label for="question">Pergunta *</label>
+            <button
+              type="button"
+              class="btn-expand-editor"
+              (click)="openQuestionEditor()"
+              title="Abrir editor ampliado"
+            >
+              📝 Ampliar
+            </button>
+          </div>
           <textarea
             id="question"
             [(ngModel)]="editForm.question"
             name="question"
             placeholder="Ex: O que é Clean Architecture?"
-            class="form-textarea"
+            class="form-textarea form-textarea-preview"
             rows="4"
+            readonly
           ></textarea>
+          <span class="char-count">{{ editForm.question.length }} caracteres</span>
         </div>
 
         <div class="form-group">
@@ -273,6 +349,51 @@
           </button>
         </div>
       </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Editor de Pergunta Ampliado -->
+<div *ngIf="showQuestionEditor" class="modal-overlay" (click)="closeQuestionEditor()">
+  <div class="modal-content modal-question-editor" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>📝 Editar Pergunta</h2>
+      <button class="close-button" (click)="closeQuestionEditor()">✕</button>
+    </div>
+
+    <div class="modal-body question-editor-body">
+      <div class="question-editor-container">
+        <label for="questionEditor" class="editor-label">Pergunta *</label>
+        <textarea
+          id="questionEditor"
+          [(ngModel)]="editForm.question"
+          name="questionEditor"
+          class="question-editor-textarea"
+          placeholder="Digite ou cole a pergunta aqui..."
+          (input)="onQuestionInput()"
+        ></textarea>
+        <div class="editor-footer">
+          <span class="char-count">{{ editForm.question.length }} caracteres</span>
+          <span class="word-count">{{ countWords(editForm.question) }} palavras</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button
+        type="button"
+        class="btn btn-secondary"
+        (click)="closeQuestionEditor()"
+      >
+        Cancelar
+      </button>
+      <button
+        type="button"
+        class="btn btn-primary"
+        (click)="saveQuestionEditor()"
+      >
+        ✅ Salvar Pergunta
+      </button>
     </div>
   </div>
 </div>

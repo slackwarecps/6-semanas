@@ -25,6 +25,9 @@ export class BrowseCardsPage implements OnInit {
   isLoading = true;
   selectedCard: Card | null = null;
   showEditModal = false;
+  showQuestionEditor = false;
+  questionEditorSnapshot = '';
+
 
   // Bottom Sheet IA
   showBottomSheet = false;
@@ -379,5 +382,27 @@ export class BrowseCardsPage implements OnInit {
     this.bottomSheetExplicacaoCrianca = '';
     this.bottomSheetError = null;
     this.isGeneratingAnswer = false;
+  }
+
+  openQuestionEditor(): void {
+    this.questionEditorSnapshot = this.editForm.question;
+    this.showQuestionEditor = true;
+  }
+
+  closeQuestionEditor(): void {
+    this.editForm.question = this.questionEditorSnapshot;
+    this.showQuestionEditor = false;
+  }
+
+  saveQuestionEditor(): void {
+    this.showQuestionEditor = false;
+  }
+
+  onQuestionInput(): void {
+    // Hook para reatividade futura (ex: auto-save)
+  }
+
+  countWords(text: string): number {
+    return text.trim().split(/\s+/).filter(word => word.length > 0).length;
   }
 }
