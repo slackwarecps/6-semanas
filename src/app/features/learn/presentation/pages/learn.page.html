@@ -30,7 +30,18 @@
     </div>
 
     <div *ngIf="isLoading" class="learn__loading">
-      <p>⏳ Carregando trilha de jornadas...</p>
+      <div class="learn__loading-spinner">
+        <svg class="learn__spinner-circle" viewBox="0 0 50 50">
+          <defs>
+            <linearGradient id="spinnerGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#38bdf8;stop-opacity:1" />
+              <stop offset="100%" style="stop-color:#8b5cf6;stop-opacity:1" />
+            </linearGradient>
+          </defs>
+          <circle cx="25" cy="25" r="20" />
+        </svg>
+        <p>Carregando trilha de jornadas...</p>
+      </div>
     </div>
 
     <app-journey-map 
