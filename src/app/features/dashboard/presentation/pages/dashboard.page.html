@@ -4,7 +4,20 @@
   <h1>📊 Dashboard</h1>
 
   @if (isLoading) {
-    <p>Carregando estatísticas...</p>
+    <div class="dashboard__loading">
+      <div class="dashboard__loading-spinner">
+        <svg class="dashboard__spinner-circle" viewBox="0 0 50 50">
+          <defs>
+            <linearGradient id="dashboardSpinnerGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#38bdf8;stop-opacity:1" />
+              <stop offset="100%" style="stop-color:#8b5cf6;stop-opacity:1" />
+            </linearGradient>
+          </defs>
+          <circle cx="25" cy="25" r="20" />
+        </svg>
+        <p>Carregando estatísticas...</p>
+      </div>
+    </div>
   } @else if (stats) {
     <div class="dashboard__grid">
       <div class="dashboard__card">
