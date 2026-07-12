@@ -374,6 +374,37 @@
   }
 }
 
+.warning-box {
+  background-color: rgba(251, 146, 60, 0.1);
+  border-left: 3px solid #fb923c;
+  padding: 12px 16px;
+  border-radius: 6px;
+  margin-top: 12px;
+
+  p {
+    margin: 0;
+    color: #fed7aa;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+}
+
+.loading-progress {
+  text-align: center;
+  padding: 40px 20px;
+  color: #94a3b8;
+
+  p {
+    font-size: 16px;
+  }
+}
+
+.progress-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
 /* Card Selector Area */
 .card-selector-container {
   border: 1px solid #334155;

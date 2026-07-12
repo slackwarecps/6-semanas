@@ -83,6 +83,15 @@
         >
           ⚙️ Mais Campos
         </button>
+        <button
+          type="button"
+          class="tab-button"
+          [class.tab-button--active]="currentTab === 'progresso'"
+          (click)="currentTab = 'progresso'"
+          *ngIf="editingId"
+        >
+          📊 Progresso
+        </button>
       </div>
 
       <!-- Tab: Informações Principais -->
@@ -299,6 +308,138 @@
 
         <div class="info-box">
           <p>ℹ️ <strong>Campos Editáveis:</strong> Volta à aba "Informações Principais" para editar Nome, Ordem, Status, Tipo, Duração, Máximo de Erros e Seleção de Cards.</p>
+        </div>
+      </div>
+
+      <!-- Tab: Progresso -->
+      <div *ngIf="currentTab === 'progresso'" class="tab-content">
+        <div *ngIf="!progressData" class="loading-progress">
+          <p>⏳ Carregando progresso...</p>
+        </div>
+
+        <div *ngIf="progressData" class="progress-form">
+          <div class="form-row-group">
+            <div class="form-group flex-2">
+              <label for="progressStatus">📋 Status do Progresso</label>
+              <select
+                id="progressStatus"
+                [(ngModel)]="progressData.status"
+                name="progressStatus"
+                class="form-input"
+              >
+                <option value="locked">🔒 Bloqueada</option>
+                <option value="unlocked">🔓 Desbloqueada</option>
+                <option value="in_progress">🔄 Em Progresso</option>
+                <option value="completed">✅ Completada</option>
+              </select>
+            </div>
+
+            <div class="form-group flex-1">
+              <label for="currentQuestionIndex">❓ Pergunta Atual (Índice)</label>
+              <input
+                type="number"
+                id="currentQuestionIndex"
+                [(ngModel)]="progressData.currentQuestionIndex"
+                name="currentQuestionIndex"
+                min="0"
+                class="form-input"
+              />
+            </div>
+
+            <div class="form-group flex-1">
+              <label for="currentErrors">❌ Erros Atuais</label>
+              <input
+                type="number"
+                id="currentErrors"
+                [(ngModel)]="progressData.currentErrors"
+                name="currentErrors"
+                min="0"
+                class="form-input"
+              />
+            </div>
+          </div>
+
+          <div class="form-row-group">
+            <div class="form-group flex-1">
+              <label for="currentLives">❤️ Vidas Atuais</label>
+              <input
+                type="number"
+                id="currentLives"
+                [(ngModel)]="progressData.currentLives"
+                name="currentLives"
+                min="0"
+                class="form-input"
+              />
+            </div>
+
+            <div class="form-group flex-1">
+              <label for="bestErrors">🏆 Melhor Erros</label>
+              <input
+                type="number"
+                id="bestErrors"
+                [(ngModel)]="progressData.bestErrors"
+                name="bestErrors"
+                [value]="progressData.bestErrors || ''"
+                placeholder="Deixe em branco se nunca completou"
+                class="form-input"
+              />
+            </div>
+
+            <div class="form-group flex-1">
+              <label for="bestTime">⏱️ Melhor Tempo (ms)</label>
+              <input
+                type="number"
+                id="bestTime"
+                [(ngModel)]="progressData.bestTime"
+                name="bestTime"
+                [value]="progressData.bestTime || ''"
+                placeholder="Deixe em branco se nunca completou"
+                class="form-input"
+              />
+            </div>
+          </div>
+
+          <div class="form-row-group">
+            <div class="form-group flex-2">
+              <label for="completedAt">🏁 Data de Conclusão</label>
+              <input
+                type="datetime-local"
+                id="completedAt"
+                [(ngModel)]="progressData.completedAt"
+                name="completedAt"
+                class="form-input"
+              />
+              <span class="field-hint">Deixe em branco se não completou</span>
+            </div>
+
+            <div class="form-group flex-1">
+              <label for="lastActiveAt">🕐 Última Atividade</label>
+              <input
+                type="datetime-local"
+                id="lastActiveAt"
+                [(ngModel)]="progressData.lastActiveAt"
+                name="lastActiveAt"
+                class="form-input"
+              />
+            </div>
+
+            <div class="form-group flex-1">
+              <label for="desafioStartTimeMs">⏰ Início Desafio (ms)</label>
+              <input
+                type="number"
+                id="desafioStartTimeMs"
+                [(ngModel)]="progressData.desafioStartTimeMs"
+                name="desafioStartTimeMs"
+                [value]="progressData.desafioStartTimeMs || ''"
+                placeholder="Timestamp"
+                class="form-input"
+              />
+            </div>
+          </div>
+
+          <div class="warning-box">
+            <p>⚠️ <strong>Cuidado:</strong> Altere os valores com atenção. Essas mudanças afetam diretamente o progresso do usuário na jornada.</p>
+          </div>
         </div>
       </div>
 
