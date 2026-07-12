@@ -37,10 +37,7 @@ export class AdminJornadaPage implements OnInit {
     ativa: false,
     pontosTentativas: 3,
     tipoJornada: 'normal' as 'normal' | 'desafio',
-    duracao: 120,
-    descricao: '',
-    observacoes: '',
-    tags: ''
+    duracao: 120
   };
   selectedCardIds: Set<string> = new Set<string>();
 
@@ -113,10 +110,7 @@ export class AdminJornadaPage implements OnInit {
       ativa: false,
       pontosTentativas: 3,
       tipoJornada: 'normal',
-      duracao: 120,
-      descricao: '',
-      observacoes: '',
-      tags: ''
+      duracao: 120
     };
     this.selectedCardIds.clear();
     this.searchTerm = '';
@@ -134,10 +128,7 @@ export class AdminJornadaPage implements OnInit {
       ativa: jornada.ativa,
       pontosTentativas: jornada.pontosTentativas || 3,
       tipoJornada: jornada.tipoJornada,
-      duracao: jornada.duracao || 120,
-      descricao: (jornada as any).descricao || '',
-      observacoes: (jornada as any).observacoes || '',
-      tags: (jornada as any).tags || ''
+      duracao: jornada.duracao || 120
     };
     this.selectedCardIds = new Set<string>(jornada.questionCardIds);
     this.searchTerm = '';

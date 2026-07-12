@@ -223,11 +223,12 @@
       </div>
       </div>
 
-      <!-- Tab: Mais Campos -->
+      <!-- Tab: Mais Campos (Campos Reais) -->
       <div *ngIf="currentTab === 'extras'" class="tab-content">
+        <!-- Informações Readonly -->
         <div class="form-row-group">
           <div class="form-group flex-2">
-            <label for="id">ID da Jornada</label>
+            <label for="id">🆔 ID da Jornada</label>
             <input
               type="text"
               id="id"
@@ -267,53 +268,37 @@
           </div>
         </div>
 
+        <!-- Resumo de Cards -->
         <div class="form-row-group">
           <div class="form-group flex-2">
-            <label for="descricao">Descrição</label>
-            <textarea
-              id="descricao"
-              [(ngModel)]="detailForm.descricao"
-              name="descricao"
-              placeholder="Descreva o propósito e conteúdo desta jornada..."
-              class="form-textarea form-textarea-small"
-              rows="3"
-            ></textarea>
-            <span class="field-hint">Campo opcional para notas sobre a jornada</span>
-          </div>
-        </div>
-
-        <div class="form-row-group">
-          <div class="form-group flex-2">
-            <label for="observacoes">Observações</label>
-            <textarea
-              id="observacoes"
-              [(ngModel)]="detailForm.observacoes"
-              name="observacoes"
-              placeholder="Adicione observações ou notas internas..."
-              class="form-textarea form-textarea-small"
-              rows="3"
-            ></textarea>
-            <span class="field-hint">Campo interno para anotações</span>
-          </div>
-        </div>
-
-        <div class="form-row-group">
-          <div class="form-group flex-2">
-            <label for="tags">Tags</label>
-            <input
-              type="text"
-              id="tags"
-              [(ngModel)]="detailForm.tags"
-              name="tags"
-              placeholder="Ex: importante, novo, em-revisão (separadas por vírgula)"
-              class="form-input"
-            />
-            <span class="field-hint">Categorize com tags para melhor organização</span>
+            <label>📊 Resumo da Jornada</label>
+            <div class="info-summary">
+              <div class="summary-item">
+                <span class="summary-label">Total de Cards:</span>
+                <span class="summary-value">{{ selectedCardIds.size }}</span>
+              </div>
+              <div class="summary-item">
+                <span class="summary-label">Tipo:</span>
+                <span class="summary-value">{{ detailForm.tipoJornada === 'desafio' ? '🎮 Casa Desafio' : '📚 Normal' }}</span>
+              </div>
+              <div class="summary-item">
+                <span class="summary-label">Status:</span>
+                <span class="summary-value">{{ detailForm.ativa ? '✅ Ativa' : '❌ Inativa' }}</span>
+              </div>
+              <div class="summary-item">
+                <span class="summary-label">Máximo de Erros:</span>
+                <span class="summary-value">{{ detailForm.pontosTentativas }}</span>
+              </div>
+              <div class="summary-item" *ngIf="detailForm.tipoJornada === 'desafio'">
+                <span class="summary-label">Duração Desafio:</span>
+                <span class="summary-value">{{ detailForm.duracao }} min</span>
+              </div>
+            </div>
           </div>
         </div>
 
         <div class="info-box">
-          <p>ℹ️ <strong>Dica:</strong> Use a aba "Mais Campos" para adicionar informações extras, descrições e notas sobre a jornada.</p>
+          <p>ℹ️ <strong>Campos Editáveis:</strong> Volta à aba "Informações Principais" para editar Nome, Ordem, Status, Tipo, Duração, Máximo de Erros e Seleção de Cards.</p>
         </div>
       </div>
 
