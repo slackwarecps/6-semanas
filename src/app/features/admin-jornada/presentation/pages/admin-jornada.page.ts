@@ -10,6 +10,8 @@ import { ListAvailableCardsUseCase } from '../../../jornada/application/use-case
 import { ListJornadasUseCase } from '../../../jornada/application/use-cases/list-jornadas.use-case';
 import { SaveJornadaUseCase } from '../../../jornada/application/use-cases/save-jornada.use-case';
 import { Jornada } from '../../../jornada/domain/entities/jornada.entity';
+import { JornadaProgress } from '../../../jornada/domain/entities/jornada-progress.entity';
+import { JornadaProgressRepository } from '../../../jornada/data/repositories/jornada-progress.repository';
 
 @Component({
   selector: 'app-admin-jornada-page',
@@ -29,6 +31,9 @@ export class AdminJornadaPage implements OnInit {
   // Detail
   showDetail = false;
   editingId?: string;
+  editingJornada?: Jornada;
+  currentTab: 'principal' | 'extras' | 'progresso' = 'principal';
+  progressData?: JornadaProgress;
   detailForm = {
     nome: '',
     ordem: 1,
@@ -45,6 +50,7 @@ export class AdminJornadaPage implements OnInit {
     private saveJornadaUseCase: SaveJornadaUseCase,
     private deleteJornadaUseCase: DeleteJornadaUseCase,
     private listAvailableCardsUseCase: ListAvailableCardsUseCase,
+    private progressRepository: JornadaProgressRepository,
     private router: Router,
     private cdr: ChangeDetectorRef,
     private ngZone: NgZone
@@ -100,6 +106,8 @@ export class AdminJornadaPage implements OnInit {
 
   openCreateForm(): void {
     this.editingId = undefined;
+    this.editingJornada = undefined;
+    this.currentTab = 'principal';
     this.detailForm = {
       nome: '',
       ordem: this.jornadas.length + 1,
@@ -116,6 +124,8 @@ export class AdminJornadaPage implements OnInit {
 
   async openEditForm(jornada: Jornada): Promise<void> {
     this.editingId = jornada.id;
+    this.editingJornada = jornada;
+    this.currentTab = 'principal';
     this.detailForm = {
       nome: jornada.nome,
       ordem: jornada.ordem,
@@ -128,6 +138,35 @@ export class AdminJornadaPage implements OnInit {
     this.searchTerm = '';
     this.filterCards();
     this.showDetail = true;
+
+    // Carregar progresso da jornada
+    await this.loadJornadaProgress(jornada.id);
+  }
+
+  async loadJornadaProgress(jornadaId: string): Promise<void> {
+    try {
+      const progress = await this.progressRepository.getProgress(jornadaId);
+      this.progressData = progress || JornadaProgress.createDefault(jornadaId, 'locked');
+      this.cdr.markForCheck();
+    } catch (err) {
+      console.error('[AdminJornada] Erro ao carregar progresso:', err);
+      this.progressData = JornadaProgress.createDefault(jornadaId, 'locked');
+    }
+  }
+
+  async saveProgress(): Promise<void> {
+    if (!this.progressData) {
+      alert('⚠️ Progresso não carregado');
+      return;
+    }
+
+    try {
+      await this.progressRepository.saveProgress(this.progressData);
+      alert('✅ Progresso atualizado com sucesso');
+    } catch (err) {
+      console.error('[AdminJornada] Erro ao salvar progresso:', err);
+      alert('❌ Erro ao salvar progresso');
+    }
   }
 
   toggleCardSelection(cardId: string): void {

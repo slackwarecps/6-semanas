@@ -46,11 +46,11 @@
             </span>
           </td>
           <td class="col-actions">
-            <button class="btn-edit" (click)="openEditForm(j)">
-              ✏️ Editar
+            <button class="btn-edit" (click)="openEditForm(j)" title="Editar">
+              ✏️
             </button>
-            <button class="btn-delete" (click)="deleteJornada(j, $event)">
-              🗑️ Deletar
+            <button class="btn-delete" (click)="deleteJornada(j, $event)" title="Deletar">
+              🗑️
             </button>
           </td>
         </tr>
@@ -65,6 +65,37 @@
     </div>
 
     <form (ngSubmit)="save()" class="detail-form">
+      <!-- Tabs -->
+      <div class="tabs-container">
+        <button
+          type="button"
+          class="tab-button"
+          [class.tab-button--active]="currentTab === 'principal'"
+          (click)="currentTab = 'principal'"
+        >
+          📝 Informações Principais
+        </button>
+        <button
+          type="button"
+          class="tab-button"
+          [class.tab-button--active]="currentTab === 'extras'"
+          (click)="currentTab = 'extras'"
+        >
+          ⚙️ Mais Campos
+        </button>
+        <button
+          type="button"
+          class="tab-button"
+          [class.tab-button--active]="currentTab === 'progresso'"
+          (click)="currentTab = 'progresso'"
+          *ngIf="editingId"
+        >
+          📊 Progresso
+        </button>
+      </div>
+
+      <!-- Tab: Informações Principais -->
+      <div *ngIf="currentTab === 'principal'" class="tab-content">
       <div class="form-row-group">
         <div class="form-group flex-2">
           <label for="nome">Nome da Jornada *</label>
@@ -140,8 +171,8 @@
         </div>
       </div>
 
-      <!-- Seletor de Perguntas (Detail List) -->
-      <div class="card-selector-container">
+        <!-- Seletor de Perguntas (Detail List) -->
+        <div class="card-selector-container">
         <div class="selector-header">
           <h3>Selecione os Cards da Jornada ({{ selectedCardIds.size }} selecionados)</h3>
           <div class="search-box">
@@ -197,6 +228,218 @@
               </tr>
             </tbody>
           </table>
+        </div>
+      </div>
+      </div>
+
+      <!-- Tab: Mais Campos (Campos Reais) -->
+      <div *ngIf="currentTab === 'extras'" class="tab-content">
+        <!-- Informações Readonly -->
+        <div class="form-row-group">
+          <div class="form-group flex-2">
+            <label for="id">🆔 ID da Jornada</label>
+            <input
+              type="text"
+              id="id"
+              [(ngModel)]="editingId"
+              name="id"
+              class="form-input"
+              readonly
+              disabled
+            />
+            <span class="field-hint">Identificador único (não editável)</span>
+          </div>
+
+          <div class="form-group flex-1">
+            <label for="createdAt">📅 Data de Criação</label>
+            <input
+              type="text"
+              id="createdAt"
+              [value]="editingJornada?.createdAt | date:'dd/MM/yyyy HH:mm'"
+              class="form-input"
+              readonly
+              disabled
+            />
+            <span class="field-hint">Não editável</span>
+          </div>
+
+          <div class="form-group flex-1">
+            <label for="updatedAt">📅 Última Atualização</label>
+            <input
+              type="text"
+              id="updatedAt"
+              [value]="editingJornada?.updatedAt | date:'dd/MM/yyyy HH:mm'"
+              class="form-input"
+              readonly
+              disabled
+            />
+            <span class="field-hint">Não editável</span>
+          </div>
+        </div>
+
+        <!-- Resumo de Cards -->
+        <div class="form-row-group">
+          <div class="form-group flex-2">
+            <label>📊 Resumo da Jornada</label>
+            <div class="info-summary">
+              <div class="summary-item">
+                <span class="summary-label">Total de Cards:</span>
+                <span class="summary-value">{{ selectedCardIds.size }}</span>
+              </div>
+              <div class="summary-item">
+                <span class="summary-label">Tipo:</span>
+                <span class="summary-value">{{ detailForm.tipoJornada === 'desafio' ? '🎮 Casa Desafio' : '📚 Normal' }}</span>
+              </div>
+              <div class="summary-item">
+                <span class="summary-label">Status:</span>
+                <span class="summary-value">{{ detailForm.ativa ? '✅ Ativa' : '❌ Inativa' }}</span>
+              </div>
+              <div class="summary-item">
+                <span class="summary-label">Máximo de Erros:</span>
+                <span class="summary-value">{{ detailForm.pontosTentativas }}</span>
+              </div>
+              <div class="summary-item" *ngIf="detailForm.tipoJornada === 'desafio'">
+                <span class="summary-label">Duração Desafio:</span>
+                <span class="summary-value">{{ detailForm.duracao }} min</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="info-box">
+          <p>ℹ️ <strong>Campos Editáveis:</strong> Volta à aba "Informações Principais" para editar Nome, Ordem, Status, Tipo, Duração, Máximo de Erros e Seleção de Cards.</p>
+        </div>
+      </div>
+
+      <!-- Tab: Progresso -->
+      <div *ngIf="currentTab === 'progresso'" class="tab-content">
+        <div *ngIf="!progressData" class="loading-progress">
+          <p>⏳ Carregando progresso...</p>
+        </div>
+
+        <div *ngIf="progressData" class="progress-form">
+          <div class="form-row-group">
+            <div class="form-group flex-2">
+              <label for="progressStatus">📋 Status do Progresso</label>
+              <select
+                id="progressStatus"
+                [(ngModel)]="progressData.status"
+                name="progressStatus"
+                class="form-input"
+              >
+                <option value="locked">🔒 Bloqueada</option>
+                <option value="unlocked">🔓 Desbloqueada</option>
+                <option value="in_progress">🔄 Em Progresso</option>
+                <option value="completed">✅ Completada</option>
+              </select>
+            </div>
+
+            <div class="form-group flex-1">
+              <label for="currentQuestionIndex">❓ Pergunta Atual (Índice)</label>
+              <input
+                type="number"
+                id="currentQuestionIndex"
+                [(ngModel)]="progressData.currentQuestionIndex"
+                name="currentQuestionIndex"
+                min="0"
+                class="form-input"
+              />
+            </div>
+
+            <div class="form-group flex-1">
+              <label for="currentErrors">❌ Erros Atuais</label>
+              <input
+                type="number"
+                id="currentErrors"
+                [(ngModel)]="progressData.currentErrors"
+                name="currentErrors"
+                min="0"
+                class="form-input"
+              />
+            </div>
+          </div>
+
+          <div class="form-row-group">
+            <div class="form-group flex-1">
+              <label for="currentLives">❤️ Vidas Atuais</label>
+              <input
+                type="number"
+                id="currentLives"
+                [(ngModel)]="progressData.currentLives"
+                name="currentLives"
+                min="0"
+                class="form-input"
+              />
+            </div>
+
+            <div class="form-group flex-1">
+              <label for="bestErrors">🏆 Melhor Erros</label>
+              <input
+                type="number"
+                id="bestErrors"
+                [(ngModel)]="progressData.bestErrors"
+                name="bestErrors"
+                [value]="progressData.bestErrors || ''"
+                placeholder="Deixe em branco se nunca completou"
+                class="form-input"
+              />
+            </div>
+
+            <div class="form-group flex-1">
+              <label for="bestTime">⏱️ Melhor Tempo (ms)</label>
+              <input
+                type="number"
+                id="bestTime"
+                [(ngModel)]="progressData.bestTime"
+                name="bestTime"
+                [value]="progressData.bestTime || ''"
+                placeholder="Deixe em branco se nunca completou"
+                class="form-input"
+              />
+            </div>
+          </div>
+
+          <div class="form-row-group">
+            <div class="form-group flex-2">
+              <label for="completedAt">🏁 Data de Conclusão</label>
+              <input
+                type="datetime-local"
+                id="completedAt"
+                [(ngModel)]="progressData.completedAt"
+                name="completedAt"
+                class="form-input"
+              />
+              <span class="field-hint">Deixe em branco se não completou</span>
+            </div>
+
+            <div class="form-group flex-1">
+              <label for="lastActiveAt">🕐 Última Atividade</label>
+              <input
+                type="datetime-local"
+                id="lastActiveAt"
+                [(ngModel)]="progressData.lastActiveAt"
+                name="lastActiveAt"
+                class="form-input"
+              />
+            </div>
+
+            <div class="form-group flex-1">
+              <label for="desafioStartTimeMs">⏰ Início Desafio (ms)</label>
+              <input
+                type="number"
+                id="desafioStartTimeMs"
+                [(ngModel)]="progressData.desafioStartTimeMs"
+                name="desafioStartTimeMs"
+                [value]="progressData.desafioStartTimeMs || ''"
+                placeholder="Timestamp"
+                class="form-input"
+              />
+            </div>
+          </div>
+
+          <div class="warning-box">
+            <p>⚠️ <strong>Cuidado:</strong> Altere os valores com atenção. Essas mudanças afetam diretamente o progresso do usuário na jornada.</p>
+          </div>
         </div>
       </div>
 
