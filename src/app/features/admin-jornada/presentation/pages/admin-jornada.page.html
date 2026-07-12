@@ -65,6 +65,28 @@
     </div>
 
     <form (ngSubmit)="save()" class="detail-form">
+      <!-- Tabs -->
+      <div class="tabs-container">
+        <button
+          type="button"
+          class="tab-button"
+          [class.tab-button--active]="currentTab === 'principal'"
+          (click)="currentTab = 'principal'"
+        >
+          📝 Informações Principais
+        </button>
+        <button
+          type="button"
+          class="tab-button"
+          [class.tab-button--active]="currentTab === 'extras'"
+          (click)="currentTab = 'extras'"
+        >
+          ⚙️ Mais Campos
+        </button>
+      </div>
+
+      <!-- Tab: Informações Principais -->
+      <div *ngIf="currentTab === 'principal'" class="tab-content">
       <div class="form-row-group">
         <div class="form-group flex-2">
           <label for="nome">Nome da Jornada *</label>
@@ -140,8 +162,8 @@
         </div>
       </div>
 
-      <!-- Seletor de Perguntas (Detail List) -->
-      <div class="card-selector-container">
+        <!-- Seletor de Perguntas (Detail List) -->
+        <div class="card-selector-container">
         <div class="selector-header">
           <h3>Selecione os Cards da Jornada ({{ selectedCardIds.size }} selecionados)</h3>
           <div class="search-box">
@@ -197,6 +219,101 @@
               </tr>
             </tbody>
           </table>
+        </div>
+      </div>
+      </div>
+
+      <!-- Tab: Mais Campos -->
+      <div *ngIf="currentTab === 'extras'" class="tab-content">
+        <div class="form-row-group">
+          <div class="form-group flex-2">
+            <label for="id">ID da Jornada</label>
+            <input
+              type="text"
+              id="id"
+              [(ngModel)]="editingId"
+              name="id"
+              class="form-input"
+              readonly
+              disabled
+            />
+            <span class="field-hint">Identificador único (não editável)</span>
+          </div>
+
+          <div class="form-group flex-1">
+            <label for="createdAt">📅 Data de Criação</label>
+            <input
+              type="text"
+              id="createdAt"
+              [value]="editingJornada?.createdAt | date:'dd/MM/yyyy HH:mm'"
+              class="form-input"
+              readonly
+              disabled
+            />
+            <span class="field-hint">Não editável</span>
+          </div>
+
+          <div class="form-group flex-1">
+            <label for="updatedAt">📅 Última Atualização</label>
+            <input
+              type="text"
+              id="updatedAt"
+              [value]="editingJornada?.updatedAt | date:'dd/MM/yyyy HH:mm'"
+              class="form-input"
+              readonly
+              disabled
+            />
+            <span class="field-hint">Não editável</span>
+          </div>
+        </div>
+
+        <div class="form-row-group">
+          <div class="form-group flex-2">
+            <label for="descricao">Descrição</label>
+            <textarea
+              id="descricao"
+              [(ngModel)]="detailForm.descricao"
+              name="descricao"
+              placeholder="Descreva o propósito e conteúdo desta jornada..."
+              class="form-textarea form-textarea-small"
+              rows="3"
+            ></textarea>
+            <span class="field-hint">Campo opcional para notas sobre a jornada</span>
+          </div>
+        </div>
+
+        <div class="form-row-group">
+          <div class="form-group flex-2">
+            <label for="observacoes">Observações</label>
+            <textarea
+              id="observacoes"
+              [(ngModel)]="detailForm.observacoes"
+              name="observacoes"
+              placeholder="Adicione observações ou notas internas..."
+              class="form-textarea form-textarea-small"
+              rows="3"
+            ></textarea>
+            <span class="field-hint">Campo interno para anotações</span>
+          </div>
+        </div>
+
+        <div class="form-row-group">
+          <div class="form-group flex-2">
+            <label for="tags">Tags</label>
+            <input
+              type="text"
+              id="tags"
+              [(ngModel)]="detailForm.tags"
+              name="tags"
+              placeholder="Ex: importante, novo, em-revisão (separadas por vírgula)"
+              class="form-input"
+            />
+            <span class="field-hint">Categorize com tags para melhor organização</span>
+          </div>
+        </div>
+
+        <div class="info-box">
+          <p>ℹ️ <strong>Dica:</strong> Use a aba "Mais Campos" para adicionar informações extras, descrições e notas sobre a jornada.</p>
         </div>
       </div>
 

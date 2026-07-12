@@ -29,13 +29,18 @@ export class AdminJornadaPage implements OnInit {
   // Detail
   showDetail = false;
   editingId?: string;
+  editingJornada?: Jornada;
+  currentTab: 'principal' | 'extras' = 'principal';
   detailForm = {
     nome: '',
     ordem: 1,
     ativa: false,
     pontosTentativas: 3,
     tipoJornada: 'normal' as 'normal' | 'desafio',
-    duracao: 120
+    duracao: 120,
+    descricao: '',
+    observacoes: '',
+    tags: ''
   };
   selectedCardIds: Set<string> = new Set<string>();
 
@@ -100,13 +105,18 @@ export class AdminJornadaPage implements OnInit {
 
   openCreateForm(): void {
     this.editingId = undefined;
+    this.editingJornada = undefined;
+    this.currentTab = 'principal';
     this.detailForm = {
       nome: '',
       ordem: this.jornadas.length + 1,
       ativa: false,
       pontosTentativas: 3,
       tipoJornada: 'normal',
-      duracao: 120
+      duracao: 120,
+      descricao: '',
+      observacoes: '',
+      tags: ''
     };
     this.selectedCardIds.clear();
     this.searchTerm = '';
@@ -116,13 +126,18 @@ export class AdminJornadaPage implements OnInit {
 
   async openEditForm(jornada: Jornada): Promise<void> {
     this.editingId = jornada.id;
+    this.editingJornada = jornada;
+    this.currentTab = 'principal';
     this.detailForm = {
       nome: jornada.nome,
       ordem: jornada.ordem,
       ativa: jornada.ativa,
       pontosTentativas: jornada.pontosTentativas || 3,
       tipoJornada: jornada.tipoJornada,
-      duracao: jornada.duracao || 120
+      duracao: jornada.duracao || 120,
+      descricao: (jornada as any).descricao || '',
+      observacoes: (jornada as any).observacoes || '',
+      tags: (jornada as any).tags || ''
     };
     this.selectedCardIds = new Set<string>(jornada.questionCardIds);
     this.searchTerm = '';
