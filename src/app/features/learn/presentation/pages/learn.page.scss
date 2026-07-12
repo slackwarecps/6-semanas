@@ -1,8 +1,10 @@
+// Mobile-first base styles
 .learn {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
   width: 100%;
+  background-color: #0f172a;
 
   &__column {
     padding: 1rem;
@@ -10,6 +12,7 @@
 
     h2 {
       margin-top: 0;
+      color: #f8fafc;
     }
 
     p {
@@ -17,21 +20,35 @@
     }
   }
 
+  // MOBILE: Menu no topo, depois conteúdo, depois painel
   &__column--left {
     width: 100%;
     display: flex;
-    flex-direction: column;
-    gap: 1rem;
+    flex-direction: row;
+    gap: 0.5rem;
+    align-items: center;
     background-color: #1e293b;
     border-bottom: 1px solid #334155;
-    order: 2;
+    order: 1;
+    padding: 0.75rem 1rem;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+
+    @media (max-width: 640px) {
+      padding: 0.65rem 0.8rem;
+      gap: 0.25rem;
+    }
   }
 
   &__column--center {
     width: 100%;
     flex: 1;
-    order: 1;
+    order: 2;
     padding-bottom: 2rem;
+
+    @media (max-width: 640px) {
+      padding: 1rem 0.75rem 1.5rem;
+    }
   }
 
   &__column--right {
@@ -39,21 +56,32 @@
     background-color: #1e293b;
     border-top: 1px solid #334155;
     order: 3;
+
+    @media (max-width: 640px) {
+      padding: 1rem 0.75rem;
+    }
   }
 
   &__logo {
     font-weight: 700;
-    font-size: 1.125rem;
+    font-size: 0.95rem;
     color: #38bdf8;
+    flex-shrink: 0;
+    white-space: nowrap;
+
+    @media (min-width: 641px) {
+      display: none;
+    }
   }
 
   &__menu {
     display: flex;
     flex-direction: row;
-    gap: 0.3rem;
+    gap: 0.2rem;
     overflow-x: auto;
-    padding: 0.25rem 0;
+    padding: 0;
     -webkit-overflow-scrolling: touch;
+    flex: 1;
 
     &::-webkit-scrollbar {
       height: 3px;
@@ -67,20 +95,33 @@
       background: #334155;
       border-radius: 2px;
     }
+
+    @media (min-width: 641px) {
+      flex-direction: column;
+      gap: 0.5rem;
+      overflow-x: unset;
+    }
   }
 
   &__menu-item {
     display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 0.3rem;
-    padding: 0.4rem 0.6rem;
-    border-radius: 10px;
+    justify-content: center;
+    gap: 0.25rem;
+    padding: 0.35rem 0.45rem;
+    border-radius: 8px;
     border: 2px solid transparent;
     text-decoration: none;
     color: #cbd5e1;
-    transition: background-color 0.15s ease, border-color 0.15s ease;
+    transition: all 0.15s ease;
     white-space: nowrap;
     flex-shrink: 0;
+    min-width: fit-content;
+
+    @media (max-width: 640px) {
+      padding: 0.3rem 0.4rem;
+    }
 
     &:hover {
       background-color: #263449;
@@ -95,125 +136,341 @@
         color: #38bdf8;
       }
     }
+
+    @media (min-width: 641px) {
+      flex-direction: row;
+      gap: 0.6rem;
+      padding: 0.5rem 0.65rem;
+      justify-content: flex-start;
+    }
   }
 
   &__menu-icon {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 32px;
-    height: 32px;
-    border-radius: 10px;
-    font-size: 1rem;
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    font-size: 0.9rem;
     flex-shrink: 0;
+    background-color: rgba(255, 255, 255, 0.05);
+
+    @media (max-width: 640px) {
+      width: 26px;
+      height: 26px;
+      font-size: 0.85rem;
+    }
+
+    @media (min-width: 641px) {
+      width: 32px;
+      height: 32px;
+      font-size: 1rem;
+    }
   }
 
   &__menu-label {
-    font-weight: 700;
-    font-size: 0.7rem;
-    letter-spacing: 0.03em;
+    font-weight: 600;
+    font-size: 0.6rem;
+    letter-spacing: 0.02em;
     text-transform: uppercase;
     color: #e2e8f0;
+    line-height: 1;
+
+    @media (min-width: 641px) {
+      font-size: 0.75rem;
+    }
   }
 
   &__promo {
     border: 1px solid #334155;
     border-radius: 12px;
-    padding: 1rem;
+    padding: 0.85rem;
     text-align: center;
+    display: none;
+
+    @media (min-width: 641px) and (max-width: 1024px) {
+      display: block;
+      padding: 1rem;
+    }
+
+    @media (min-width: 1025px) {
+      display: block;
+    }
 
     h3 {
-      margin: 0.5rem 0 0.25rem;
-      font-size: 0.95rem;
+      margin: 0.4rem 0 0.2rem;
+      font-size: 0.9rem;
       color: #f8fafc;
+
+      @media (min-width: 641px) {
+        font-size: 0.95rem;
+      }
+
+      @media (min-width: 1025px) {
+        font-size: 1rem;
+      }
     }
 
     p {
-      font-size: 0.8rem;
-      margin: 0 0 0.75rem;
+      font-size: 0.75rem;
+      margin: 0 0 0.6rem;
+
+      @media (min-width: 641px) {
+        font-size: 0.8rem;
+      }
     }
   }
 
   &__promo-icon {
-    font-size: 1.25rem;
+    font-size: 1.1rem;
+
+    @media (min-width: 641px) {
+      font-size: 1.25rem;
+    }
+
+    @media (min-width: 1025px) {
+      font-size: 1.5rem;
+    }
   }
 
   &__promo-cta {
     display: inline-block;
     font-weight: 700;
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     letter-spacing: 0.02em;
     color: #38bdf8;
     text-decoration: none;
+    transition: all 0.2s;
+
+    @media (min-width: 641px) {
+      font-size: 0.75rem;
+    }
 
     &:hover {
       text-decoration: underline;
+      color: #0ea5e9;
     }
   }
 
   &__center-header {
     text-align: center;
-    margin-bottom: 1.5rem;
+    margin-bottom: 1.25rem;
+
+    @media (max-width: 640px) {
+      margin-bottom: 1rem;
+    }
 
     h2 {
       color: #f8fafc;
-      font-size: 1.25rem;
-      margin-bottom: 0.5rem;
+      font-size: 1.1rem;
+      margin-bottom: 0.35rem;
+
+      @media (max-width: 640px) {
+        font-size: 1rem;
+        margin-bottom: 0.25rem;
+      }
     }
 
     p {
       color: #94a3b8;
-      font-size: 0.85rem;
+      font-size: 0.8rem;
       margin: 0;
+
+      @media (max-width: 640px) {
+        font-size: 0.75rem;
+      }
     }
   }
 
   &__loading {
-    text-align: center;
-    padding: 2rem;
-    color: #94a3b8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 2rem;
+    min-height: 250px;
+  }
+
+  &__loading-spinner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+
+    p {
+      color: #94a3b8;
+      font-size: 0.95rem;
+      margin: 0;
+      font-weight: 500;
+    }
+  }
+
+  &__spinner-circle {
+    width: 60px;
+    height: 60px;
+    animation: rotateSpinner 2s linear infinite;
+
+    @media (max-width: 640px) {
+      width: 50px;
+      height: 50px;
+    }
+
+    circle {
+      fill: none;
+      stroke: url(#spinnerGradient);
+      stroke-width: 3;
+      stroke-linecap: round;
+      stroke-dasharray: 100;
+      stroke-dashoffset: 0;
+      animation: dashSpinner 1.5s ease-in-out infinite;
+    }
+  }
+
+  @keyframes rotateSpinner {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+
+  @keyframes dashSpinner {
+    0% {
+      stroke-dashoffset: 100;
+    }
+    50% {
+      stroke-dashoffset: 0;
+    }
+    100% {
+      stroke-dashoffset: -100;
+    }
   }
 
   &__admin-box {
     margin-top: 1rem;
     border: 1px solid #334155;
     border-radius: 12px;
-    padding: 1rem;
+    padding: 0.85rem;
     text-align: center;
     background-color: rgba(30, 41, 59, 0.5);
 
+    @media (min-width: 641px) {
+      padding: 1rem;
+    }
+
     h3 {
-      margin: 0.5rem 0 0.25rem;
-      font-size: 0.95rem;
+      margin: 0.4rem 0 0.2rem;
+      font-size: 0.9rem;
       color: #f8fafc;
+
+      @media (min-width: 641px) {
+        font-size: 0.95rem;
+      }
+
+      @media (min-width: 1025px) {
+        font-size: 1rem;
+      }
     }
 
     p {
-      font-size: 0.8rem;
+      font-size: 0.75rem;
       color: #94a3b8;
-      margin: 0 0 0.75rem;
+      margin: 0 0 0.6rem;
+
+      @media (min-width: 641px) {
+        font-size: 0.8rem;
+      }
     }
   }
 
   &__admin-icon {
-    font-size: 1.25rem;
+    font-size: 1.1rem;
+
+    @media (min-width: 641px) {
+      font-size: 1.25rem;
+    }
+
+    @media (min-width: 1025px) {
+      font-size: 1.5rem;
+    }
   }
 
   &__admin-cta {
     display: inline-block;
     font-weight: 700;
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     letter-spacing: 0.02em;
     color: #f59e0b;
     text-decoration: none;
+    transition: all 0.2s;
+
+    @media (min-width: 641px) {
+      font-size: 0.75rem;
+    }
 
     &:hover {
       text-decoration: underline;
+      color: #fbbf24;
     }
   }
 }
 
-@media (min-width: 769px) {
+// Tablet (641px - 1024px)
+@media (min-width: 641px) and (max-width: 1024px) {
+  .learn {
+    flex-direction: column;
+
+    &__column {
+      padding: 1.25rem;
+    }
+
+    &__column--left {
+      flex-direction: row;
+      padding: 0.85rem 1.25rem;
+      gap: 0.5rem;
+    }
+
+    &__column--center {
+      order: 2;
+    }
+
+    &__column--right {
+      order: 3;
+    }
+
+    &__menu {
+      flex-direction: row;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+    }
+
+    &__center-header {
+      h2 {
+        font-size: 1.3rem;
+      }
+
+      p {
+        font-size: 0.85rem;
+      }
+    }
+
+    &__loading {
+      min-height: 300px;
+    }
+
+    &__promo {
+      margin-top: 1rem;
+    }
+
+    &__admin-box {
+      margin-top: 1rem;
+    }
+  }
+}
+
+// Desktop (1025px+)
+@media (min-width: 1025px) {
   .learn {
     flex-direction: row;
     align-items: stretch;
@@ -224,10 +481,13 @@
 
     &__column--left {
       width: 25%;
+      flex-direction: column;
       border-bottom: none;
       border-right: 1px solid #334155;
       order: 1;
       gap: 1.5rem;
+      overflow-x: unset;
+      padding: 1.5rem;
     }
 
     &__column--center {
@@ -242,6 +502,13 @@
       border-top: none;
       border-left: 1px solid #334155;
       order: 3;
+      padding: 1.5rem;
+    }
+
+    &__logo {
+      display: block;
+      font-size: 1.125rem;
+      margin-bottom: 0.5rem;
     }
 
     &__menu {
@@ -252,20 +519,21 @@
     }
 
     &__menu-item {
-      gap: 0.9rem;
-      padding: 0.6rem 0.75rem;
-      white-space: normal;
-      flex-shrink: unset;
+      flex-direction: row;
+      gap: 0.6rem;
+      padding: 0.5rem 0.65rem;
+      justify-content: flex-start;
     }
 
     &__menu-icon {
-      width: 36px;
-      height: 36px;
-      font-size: 1.1rem;
+      width: 32px;
+      height: 32px;
+      font-size: 1rem;
+      background-color: transparent;
     }
 
     &__menu-label {
-      font-size: 0.8rem;
+      font-size: 0.75rem;
     }
 
     &__promo {
@@ -302,7 +570,19 @@
     }
 
     &__loading {
-      padding: 3rem;
+      padding: 4rem 2rem;
+      min-height: 400px;
+    }
+
+    &__loading-spinner {
+      p {
+        font-size: 1rem;
+      }
+    }
+
+    &__spinner-circle {
+      width: 70px;
+      height: 70px;
     }
 
     &__admin-box {
