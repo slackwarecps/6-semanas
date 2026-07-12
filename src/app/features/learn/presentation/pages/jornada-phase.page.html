@@ -54,7 +54,7 @@
           <!-- Vidas/Corações -->
           <div class="game-lives">
             <span *ngFor="let idx of heartArray; let i = index" class="heart">
-              {{ i < lives ? '❤️' : '🩶' }}
+              {{ i < pontosTentativas - lives ? '🩶' : '❤️' }}
             </span>
           </div>
         </div>
