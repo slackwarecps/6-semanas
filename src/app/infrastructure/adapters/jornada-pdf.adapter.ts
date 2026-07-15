@@ -26,14 +26,13 @@ export class JornadaPdfAdapter {
 
       if (!isFirstPage) {
         pdf.addPage();
+      } else {
+        isFirstPage = false;
       }
 
       this.addQuestionPage(pdf, card, i + 1, cards.length, margin, pageWidth, pageHeight, contentWidth);
-
       pdf.addPage();
       this.addAnswerPage(pdf, card, margin, pageWidth, pageHeight, contentWidth);
-
-      isFirstPage = false;
     }
 
     pdf.save(`${jornada.nome.replace(/\s+/g, '_')}.pdf`);
@@ -111,6 +110,7 @@ export class JornadaPdfAdapter {
     const fontSize = 12;
     const titleFontSize = 14;
     const lineHeight = 7;
+    const bottomMargin = 15;
 
     let yPosition = margin;
 
@@ -133,10 +133,12 @@ export class JornadaPdfAdapter {
     pdf.setFont('', 'normal');
     pdf.setTextColor(40, 40, 40);
     const answerLines = pdf.splitTextToSize(card.answer, contentWidth);
-    pdf.text(answerLines, margin, yPosition);
-    yPosition += answerLines.length * lineHeight + 8;
+    yPosition = this.addTextWithPageBreak(pdf, answerLines, margin, yPosition, lineHeight, pageHeight, bottomMargin);
+    yPosition += 8;
 
     if (card.explanation) {
+      yPosition = this.ensureSpaceForTitle(pdf, yPosition, pageHeight, bottomMargin, margin, contentWidth);
+
       pdf.setFontSize(titleFontSize);
       pdf.setFont('', 'bold');
       pdf.setTextColor(0, 0, 0);
@@ -147,11 +149,13 @@ export class JornadaPdfAdapter {
       pdf.setFont('', 'normal');
       pdf.setTextColor(40, 40, 40);
       const explanationLines = pdf.splitTextToSize(card.explanation, contentWidth);
-      pdf.text(explanationLines, margin, yPosition);
-      yPosition += explanationLines.length * lineHeight + lineHeight;
+      yPosition = this.addTextWithPageBreak(pdf, explanationLines, margin, yPosition, lineHeight, pageHeight, bottomMargin);
+      yPosition += lineHeight;
     }
 
     if (card.tenYearOld) {
+      yPosition = this.ensureSpaceForTitle(pdf, yPosition, pageHeight, bottomMargin, margin, contentWidth);
+
       pdf.setFontSize(titleFontSize);
       pdf.setFont('', 'bold');
       pdf.setTextColor(0, 0, 0);
@@ -162,7 +166,49 @@ export class JornadaPdfAdapter {
       pdf.setFont('', 'normal');
       pdf.setTextColor(60, 120, 60);
       const childExplLines = pdf.splitTextToSize(card.tenYearOld, contentWidth);
-      pdf.text(childExplLines, margin, yPosition);
+      this.addTextWithPageBreak(pdf, childExplLines, margin, yPosition, lineHeight, pageHeight, bottomMargin);
     }
+  }
+
+  private addTextWithPageBreak(
+    pdf: jsPDF,
+    lines: string[],
+    xPosition: number,
+    yPosition: number,
+    lineHeight: number,
+    pageHeight: number,
+    bottomMargin: number,
+  ): number {
+    let currentY = yPosition;
+
+    for (const line of lines) {
+      if (currentY + lineHeight > pageHeight - bottomMargin) {
+        pdf.addPage();
+        currentY = 15;
+      }
+
+      pdf.text(line, xPosition, currentY);
+      currentY += lineHeight;
+    }
+
+    return currentY;
+  }
+
+  private ensureSpaceForTitle(
+    pdf: jsPDF,
+    yPosition: number,
+    pageHeight: number,
+    bottomMargin: number,
+    margin: number,
+    contentWidth: number,
+  ): number {
+    const titleHeight = 7 + 3 + 5;
+
+    if (yPosition + titleHeight > pageHeight - bottomMargin) {
+      pdf.addPage();
+      return 15;
+    }
+
+    return yPosition + 5;
   }
 }
