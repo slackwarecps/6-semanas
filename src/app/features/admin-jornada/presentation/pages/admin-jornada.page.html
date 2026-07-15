@@ -49,6 +49,14 @@
             <button class="btn-edit" (click)="openEditForm(j)" title="Editar">
               ✏️
             </button>
+            <button
+              class="btn-export"
+              (click)="exportJornada(j, $event)"
+              [disabled]="isExporting || j.questionCardIds.length === 0"
+              title="Exportar para PDF"
+            >
+              📥
+            </button>
             <button class="btn-delete" (click)="deleteJornada(j, $event)" title="Deletar">
               🗑️
             </button>

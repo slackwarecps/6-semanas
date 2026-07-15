@@ -9,6 +9,7 @@ import { GetJornadaDetailUseCase } from '../../../jornada/application/use-cases/
 import { ListAvailableCardsUseCase } from '../../../jornada/application/use-cases/list-available-cards.use-case';
 import { ListJornadasUseCase } from '../../../jornada/application/use-cases/list-jornadas.use-case';
 import { SaveJornadaUseCase } from '../../../jornada/application/use-cases/save-jornada.use-case';
+import { ExportJornadaToPdfUseCase } from '../../../jornada/application/use-cases/export-jornada-to-pdf.use-case';
 import { Jornada } from '../../../jornada/domain/entities/jornada.entity';
 import { JornadaProgress } from '../../../jornada/domain/entities/jornada-progress.entity';
 import { JornadaProgressRepository } from '../../../jornada/data/repositories/jornada-progress.repository';
@@ -24,8 +25,9 @@ export class AdminJornadaPage implements OnInit {
   jornadas: Jornada[] = [];
   availableCards: Card[] = [];
   filteredCards: Card[] = [];
-  
+
   isLoading = true;
+  isExporting = false;
   searchTerm = '';
   
   // Detail
@@ -50,6 +52,7 @@ export class AdminJornadaPage implements OnInit {
     private saveJornadaUseCase: SaveJornadaUseCase,
     private deleteJornadaUseCase: DeleteJornadaUseCase,
     private listAvailableCardsUseCase: ListAvailableCardsUseCase,
+    private exportJornadaToPdfUseCase: ExportJornadaToPdfUseCase,
     private progressRepository: JornadaProgressRepository,
     private router: Router,
     private cdr: ChangeDetectorRef,
@@ -252,6 +255,26 @@ export class AdminJornadaPage implements OnInit {
 
   cancel(): void {
     this.showDetail = false;
+  }
+
+  async exportJornada(jornada: Jornada, event: Event): Promise<void> {
+    event.stopPropagation();
+
+    if (jornada.questionCardIds.length === 0) {
+      alert('⚠️ A jornada não possui cards associados para exportar');
+      return;
+    }
+
+    this.isExporting = true;
+    try {
+      await this.exportJornadaToPdfUseCase.execute(jornada.id);
+      alert('✅ PDF gerado com sucesso!');
+    } catch (err) {
+      console.error('[AdminJornada] Erro ao exportar jornada:', err);
+      alert('❌ Erro ao gerar PDF da jornada');
+    } finally {
+      this.isExporting = false;
+    }
   }
 
   goBack(): void {

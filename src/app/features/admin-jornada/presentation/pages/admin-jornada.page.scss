@@ -578,6 +578,7 @@
 }
 
 .btn-edit,
+.btn-export,
 .btn-delete {
   width: 30px;
   height: 30px;
@@ -604,6 +605,27 @@
 
   &:active {
     transform: translateY(0);
+  }
+}
+
+.btn-export {
+  background-color: #1e4620;
+  color: #6ee7b7;
+  border-color: #059669;
+
+  &:hover:not(:disabled) {
+    background-color: #2d5a3d;
+    color: #f8fafc;
+    transform: translateY(-1px);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
   }
 }
 
