@@ -1,5 +1,13 @@
 <app-navbar></app-navbar>
 
+<!-- T026: Loading overlay during export -->
+<div *ngIf="isExporting()" class="export-loading-overlay" data-testid="export-spinner" role="dialog" aria-label="Exportação em andamento" aria-modal="true">
+  <div class="spinner-container" role="status" aria-label="Exportando jornada...">
+    <div class="spinner"></div>
+    <p>⏳ Exportando para Anki...</p>
+  </div>
+</div>
+
 <div class="admin-container">
   <div class="header">
     <button class="back-button" (click)="goBack()">
@@ -46,18 +54,28 @@
             </span>
           </td>
           <td class="col-actions">
-            <button class="btn-edit" (click)="openEditForm(j)" title="Editar">
+            <button type="button" class="btn-edit" (click)="openEditForm(j); $event.stopPropagation()" title="Editar">
               ✏️
             </button>
             <button
+              type="button"
               class="btn-export"
               (click)="exportJornada(j, $event)"
-              [disabled]="isExporting || j.questionCardIds.length === 0"
+              [disabled]="isExporting() || j.questionCardIds.length === 0"
               title="Exportar para PDF"
             >
-              📥
+              📄
             </button>
-            <button class="btn-delete" (click)="deleteJornada(j, $event)" title="Deletar">
+            <button
+              type="button"
+              class="btn-export-anki"
+              (click)="exportJornadaToAnki(j, $event); $event.stopPropagation()"
+              [disabled]="isExporting() || j.questionCardIds.length === 0"
+              title="Exportar para Anki"
+            >
+              🎴
+            </button>
+            <button type="button" class="btn-delete" (click)="deleteJornada(j, $event)" title="Deletar">
               🗑️
             </button>
           </td>

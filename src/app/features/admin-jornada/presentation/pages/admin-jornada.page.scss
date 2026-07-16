@@ -579,6 +579,7 @@
 
 .btn-edit,
 .btn-export,
+.btn-export-anki,
 .btn-delete {
   width: 30px;
   height: 30px;
@@ -629,6 +630,27 @@
   }
 }
 
+.btn-export-anki {
+  background-color: #3730a3;
+  color: #c4b5fd;
+  border-color: #4f46e5;
+
+  &:hover:not(:disabled) {
+    background-color: #4c1d95;
+    color: #f8fafc;
+    transform: translateY(-1px);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
 .btn-delete {
   background-color: #7f1d1d;
   color: #f87171;
@@ -643,4 +665,76 @@
   &:active {
     transform: translateY(0);
   }
+}
+
+/* T026-T029: Export Loading Overlay and Spinner */
+.export-loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(15, 23, 42, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(2px);
+  animation: fadeInOverlay 0.2s ease-in;
+
+  @keyframes fadeInOverlay {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  .spinner-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    background-color: #1e293b;
+    padding: 40px;
+    border-radius: 16px;
+    border: 1px solid #334155;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+
+    p {
+      margin: 0;
+      color: #cbd5e1;
+      font-size: 16px;
+      font-weight: 500;
+      letter-spacing: 0.5px;
+    }
+  }
+}
+
+/* T028: Spinner animation */
+.spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid #334155;
+  border-top: 4px solid #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+
+  @keyframes spin {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+}
+
+/* T028: Disable buttons during export */
+.btn[disabled],
+.btn-export-anki[disabled] {
+  opacity: 0.6;
+  cursor: not-allowed;
+  pointer-events: none;
 }

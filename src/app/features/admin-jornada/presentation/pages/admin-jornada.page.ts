@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectorRef, Component, NgZone, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, NgZone, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { NavbarComponent } from '../../../../shared/components/navbar/navbar.component';
@@ -13,6 +13,7 @@ import { ExportJornadaToPdfUseCase } from '../../../jornada/application/use-case
 import { Jornada } from '../../../jornada/domain/entities/jornada.entity';
 import { JornadaProgress } from '../../../jornada/domain/entities/jornada-progress.entity';
 import { JornadaProgressRepository } from '../../../jornada/data/repositories/jornada-progress.repository';
+import { ExportJornadaAdapter } from '../../infrastructure/export-jornada.adapter';
 
 @Component({
   selector: 'app-admin-jornada-page',
@@ -27,7 +28,8 @@ export class AdminJornadaPage implements OnInit {
   filteredCards: Card[] = [];
 
   isLoading = true;
-  isExporting = false;
+  // T024: Signal para gerenciar estado de exportação
+  isExporting = signal(false);
   searchTerm = '';
   
   // Detail
@@ -45,6 +47,8 @@ export class AdminJornadaPage implements OnInit {
     duracao: 120
   };
   selectedCardIds: Set<string> = new Set<string>();
+
+  private exportAdapter = inject(ExportJornadaAdapter);
 
   constructor(
     private listJornadasUseCase: ListJornadasUseCase,
@@ -265,7 +269,7 @@ export class AdminJornadaPage implements OnInit {
       return;
     }
 
-    this.isExporting = true;
+    this.isExporting.set(true);
     try {
       await this.exportJornadaToPdfUseCase.execute(jornada.id);
       alert('✅ PDF gerado com sucesso!');
@@ -273,8 +277,107 @@ export class AdminJornadaPage implements OnInit {
       console.error('[AdminJornada] Erro ao exportar jornada:', err);
       alert('❌ Erro ao gerar PDF da jornada');
     } finally {
-      this.isExporting = false;
+      this.isExporting.set(false);
     }
+  }
+
+  /**
+   * T019-T021: Export jornada to Anki .colpkg format
+   */
+  async exportJornadaToAnki(jornada: Jornada, event: Event): Promise<void> {
+    event.stopPropagation();
+
+    // T019: Validate jornada has cards
+    if (jornada.questionCardIds.length === 0) {
+      console.warn('[AdminJornada] Nenhum card para exportar nesta jornada');
+      return;
+    }
+
+    // T024-T025: Set loading state using signal
+    this.isExporting.set(true);
+    try {
+      // T019: Call export adapter
+      this.exportAdapter.exportJornadaToAnki(jornada.id).subscribe({
+        next: (blob: Blob) => {
+          // T020: Trigger download
+          this.triggerDownload(blob, jornada.nome);
+          // T025: Clear loading state with finalize pattern
+          this.isExporting.set(false);
+          // T027: Show success toast
+          this.showSuccessToast('✅ Exportação completa!');
+          this.cdr.markForCheck();
+        },
+        error: (error: any) => {
+          // T021: Handle errors
+          this.handleExportError(error);
+          // T025: Clear loading state on error
+          this.isExporting.set(false);
+          this.cdr.markForCheck();
+        },
+      });
+    } catch (err) {
+      console.error('[AdminJornada] Erro ao iniciar exportação para Anki:', err);
+      this.isExporting.set(false);
+    }
+  }
+
+  /**
+   * T020: Trigger browser download of .colpkg file
+   */
+  private triggerDownload(blob: Blob, jornadaNome: string): void {
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+
+    // Generate filename
+    const today = new Date().toISOString().split('T')[0];
+    const slug = jornadaNome
+      .toLowerCase()
+      .replace(/[/<>:*?"|]/g, '-')
+      .replace(/\s+/g, '-')
+      .replace(/-{2,}/g, '-')
+      .substring(0, 100)
+      .replace(/-$/, '');
+
+    a.download = `jornada-${slug}-${today}.apkg`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+  }
+
+  /**
+   * T021: Handle export errors
+   */
+  private handleExportError(error: any): void {
+    console.error('[AdminJornada] Erro ao exportar para Anki:', error);
+    console.error('[AdminJornada] Error status:', error?.status);
+    console.error('[AdminJornada] Error message:', error?.message);
+    console.error('[AdminJornada] Error statusText:', error?.statusText);
+    console.error('[AdminJornada] Full error object:', JSON.stringify(error, null, 2));
+
+    let message = '❌ Erro ao exportar jornada para Anki';
+
+    if (error?.status === 404) {
+      message = '❌ Jornada não encontrada';
+    } else if (error?.status === 400) {
+      message = '❌ Nenhum card para exportar';
+    } else if (error?.status === 500) {
+      message = '❌ Erro no servidor ao gerar arquivo';
+    } else if (error?.status === 0) {
+      message = '❌ Erro de conexão ou CORS';
+    }
+
+    console.error('[AdminJornada] Message:', message);
+    alert(message);
+  }
+
+  /**
+   * T027: Show success toast notification
+   */
+  private showSuccessToast(message: string): void {
+    console.log('[AdminJornada] Toast:', message);
+    alert(message);
   }
 
   goBack(): void {
