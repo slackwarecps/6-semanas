@@ -2,10 +2,10 @@ import { Injectable, inject } from '@angular/core';
 import { SecureStorageService } from '../storage/secure-storage.service';
 
 const STORAGE_KEY = 'active_user';
-const DEFAULT_USER = 'fabao';
+const DEFAULT_USER = 'admin';
 
 /** Usuários disponíveis no seletor da Navbar. */
-export const KNOWN_USERS = ['fabao', 'walle'];
+export const KNOWN_USERS = ['admin', 'fabao', 'walle'];
 
 /**
  * Fonte única do usuário ativo do app (Fase 4 da migração).
